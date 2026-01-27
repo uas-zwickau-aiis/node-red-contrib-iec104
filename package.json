@@ -1,0 +1,11 @@
+{
+  "name": "node-red-contrib-iec104",
+  "version": "0.0.1",
+  "description": "Virtual IEC104 RTU",
+  "keywords": ["IEC 60870-5-104"],
+  "node-red": {
+    "nodes": {
+      "iec104-gateway": "iec104-gateway.js"
+    }
+  }
+}

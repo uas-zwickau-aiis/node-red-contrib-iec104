@@ -1,0 +1,77 @@
+<script type="text/javascript">
+RED.nodes.registerType('iec104-gateway',{
+  category: 'IEC 104',
+  color: '#dce5f5',
+  defaults: {
+    name: {value:""},
+    port: {value: 2404, required: true, validate: RED.validators.number()},
+
+    bufferMode: {
+            value: "drop",
+            required: true
+        },
+    bufferSize: {
+        value: 100,
+        validate: RED.validators.number()
+    }
+  },
+  inputs:1,
+  outputs:2,
+  outputLabels: [
+    "Data",
+    "Status"
+  ],
+  icon: "bridge.svg",
+  paletteLabel: "IEC104 Gateway",
+  label: function() {
+    return this.name || "IEC104 Gateway";
+  },
+
+  oneditprepare: function () {
+
+        function updateBufferUI() {
+            const mode = $("#node-input-bufferMode").val();
+            if (mode === "all") {
+                $("#buffer-size-row").show();
+            } else {
+                $("#buffer-size-row").hide();
+            }
+        }
+
+        $("#node-input-bufferMode").on("change", updateBufferUI);
+        updateBufferUI();
+  }
+
+});
+
+
+</script>
+<script type="text/html" data-template-name="iec104-gateway">
+  <div class="form-row">
+    <label for="node-input-name">Name</label>
+    <input type="text" id="node-input-name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-port">Port</label>
+    <input type="number" id="node-input-port">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-bufferMode">
+        <i class="fa fa-database"></i> Buffer strategy
+    </label>
+    <select id="node-input-bufferMode">
+        <option value="drop">Drop input while disconnected</option>
+        <option value="last">Buffer last value</option>
+        <option value="all">Buffer all values</option>
+    </select>
+  </div>
+  <div class="form-row" id="buffer-size-row">
+    <label for="node-input-bufferSize">
+        <i class="fa fa-list"></i> Max buffered frames
+    </label>
+    <input type="number" id="node-input-bufferSize" min="1">
+</div>
+</script>
+
