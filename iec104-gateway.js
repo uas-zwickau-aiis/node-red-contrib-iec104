@@ -1,14 +1,18 @@
 const net = require("net");
+const { buildASDU } = require("./lib/asdu/asdu")
 
 module.exports = function(RED) {
   function IEC104Gateway(config) {
     RED.nodes.createNode(this, config);
 
-    this.port = config.port;
+    this.port = Number(config.port) || 2404;
+    this.commonAddress = Number(config.commonAddress) || 1;
     this.bufferMode = config.bufferMode;
     this.bufferSize = config.bufferSize;
 
     const node = this;
+    node.points = new Map();
+
     // ########################################### //
     //                  IEC104                     //
     // ########################################### //
@@ -29,6 +33,8 @@ module.exports = function(RED) {
         },
 
         COT: {
+            CYC: 0x01,
+            SPONT: 0x03,
             ACT: 0x06,
             ACTCON: 0x07,
             ACTTERM: 0x0A
@@ -44,9 +50,9 @@ module.exports = function(RED) {
     // ================
     const STATE = {
         IDLE: "IDLE",
-        CONNECTED: "CON",
-        DATA_TRANSFER: "DT",
-        STOPPED: "STOP"
+        CONNECTED: "CONNECTED",
+        DATA_TRANSFER: "DATA_TRANSFER",
+        STOPPED: "STOPPED"
     };
     node.state = STATE.IDLE;
 
@@ -105,7 +111,19 @@ module.exports = function(RED) {
             0x04,
             code,
             0x00, 0x00, 0x00
-        ]);
+        ]);  }
+
+    function buildIFrame(asdu) {
+        const len = asdu.length + 4;
+        const buf = Buffer.alloc(len + 2);
+
+        buf[0] = IEC104.START;
+        buf[1] = len;
+
+        applySeq(buf);
+        asdu.copy(buf, 6);
+
+        return buf;
     }
 
     function buildInterrogationFrame(cot, asduLo, asduHi) {
@@ -165,13 +183,20 @@ module.exports = function(RED) {
         const typeId = buf[6];
         const cot = buf[8];
 
+
         // Interrogation 
         if (typeId === IEC104.ASDU.C_IC_NA_1 && cot === IEC104.COT.ACT) {
-            const asduLo = buf[10];
-            const asduHi = buf[11];
-            tcpWrite(buildInterrogationFrame(IEC104.COT.ACTCON, asduLo, asduHi));
-            tcpWrite(buildInterrogationFrame(IEC104.COT.ACTTERM, asduLo, asduHi));
-            return;
+            const caLo = buf[10];
+            const caHi = buf[11];
+
+            tcpWrite(buildInterrogationFrame(IEC104.COT.ACTCON, caLo, caHi));
+
+            for (const p of node.points.values()) {
+                const frame = encodePoint(p, "GI");
+                if (frame) tcpWrite(frame);
+            }
+
+            tcpWrite(buildInterrogationFrame(IEC104.COT.ACTTERM, caLo, caHi));
         }
 
     }
@@ -265,17 +290,55 @@ module.exports = function(RED) {
     // ########################################### //
     //                   NODE                      //
     // ########################################### //
-    node.on("input", function(msg) {
+    function isValidPoint(p) {
+        if (!p) return false;
+        if (typeof p.ioa !== "number") return false;
+        if (!p.type) return false;
+        if (typeof p.value === "undefined") return false;
+        return true;
+    }
 
-        if(msg._proto !== "iec104" || !isIEC104(msg.payload))
-        {
-           node.error("Non-IEC104 rejected"); 
-           return;
+    function encodePoint(p, cause) {
+        const asdu = buildASDU(p, cause, node.commonAddress);
+        if (!asdu) {
+            node.warn(`Unsupported IEC104 type: ${p.type}`);
+            return null;
         }
 
-        tcpWrite(msg.payload);
+        return buildIFrame(asdu);
+    }
 
+    node.on("input", function (msg) {
+
+        // 1) Protokoll-Check
+        if (msg._proto !== "iec104-point") {
+            node.error("Unsupported proto");
+            return;
+        }
+
+        const p = msg.payload;
+
+        // 2) Validierung
+        if (!isValidPoint(p)) {
+            node.error("Invalid IEC104 point");
+            return;
+        }
+
+        // 3) Zustand aktualisieren
+        node.points.set(p.ioa, p);
+
+        // 4) Nur senden, wenn Datentransfer aktiv
+        if (node.state !== STATE.DATA_TRANSFER) {
+            return;
+        }
+
+        // 5) Encoden & senden
+        const frame = encodePoint(p, "SPONT");
+        if (frame) {
+            tcpWrite(frame);
+        }
     });
+
 
     node.on("close", function(done) {
         if (node.socket) {

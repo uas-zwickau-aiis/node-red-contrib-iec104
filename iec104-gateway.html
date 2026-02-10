@@ -7,7 +7,7 @@ RED.nodes.registerType('iec104-gateway',{
     port: {value: 2404, required: true, validate: RED.validators.number()},
 
     bufferMode: {
-            value: "drop",
+            value: 'drop',
             required: true
         },
     bufferSize: {
@@ -37,11 +37,9 @@ RED.nodes.registerType('iec104-gateway',{
                 $("#buffer-size-row").hide();
             }
         }
-
         $("#node-input-bufferMode").on("change", updateBufferUI);
         updateBufferUI();
   }
-
 });
 
 
