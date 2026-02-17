@@ -1,0 +1,14 @@
+services:
+  nodered:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodered-iec104
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered_data:/data
+    restart: unless-stopped
+
+volumes:
+  nodered_data:

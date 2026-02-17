@@ -5,7 +5,8 @@
   "keywords": ["IEC 60870-5-104"],
   "node-red": {
     "nodes": {
-      "iec104-gateway": "iec104-gateway.js"
+      "iec104-gateway": "iec104-gateway.js",
+      "iec104_singlepoint": "iec104-singlepoint.js"
     }
   }
 }

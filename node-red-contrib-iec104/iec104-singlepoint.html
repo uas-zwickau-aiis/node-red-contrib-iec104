@@ -1,0 +1,94 @@
+<script type="text/javascript">
+  RED.nodes.registerType('iec104_singlepoint', {
+    category: 'IEC 104',
+    color: '#cfe8ff',
+    defaults: {
+      name: { value: "" },
+      ioa: { value: 1000, validate: RED.validators.number() },
+
+      // NICHT "type" nennen (Konflikt/Verwirrung mit Node-RED)
+      spType: { value: "M_SP_NA_1" },
+
+      // nur relevant bei TA/TB:
+      tsSource: { value: "now" },
+
+      // Quality Defaults
+      qInvalid: { value: false },
+      qSubstituted: { value: false },
+      qBlocked: { value: false },
+      qNotTopical: { value: false }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-bullseye",
+    label: function () {
+      return this.name || "iec104_singlepoint";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="iec104_singlepoint">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa">IOA (Objektadresse)</label>
+    <input type="number" id="node-input-ioa">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-spType">Meldetyp</label>
+    <select id="node-input-spType">
+      <option value="M_SP_NA_1">M_SP_NA_1 (ohne Zeit)</option>
+      <option value="M_SP_TA_1">M_SP_TA_1 (CP24Time2a)</option>
+      <option value="M_SP_TB_1">M_SP_TB_1 (CP56Time2a)</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-tsSource">Zeitquelle (nur TA/TB)</label>
+    <select id="node-input-tsSource">
+      <option value="now">jetzt (ISO)</option>
+      <option value="msg">msg.ts übernehmen</option>
+    </select>
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label>Quality Defaults</label>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-qInvalid">invalid</label>
+    <input type="checkbox" id="node-input-qInvalid" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qSubstituted">substituted</label>
+    <input type="checkbox" id="node-input-qSubstituted" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qBlocked">blocked</label>
+    <input type="checkbox" id="node-input-qBlocked" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qNotTopical">notTopical</label>
+    <input type="checkbox" id="node-input-qNotTopical" style="width:auto;">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="iec104_singlepoint">
+  <p>
+    Diese Node nimmt <code>msg.payload</code> (true/false) entgegen und erzeugt eine IEC104 Single-Point Meldung als Objekt in <code>msg.payload</code>.
+  </p>
+  <ul>
+    <li><b>M_SP_NA_1</b>: ohne Zeitstempel</li>
+    <li><b>M_SP_TA_1</b>: mit Zeitstempel (Simulation: ISO in <code>ts</code>)</li>
+    <li><b>M_SP_TB_1</b>: mit Zeitstempel (Simulation: ISO in <code>ts</code>)</li>
+  </ul>
+  <p>
+    Optional kannst du bei TA/TB <code>msg.ts</code> mitgeben (ISO-String oder Epoch ms), wenn du "msg.ts übernehmen" auswählst.
+  </p>
+</script>
