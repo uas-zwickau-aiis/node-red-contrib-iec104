@@ -5,7 +5,7 @@ RED.nodes.registerType('iec104-gateway',{
   defaults: {
     name: {value:""},
     port: {value: 2404, required: true, validate: RED.validators.number()},
-
+    ca: {value: 1, required: true, validate: RED.validators.number()},
     bufferMode: {
             value: 'drop',
             required: true
@@ -49,16 +49,17 @@ RED.nodes.registerType('iec104-gateway',{
     <label for="node-input-name">Name</label>
     <input type="text" id="node-input-name">
   </div>
-
+  <div class="form-row">
+    <label for="node-input-ca">Common Address</label>
+    <input type="text" id="node-input-ca">
+  </div>
   <div class="form-row">
     <label for="node-input-port">Port</label>
     <input type="number" id="node-input-port">
   </div>
 
   <div class="form-row">
-    <label for="node-input-bufferMode">
-        <i class="fa fa-database"></i> Buffer strategy
-    </label>
+    <label for="node-input-bufferMode"> Buffer Mode</label>
     <select id="node-input-bufferMode">
         <option value="drop">Drop input while disconnected</option>
         <option value="last">Buffer last value</option>

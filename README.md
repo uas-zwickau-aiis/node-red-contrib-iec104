@@ -7,3 +7,11 @@ Danach Node-Red (neu-)starten</br>
 </br>
 
 Voilà
+
+# Implementieren
+
+- GI Image und Buffer trennen
+- GI Images werden in eine JSON geschrieben (Updateintervall einstellbar) - neue Daten zuerst in tmp schreiben (sicherer bei Geräteausfall/Strom weg etc), ggf unterschiede zum aktuellen Speicherstand parsen, falls kein Unterschied -> nicht schreiben
+
+- Buffer mit Datenbank Option - ansonsten im Speicher, Speicheranzahl angeben
+- GI Gruppen 

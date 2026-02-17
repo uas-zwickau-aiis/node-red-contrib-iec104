@@ -1,25 +1,31 @@
 const net = require("net");
 const IEC104 = require("./lib/core/constants");
-const { buildASDU } = require("./lib/asdu/asdu");
 const Session = require("./lib/protocol/session")
 
 module.exports = function(RED) {
   function IEC104Gateway(config) {
     RED.nodes.createNode(this, config);
 
-    this.port = Number(config.port) || 2404;
-    this.commonAddress = Number(config.commonAddress) || 1;
+    this.port = Number(config.port);
+    this.ca = Number(config.ca);
     this.bufferMode = config.bufferMode;
     this.bufferSize = config.bufferSize;
+    this.disableSnapshots = config.disableSnapshots || false
+    console.log("config.ca raw:", config.ca);
 
     const node = this;
-    node.points = new Map();
+
+    // Zustand aller Punkte
+    node.processImage = new Map();
+    node.imageDirty = false;
+
+
     node.session = new Session({
+        ca: node.ca,
         send: data => tcpWrite(data),
         onStateChange: (s,msg) => setState(s,msg),
-        buildASDU: (p, cause) => buildASDU(p, cause, node.commonAddress),
         onGI: async sendPoint => {
-            for (const p of node.points.values()) {
+            for (const p of node.processImage.values()) {
                 sendPoint(p);
             }
         }
@@ -132,18 +138,37 @@ module.exports = function(RED) {
     node.on("input", function (msg) {
         const p = msg.payload;
 
-        // 2) Validierung
         if (!isValidPoint(p)) {
             node.error("Invalid IEC104 point");
             return;
         }
 
-        // 3) Zustand aktualisieren
-        node.points.set(p.ioa, p);
+        // Update Image
+        if(node.processImage.get(p.ioa) === p)
+        node.processImage.set(p.ioa, p);
 
         // 5) Encoden & senden
         node.session.sendPoint(p, "SPONT") // hier evtl noch CYC/PERIODIC
     });
+
+    function pointChanged(oldPoint, newPoint) {
+        if(!oldPoint) return true;
+
+        if (oldPoint.value !== newPoint.value) return true;
+        if (qualityChanged(oldPoint, newPoint)) return true;
+
+        return false;
+    }
+
+    function qualityChanged(a, b) {
+        if (!a && !b) return false;
+        if (!a || !b) return true;
+
+        return a.invalid     !== b.invalid ||
+            a.substituted !== b.substituted ||
+            a.blocked     !== b.blocked ||
+            a.notTopical  !== b.notTopical;
+    }
 
 
     node.on("close", function(done) {
