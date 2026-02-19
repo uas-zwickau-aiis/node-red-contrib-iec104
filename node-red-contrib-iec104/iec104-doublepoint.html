@@ -1,15 +1,15 @@
 <script type="text/javascript">
-  RED.nodes.registerType('iec104_singlepoint', {
+  RED.nodes.registerType('iec104_doublepoint', {
     category: 'IEC 104',
     color: '#dce5f5',
     defaults: {
       name: { value: "" },
       ioa: { value: 1000, validate: RED.validators.number() },
 
-      // NICHT "type" nennen (Konflikt/Verwirrung mit Node-RED)
-      spType: { value: "M_SP_NA_1" },
+      // NICHT "type" nennen
+      dpType: { value: "M_DP_NA_1" },
 
-      // nur relevant bei TA/TB:
+      // nur relevant bei TA/TB
       tsSource: { value: "now" },
 
       // Quality Defaults
@@ -22,12 +22,12 @@
     outputs: 1,
     icon: "bridge.svg",
     label: function () {
-      return this.name || "iec104_singlepoint";
+      return this.name || "iec104_doublepoint";
     }
   });
 </script>
 
-<script type="text/html" data-template-name="iec104_singlepoint">
+<script type="text/html" data-template-name="iec104_doublepoint">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
@@ -39,11 +39,11 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-spType">Meldetyp</label>
-    <select id="node-input-spType">
-      <option value="M_SP_NA_1">M_SP_NA_1 (ohne Zeit)</option>
-      <option value="M_SP_TA_1">M_SP_TA_1 (CP24Time2a)</option>
-      <option value="M_SP_TB_1">M_SP_TB_1 (CP56Time2a)</option>
+    <label for="node-input-dpType">Meldetyp</label>
+    <select id="node-input-dpType">
+      <option value="M_DP_NA_1">M_DP_NA_1 (ohne Zeit)</option>
+      <option value="M_DP_TA_1">M_DP_TA_1 (CP24Time2a)</option>
+      <option value="M_DP_TB_1">M_DP_TB_1 (CP56Time2a)</option>
     </select>
   </div>
 
@@ -79,16 +79,21 @@
   </div>
 </script>
 
-<script type="text/html" data-help-name="iec104_singlepoint">
+<script type="text/html" data-help-name="iec104_doublepoint">
   <p>
-    Diese Node nimmt <code>msg.payload</code> (true/false) entgegen und erzeugt eine IEC104 Single-Point Meldung als Objekt in <code>msg.payload</code>.
+    Diese Node nimmt <code>msg.payload</code> als Double Point (DPI) entgegen und erzeugt eine IEC104 Doppelmeldung als Objekt in <code>msg.payload</code>.
   </p>
+  <p><b>Input:</b> <code>msg.payload</code> muss Integer 0..3 sein:</p>
   <ul>
-    <li><b>M_SP_NA_1</b>: ohne Zeitstempel</li>
-    <li><b>M_SP_TA_1</b>: mit Zeitstempel (Simulation: ISO in <code>ts</code>)</li>
-    <li><b>M_SP_TB_1</b>: mit Zeitstempel (Simulation: ISO in <code>ts</code>)</li>
+    <li>0 = Zwischenstellung (intermediate)</li>
+    <li>1 = AUS (off)</li>
+    <li>2 = EIN (on)</li>
+    <li>3 = unbestimmt/ungültig (indeterminate)</li>
   </ul>
   <p>
-    Optional kannst du bei TA/TB <code>msg.ts</code> mitgeben (ISO-String oder Epoch ms), wenn du "msg.ts übernehmen" auswählst.
+    Bei <b>M_DP_TA_1</b> / <b>M_DP_TB_1</b> wird ein Zeitstempel in <code>ts</code> gesetzt (Simulation: ISO).
+    Optional kann <code>msg.ts</code> übernommen werden, wenn "msg.ts übernehmen" gewählt ist.
   </p>
 </script>
+
+  

@@ -6,7 +6,9 @@
   "node-red": {
     "nodes": {
       "iec104-gateway": "iec104-gateway.js",
-      "iec104_singlepoint": "iec104-singlepoint.js"
+      "iec104_singlepoint": "iec104-singlepoint.js",
+      "iec104_doublepoint": "iec104-doublepoint.js",
+      "iec104_measuredvalue": "iec104-measuredvalue.js"
     }
   }
 }

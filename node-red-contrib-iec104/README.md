@@ -15,3 +15,12 @@ Voilà
 
 - Buffer mit Datenbank Option - ansonsten im Speicher, Speicheranzahl angeben
 - GI Gruppen 
+
+
+# Nodes in node red starten 
+
+
+ compose up Befehl zum starten des NodeRed
+ - Dockerfile lädt automatisch neue Nodes mit rein
+
+ 

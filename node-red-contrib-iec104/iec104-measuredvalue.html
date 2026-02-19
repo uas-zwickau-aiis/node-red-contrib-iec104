@@ -1,0 +1,158 @@
+<script type="text/javascript">
+  RED.nodes.registerType('iec104_measuredvalue', {
+    category: 'IEC 104',
+    color: '#dce5f5',
+    defaults: {
+      name: { value: "" },
+      ioa: { value: 1000, validate: RED.validators.number() },
+
+      meType: { value: "M_ME_NC_1" },
+      tsSource: { value: "now" },   // now | msg
+
+      // Hysterese
+      hystMode: { value: "none" },  // none | absolute | percent
+      hystValue: { value: 0, validate: RED.validators.number() },
+
+      // Quality Defaults
+      qBL: { value: false },
+      qSB: { value: false },
+      qINT: { value: false },
+      qIV: { value: false },
+      qOV: { value: false },
+
+      // normValue
+      normMode: { value: "none" },  // none | from-config | from-msg | compute
+      normValue: { value: 0, validate: RED.validators.number() },
+      normMin: { value: 0, validate: RED.validators.number() },
+      normMax: { value: 100, validate: RED.validators.number() }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "bridge.svg",
+    label: function () {
+      return this.name || "iec104_measuredvalue";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="iec104_measuredvalue">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa">IOA (Objektadresse)</label>
+    <input type="number" id="node-input-ioa">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-meType">Meldetyp</label>
+    <select id="node-input-meType">
+      <option value="M_ME_NA_1">M_ME_NA_1 (normalized, ohne Zeit)</option>
+      <option value="M_ME_TA_1">M_ME_TA_1 (normalized, CP24)</option>
+
+      <option value="M_ME_NB_1">M_ME_NB_1 (scaled, ohne Zeit)</option>
+      <option value="M_ME_TB_1">M_ME_TB_1 (scaled, CP24)</option>
+
+      <option value="M_ME_NC_1">M_ME_NC_1 (float, ohne Zeit)</option>
+      <option value="M_ME_TC_1">M_ME_TC_1 (float, CP24)</option>
+
+      <option value="M_ME_TD_1">M_ME_TD_1 (Zeitvariante)</option>
+      <option value="M_ME_TE_1">M_ME_TE_1 (Zeitvariante)</option>
+      <option value="M_ME_TF_1">M_ME_TF_1 (Zeitvariante)</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-tsSource">Zeitquelle (nur T*-Typen)</label>
+    <select id="node-input-tsSource">
+      <option value="now">jetzt (ISO)</option>
+      <option value="msg">msg.ts übernehmen</option>
+    </select>
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label for="node-input-hystMode">Hysterese-Modus</label>
+    <select id="node-input-hystMode">
+      <option value="none">none (immer senden)</option>
+      <option value="absolute">absolut (Δ >= Schwelle)</option>
+      <option value="percent">prozentual vom letzten Wert</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-hystValue">Hysterese-Wert</label>
+    <input type="number" id="node-input-hystValue">
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label>Quality Defaults (QDS)</label>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-qBL">BL (blocked)</label>
+    <input type="checkbox" id="node-input-qBL" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qSB">SB (substituted)</label>
+    <input type="checkbox" id="node-input-qSB" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qINT">INT</label>
+    <input type="checkbox" id="node-input-qINT" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qIV">IV (invalid)</label>
+    <input type="checkbox" id="node-input-qIV" style="width:auto;">
+  </div>
+  <div class="form-row">
+    <label for="node-input-qOV">OV (overflow)</label>
+    <input type="checkbox" id="node-input-qOV" style="width:auto;">
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label for="node-input-normMode">Normierter Wert (nur NA/TA)</label>
+    <select id="node-input-normMode">
+      <option value="none">none</option>
+      <option value="from-config">fixer normValue aus Konfig</option>
+      <option value="from-msg">msg.normValue übernehmen</option>
+      <option value="compute">aus min/max berechnen</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-normValue">normValue (Konfig)</label>
+    <input type="number" id="node-input-normValue">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-normMin">min (für compute)</label>
+    <input type="number" id="node-input-normMin">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-normMax">max (für compute)</label>
+    <input type="number" id="node-input-normMax">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="iec104_measuredvalue">
+  <p>
+    Diese Node nimmt <code>msg.payload</code> als Messwert (Zahl) entgegen und erzeugt ein IEC104 Messwert-Objekt in <code>msg.payload</code>.
+  </p>
+
+  <p><b>Timestamp:</b> Bei allen <code>M_ME_T*_1</code> Typen wird <code>ts</code> gesetzt (ISO oder <code>msg.ts</code>).</p>
+
+  <p><b>Hysterese:</b> Unterdrückt Ausgaben, wenn die Änderung gegenüber dem zuletzt gesendeten Wert kleiner als die Schwelle ist.</p>
+
+  <p><b>Quality:</b> BL, SB, INT, IV, OV können per Konfig gesetzt werden; zusätzlich kann <code>msg.quality</code> als Objekt überschreiben.</p>
+
+  <p><b>normValue:</b> Wird nur für <code>M_ME_NA_1</code> / <code>M_ME_TA_1</code> ergänzt.</p>
+</script>
