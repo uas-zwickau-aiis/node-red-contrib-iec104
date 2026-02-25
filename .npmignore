@@ -1,0 +1,19 @@
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Development / test utilities
+client.py
+scada.py
+
+# Git & CI
+.git
+.github
+.gitignore
+
+# Editor
+.vscode
+
+# macOS
+.DS_Store
