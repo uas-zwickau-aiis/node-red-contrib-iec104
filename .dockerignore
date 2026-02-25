@@ -4,7 +4,5 @@
 .DS_Store
 *.tgz
 node_modules
-docker-compose.yml
-Dockerfile
-client.py
-scada.py
+docker/
+examples/

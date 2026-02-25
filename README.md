@@ -76,7 +76,7 @@ Converts a numeric `msg.payload` into a Measured Value ASDU. Supports hysteresis
 ### Run locally with Docker
 
 ```bash
-docker compose up --build
+docker compose -f docker/docker-compose.yml up --build
 ```
 
 This starts a Node-RED instance on port 1880 with the package pre-installed.
@@ -84,7 +84,7 @@ This starts a Node-RED instance on port 1880 with the package pre-installed.
 ### Test with a simulated SCADA master
 
 ```bash
-python3 client.py
+python3 examples/client.py
 ```
 
 ## License

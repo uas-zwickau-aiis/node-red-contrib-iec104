@@ -1,11 +1,8 @@
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
+# Docker & deployment
+docker/
 
 # Development / test utilities
-client.py
-scada.py
+examples/
 
 # Git & CI
 .git

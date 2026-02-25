@@ -1,8 +1,8 @@
 services:
   nodered:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: nodered-iec104
     ports:
       - "1880:1880"
