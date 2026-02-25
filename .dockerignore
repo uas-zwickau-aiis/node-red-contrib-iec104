@@ -1,0 +1,10 @@
+.git
+.github
+.gitignore
+.DS_Store
+*.tgz
+node_modules
+docker-compose.yml
+Dockerfile
+client.py
+scada.py
