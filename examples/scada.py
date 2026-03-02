@@ -47,7 +47,18 @@ class IECManager:
                     connection: c104.Connection,
                     state: c104.ConnectionState
             ) -> None:
-                print(f"[{name}] STATE:", state)
+                print(state)
+
+                if state == c104.ConnectionState.OPEN_MUTED:
+                    def watchdog():
+                        time.sleep(10)
+                        if connection.state == c104.ConnectionState.OPEN_MUTED:
+                            print("STARTDT Timeout → reconnect")
+                            connection.disconnect()
+
+                    threading.Thread(target=watchdog, daemon=True).start()
+                if state == c104.ConnectionState.CLOSED:
+                    connection.connect()
 
             conn.on_state_change(state_change)
             conn.connect()
@@ -119,7 +130,7 @@ iec = IECManager()
 app = Flask(__name__)
 
 HTML = """
-<h1>IEC-104 Empfangs SCADA</h1>
+<h1>IEC 60870-5-104 SCADA</h1>
 
 <h2>Neue Verbindung</h2>
 <form method="post" action="/add_connection">

@@ -84,7 +84,7 @@ This starts a Node-RED instance on port 1880 with the package pre-installed.
 ### Test with a simulated SCADA master
 
 ```bash
-python3 examples/client.py
+python3 examples/scada.py
 ```
 
 ## License

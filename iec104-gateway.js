@@ -11,7 +11,6 @@ module.exports = function(RED) {
     this.bufferMode = config.bufferMode;
     this.bufferSize = config.bufferSize;
     this.disableSnapshots = config.disableSnapshots || false
-    console.log("config.ca raw:", config.ca);
 
     const node = this;
 
