@@ -1,0 +1,35 @@
+{
+  "name": "node-red-contrib-iec104",
+  "version": "0.0.1",
+  "description": "Node-RED nodes for IEC 60870-5-104 (IEC 104) communication – virtual RTU with single point, double point, and measured value support.",
+  "keywords": [
+    "node-red",
+    "iec104",
+    "IEC 60870-5-104",
+    "scada",
+    "rtu",
+    "telecontrol"
+  ],
+  "author": "Arbeitskreis integrierte Informationssyteme <aiis@whz.de>",
+  "license": "MIT",
+  "homepage": "https://github.com/MeisterSchwarz/node-red-contrib-iec104",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MeisterSchwarz/node-red-contrib-iec104.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MeisterSchwarz/node-red-contrib-iec104/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "iec104-gateway": "iec104-gateway.js",
+      "iec104-singlepoint": "iec104-singlepoint.js",
+      "iec104-doublepoint": "iec104-doublepoint.js",
+      "iec104-measuredvalue": "iec104-measuredvalue.js"
+    }
+  }
+}

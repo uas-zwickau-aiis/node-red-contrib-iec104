@@ -1,0 +1,8 @@
+.git
+.github
+.gitignore
+.DS_Store
+*.tgz
+node_modules
+docker/
+examples/

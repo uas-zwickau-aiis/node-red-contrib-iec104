@@ -1,0 +1,16 @@
+# Docker & deployment
+docker/
+
+# Development / test utilities
+examples/
+
+# Git & CI
+.git
+.github
+.gitignore
+
+# Editor
+.vscode
+
+# macOS
+.DS_Store
