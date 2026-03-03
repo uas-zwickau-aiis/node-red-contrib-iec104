@@ -6,14 +6,8 @@ RED.nodes.registerType('iec104-gateway',{
     name: {value:""},
     port: {value: 2404, required: true, validate: RED.validators.number()},
     ca: {value: 1, required: true, validate: RED.validators.number()},
-    bufferMode: {
-            value: 'drop',
-            required: true
-        },
-    bufferSize: {
-        value: 100,
-        validate: RED.validators.number()
-    }
+    t1: { value: 15, validate: RED.validators.number()},
+    t3: { value: 20, validate: RED.validators.number()}
   },
   inputs:1,
   outputs:2,
@@ -25,52 +19,98 @@ RED.nodes.registerType('iec104-gateway',{
   paletteLabel: "IEC104 Gateway",
   label: function() {
     return this.name || "IEC104 Gateway";
-  },
-
-  oneditprepare: function () {
-
-        function updateBufferUI() {
-            const mode = $("#node-input-bufferMode").val();
-            if (mode === "all") {
-                $("#buffer-size-row").show();
-            } else {
-                $("#buffer-size-row").hide();
-            }
-        }
-        $("#node-input-bufferMode").on("change", updateBufferUI);
-        updateBufferUI();
   }
 });
-
-
 </script>
+
 <script type="text/html" data-template-name="iec104-gateway">
+
   <div class="form-row">
     <label for="node-input-name">Name</label>
     <input type="text" id="node-input-name">
   </div>
+
   <div class="form-row">
     <label for="node-input-ca">Common Address</label>
-    <input type="text" id="node-input-ca">
+    <input type="number" id="node-input-ca">
   </div>
+
   <div class="form-row">
     <label for="node-input-port">Port</label>
     <input type="number" id="node-input-port">
   </div>
 
+  <hr>
+
   <div class="form-row">
-    <label for="node-input-bufferMode"> Buffer Mode</label>
-    <select id="node-input-bufferMode">
-        <option value="drop">Drop input while disconnected</option>
-        <option value="last">Buffer last value</option>
-        <option value="all">Buffer all values</option>
-    </select>
+    <label for="node-input-t1">t1 (s)</label>
+    <input type="number" id="node-input-t1" min="0">
   </div>
-  <div class="form-row" id="buffer-size-row">
-    <label for="node-input-bufferSize">
-        <i class="fa fa-list"></i> Max buffered frames
-    </label>
-    <input type="number" id="node-input-bufferSize" min="1">
-</div>
+
+  <div class="form-row">
+    <label>t2</label>
+    <span style="margin-left:10px; color:#888;">nicht implementiert</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-t3">t3 (s)</label>
+    <input type="number" id="node-input-t3" min="0">
+  </div>
+
 </script>
 
+<script type="text/html" data-help-name="iec104-gateway">
+
+  <p>
+    <b>IEC 60870-5-104 Gateway</b><br>
+    Stellt eine IEC-104 Server-Verbindung (RTU) bereit.
+  </p>
+
+  <h3>Funktion</h3>
+  <p>
+    Die Node empfängt IEC-104 Verbindungen über TCP (Standardport 2404)
+    und sendet eingehende Punkte als I-Frames.
+  </p>
+
+  <h3>Eingang</h3>
+  <p>
+    Erwartet ein JSON-Objekt im <code>msg.payload</code>:
+  </p>
+
+  <pre>
+  {
+    "ioa": 12,
+    "type": "M_SP_NA_1",
+    "value": true,
+    "quality": {
+      "invalid": false,
+      "substituted": false,
+      "blocked": false,
+      "notTopical": false
+    },
+    "timestamp": 1700000000000
+  }
+  </pre>
+
+  <h3>Ausgänge</h3>
+  <ul>
+  <li><b>Output 1:</b> Gesendete IEC-Frames (Buffer)</li>
+  <li><b>Output 2:</b> Statusmeldungen (Verbindung, StartDT, StopDT, Timer)</li>
+  </ul>
+
+  <h3>Parameter</h3>
+  <ul>
+  <li><b>Common Address:</b> Stationsadresse der RTU</li>
+  <li><b>Port:</b> TCP-Port (Standard 2404)</li>
+  <li><b>t1:</b> Timeout für nicht bestätigte I-Frames (Sekunden, 0 = deaktiviert)</li>
+  <li><b>t3:</b> Inaktivitäts-Timeout für TESTFR (Sekunden, 0 = deaktiviert)</li>
+  </ul>
+
+  <h3>Hinweise</h3>
+  <ul>
+  <li>Unterstützt Global Interrogation (GI)</li>
+  <li>Process Image wird intern verwaltet</li>
+  <li>SPONT Meldungen werden sofort übertragen</li>
+  </ul>
+
+</script>

@@ -162,7 +162,7 @@ Type
 <select name="type">
 <option>M_SP_NA_1</option>
 <option>M_DP_NA_1</option>
-<option>M_ME_NA_1</option>
+<option>M_ME_NB_1</option>
 <option>C_SC_NA_1</option>
 </select>
 <button>Add Point</button>

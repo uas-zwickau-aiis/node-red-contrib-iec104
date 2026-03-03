@@ -8,9 +8,8 @@ module.exports = function(RED) {
 
     this.port = Number(config.port);
     this.ca = Number(config.ca);
-    this.bufferMode = config.bufferMode;
-    this.bufferSize = config.bufferSize;
-    this.disableSnapshots = config.disableSnapshots || false
+    this.t1 = Number(config.t1) * 1000;
+    this.t3 = Number(config.t3) * 1000;
 
     const node = this;
 
@@ -18,38 +17,51 @@ module.exports = function(RED) {
     node.processImage = new Map();
     node.imageDirty = false;
 
-
     node.session = new Session({
         ca: node.ca,
         send: data => tcpWrite(data),
         onStateChange: (s,msg) => setState(s,msg),
         onGI: async sendPoint => {
-            for (const p of node.processImage.values()) {
+
+            const snapshot = Array
+                .from(node.processImage.values())
+                .sort((a, b) => a.ioa - b.ioa);
+
+            for (const p of snapshot) {
                 sendPoint(p);
             }
-        }
+        },
+        onConnectionLost: reason => {
+            tcpCleanup(reason);
+        },
+        t1: node.t1,
+        t3: node.t3
     });
 
 
-    function setState(state, msg)
+    function setState(state, reason)
     {
         let color = "red";
+        let statusText = "Keine Verbindung";
         switch(state)
         {
             case "CONNECTED":
                 color = "yellow";
+                statusText = "Verbindung angenommen";
                 break;
             case "DATA_TRANSFER":
                 color = "green";
+                statusText = "Datentransfer aktiv";
                 break;
             case "STOPPED":
                 color = "blue";
+                statusText = "Datentransfer gestoppt"
                 break;
             default:
                 break;
         }
-        node.status({ fill: color, shape: "dot", text: msg || "" });
-        emitStatus(state, msg)
+        node.status({ fill: color, shape: "dot", text: statusText || "" });
+        emitStatus(state, reason)
     }
 
     // ########################################### //
@@ -76,7 +88,7 @@ module.exports = function(RED) {
     });
 
     node.server.on("error", err => {
-        tcpCleanup()
+        tcpCleanup(err.message)
     });
 
     node.server.listen(node.port, () => {
@@ -89,7 +101,7 @@ module.exports = function(RED) {
             emitData(data)
         }
     }
-    function tcpCleanup() {
+    function tcpCleanup(reason = "") {
         if (!node.socket) return;
 
         try { 
@@ -99,7 +111,7 @@ module.exports = function(RED) {
         node.socket = null;
         node.rxBuffer = Buffer.alloc(0);
 
-        node.session.stop();
+        node.session.stop(reason);
     }
 
     function onRxBytes(data) {
@@ -142,33 +154,11 @@ module.exports = function(RED) {
             return;
         }
 
-        // Update Image
-        if(node.processImage.get(p.ioa) === p)
         node.processImage.set(p.ioa, p);
 
         // 5) Encoden & senden
         node.session.sendPoint(p, "SPONT") // hier evtl noch CYC/PERIODIC
     });
-
-    function pointChanged(oldPoint, newPoint) {
-        if(!oldPoint) return true;
-
-        if (oldPoint.value !== newPoint.value) return true;
-        if (qualityChanged(oldPoint, newPoint)) return true;
-
-        return false;
-    }
-
-    function qualityChanged(a, b) {
-        if (!a && !b) return false;
-        if (!a || !b) return true;
-
-        return a.invalid     !== b.invalid ||
-            a.substituted !== b.substituted ||
-            a.blocked     !== b.blocked ||
-            a.notTopical  !== b.notTopical;
-    }
-
 
     node.on("close", function(done) {
         if (node.socket) {
@@ -199,14 +189,14 @@ module.exports = function(RED) {
         ]);
     }
 
-    function emitStatus(state, msg)
+    function emitStatus(state, reason)
     {
         node.send([
             null,
             {
                 topic: "iec104/status",
                 state,
-                msg,
+                reason,
                 ts: Date.now()
             }
         ]);
