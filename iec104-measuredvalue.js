@@ -10,6 +10,12 @@ module.exports = function (RED) {
     const meType = String(config.meType || "M_ME_NC_1");
     const tsSource = String(config.tsSource || "now"); // now | msg
 
+    // Quality Defaults (IEC 60870-5-104 / QDS bits)
+    // BL  = Blocked
+    // SB  = Substituted
+    // INT = Not topical (old value / not up-to-date)
+    // IV  = Invalid
+    // OV  = Overflow
     const defaultQuality = {
       BL: !!config.qBL,
       SB: !!config.qSB,
@@ -61,11 +67,11 @@ module.exports = function (RED) {
           ioa: ioa,
           value: value,
           quality: {
-            BL: !!quality.BL,
-            SB: !!quality.SB,
-            INT: !!quality.INT,
-            IV: !!quality.IV,
-            OV: !!quality.OV
+            blocked: !!quality.BL,     // Blocked
+            substituted: !!quality.SB,     // Substituted
+            notTopical: !!quality.INT,   // Not topical
+            invalid: !!quality.IV,     // Invalid
+            overflow: !!quality.OV      // Overflow
           }
         };
 

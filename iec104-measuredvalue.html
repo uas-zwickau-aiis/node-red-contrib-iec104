@@ -9,6 +9,12 @@
       meType: { value: "M_ME_NC_1" },
       tsSource: { value: "now" },
 
+      // Quality Defaults (IEC 60870-5-104 / IEC 60870-5-101 QDS bits)
+      // BL  = Blocked
+      // SB  = Substituted
+      // INT = Not topical (old value / not up-to-date)
+      // IV  = Invalid
+      // OV  = Overflow
       qBL: { value: false },
       qSB: { value: false },
       qINT: { value: false },
@@ -72,31 +78,31 @@
   <hr>
 
   <div class="form-row">
-    <label>Quality Defaults</label>
+    <label>Quality Defaults (QDS)</label>
   </div>
 
   <div class="form-row">
-    <label for="node-input-qBL">BL</label>
+    <label for="node-input-qBL">BL (Blocked / gesperrt)</label>
     <input type="checkbox" id="node-input-qBL">
   </div>
 
   <div class="form-row">
-    <label for="node-input-qSB">SB</label>
+    <label for="node-input-qSB">SB (Substituted / ersetzt)</label>
     <input type="checkbox" id="node-input-qSB">
   </div>
 
   <div class="form-row">
-    <label for="node-input-qINT">INT</label>
+    <label for="node-input-qINT">INT (Not topical / nicht aktuell)</label>
     <input type="checkbox" id="node-input-qINT">
   </div>
 
   <div class="form-row">
-    <label for="node-input-qIV">IV</label>
+    <label for="node-input-qIV">IV (Invalid / ungültig)</label>
     <input type="checkbox" id="node-input-qIV">
   </div>
 
   <div class="form-row">
-    <label for="node-input-qOV">OV</label>
+    <label for="node-input-qOV">OV (Overflow / Überlauf)</label>
     <input type="checkbox" id="node-input-qOV">
   </div>
 
@@ -111,11 +117,42 @@
   <dl class="message-properties">
     <dt>payload <span class="property-type">number|string</span></dt>
     <dd>Messwert. Strings dürfen Komma oder Punkt enthalten.</dd>
+
     <dt class="optional">quality <span class="property-type">object</span></dt>
-    <dd>Optionales Quality-Objekt (BL, SB, INT, IV, OV) überschreibt Defaults.</dd>
+    <dd>
+      Optionales Quality-Objekt überschreibt die Defaults.
+      Unterstützte Felder (voll ausgeschrieben):
+      <ul>
+        <li><code>BL</code> = <b>Blocked</b> (gesperrt / blockiert)</li>
+        <li><code>SB</code> = <b>Substituted</b> (ersetzt)</li>
+        <li><code>INT</code> = <b>Not topical</b> (nicht aktuell / Wert ist veraltet)</li>
+        <li><code>IV</code> = <b>Invalid</b> (ungültig)</li>
+        <li><code>OV</code> = <b>Overflow</b> (Überlauf)</li>
+      </ul>
+    </dd>
+
     <dt class="optional">ts <span class="property-type">string|number</span></dt>
     <dd>Nur bei CP56-Typen: Timestamp (ISO oder epoch ms), wenn Zeitquelle auf <code>msg.ts</code> steht.</dd>
   </dl>
 
-  
+  <h3>Ausgang</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>
+      IEC-104 Messwertobjekt:
+      <pre>{
+  "type": "M_ME_NC_1",
+  "ioa": 1000,
+  "value": 12.34,
+  "quality": {
+    "BL": false,   // Blocked
+    "SB": false,   // Substituted
+    "INT": false,  // Not topical
+    "IV": false,   // Invalid
+    "OV": false    // Overflow
+  },
+  "ts": "2026-03-04T12:34:56.789Z" // nur bei CP56-Typen (TD/TE/TF)
+}</pre>
+    </dd>
+  </dl>
 </script>
