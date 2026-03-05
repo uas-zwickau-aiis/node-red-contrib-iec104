@@ -14,8 +14,6 @@ MQTT_PORT = 1883
 MQTT_TOPIC_BASE = "iec104/sp"
 
 mqtt_client = mqtt.Client(client_id="iec104-scada")
-#mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
-#mqtt_client.loop_start()
 
 print("MQTT verbunden")
 
@@ -24,16 +22,25 @@ print("MQTT verbunden")
 # ==========================================================
 
 class IECManager:
+
     def __init__(self):
+
         c104.set_debug_mode(c104.Debug.Connection | c104.Debug.Point)
+
         self.client = c104.Client()
+
         self.connections = {}
+
+        self.running = False
+
         self.lock = threading.Lock()
 
     # ---------------- CONNECTION ----------------
 
     def add_connection(self, name, ip, port):
+
         with self.lock:
+
             if name in self.connections:
                 return
 
@@ -43,25 +50,26 @@ class IECManager:
                 init=c104.Init.INTERROGATION
             )
 
-            def state_change(
-                    connection: c104.Connection,
-                    state: c104.ConnectionState
-            ) -> None:
-                print(state)
+            def state_change(connection: c104.Connection, state:c104.ConnectionState) -> None:
+
+                print("STATE:", state)
 
                 if state == c104.ConnectionState.OPEN_MUTED:
+
                     def watchdog():
+
                         time.sleep(10)
+
                         if connection.state == c104.ConnectionState.OPEN_MUTED:
                             print("STARTDT Timeout → reconnect")
                             connection.disconnect()
 
                     threading.Thread(target=watchdog, daemon=True).start()
-                if state == c104.ConnectionState.CLOSED:
+
+                if state == c104.ConnectionState.CLOSED and self.running:
                     connection.connect()
 
             conn.on_state_change(state_change)
-            conn.connect()
 
             self.connections[name] = {
                 "connection": conn,
@@ -71,10 +79,12 @@ class IECManager:
     # ---------------- STATION ----------------
 
     def add_station(self, conn_name, ca):
+
         with self.lock:
-            station = self.connections[conn_name]["connection"].add_station(
-                common_address=ca
-            )
+
+            conn = self.connections[conn_name]["connection"]
+
+            station = conn.add_station(common_address=ca)
 
             self.connections[conn_name]["stations"][ca] = {
                 "station": station,
@@ -84,20 +94,20 @@ class IECManager:
     # ---------------- POINT ----------------
 
     def add_point(self, conn_name, ca, ioa, type_name):
+
         with self.lock:
+
             t = getattr(c104.Type, type_name)
 
-            point = self.connections[conn_name]["stations"][ca]["station"].add_point(
+            station = self.connections[conn_name]["stations"][ca]["station"]
+
+            point = station.add_point(
                 io_address=ioa,
                 type=t
             )
 
-            # AUTOMATISCHER RECEIVE HANDLER
-            def on_receive(
-                point: c104.Point,
-                previous_info: c104.Information,
-                message: c104.IncomingMessage
-            ) -> c104.ResponseState:
+            def on_receive(point: c104.Point, previous_info: c104.Information, message: c104.IncomingMessage) -> c104.ResponseState:
+
                 payload = {
                     "asdu": point.station.common_address,
                     "ioa": point.io_address,
@@ -105,9 +115,6 @@ class IECManager:
                     "cot": int(message.cot),
                     "timestamp": time.time()
                 }
-
-                topic = f"{MQTT_TOPIC_BASE}/{point.io_address}"
-                # mqtt_client.publish(topic, json.dumps(payload), qos=0)
 
                 print("RX:", payload)
 
@@ -117,8 +124,21 @@ class IECManager:
 
             self.connections[conn_name]["stations"][ca]["points"][ioa] = point
 
+    # ---------------- START IEC ----------------
+
     def start(self):
+
+        if self.running:
+            return
+
+        print("Starte IEC-104 Client")
+
         self.client.start()
+
+        for c in self.connections.values():
+            c["connection"].connect()
+
+        self.running = True
 
 
 iec = IECManager()
@@ -132,6 +152,12 @@ app = Flask(__name__)
 HTML = """
 <h1>IEC 60870-5-104 SCADA</h1>
 
+<form method="post" action="/start_iec">
+<button type="submit">Start IEC Client</button>
+</form>
+
+<hr>
+
 <h2>Neue Verbindung</h2>
 <form method="post" action="/add_connection">
 Name <input name="name">
@@ -143,6 +169,7 @@ Port <input name="port" value="2404">
 <hr>
 
 {% for cname, c in connections.items() %}
+
 <h2>{{ cname }}</h2>
 
 <form method="post" action="/add_station">
@@ -152,19 +179,21 @@ CA <input name="ca">
 </form>
 
 {% for ca, s in c["stations"].items() %}
+
 <h3>Station {{ ca }}</h3>
 
 <form method="post" action="/add_point">
 <input type="hidden" name="connection" value="{{ cname }}">
 <input type="hidden" name="ca" value="{{ ca }}">
 IOA <input name="ioa">
-Type
+
 <select name="type">
 <option>M_SP_NA_1</option>
 <option>M_DP_NA_1</option>
 <option>M_ME_NB_1</option>
 <option>C_SC_NA_1</option>
 </select>
+
 <button>Add Point</button>
 </form>
 
@@ -175,7 +204,9 @@ Type
 </ul>
 
 {% endfor %}
+
 <hr>
+
 {% endfor %}
 """
 
@@ -184,6 +215,12 @@ Type
 @app.route("/")
 def index():
     return render_template_string(HTML, connections=iec.connections)
+
+
+@app.route("/start_iec", methods=["POST"])
+def start_iec():
+    iec.start()
+    return redirect("/")
 
 
 @app.route("/add_connection", methods=["POST"])
@@ -221,6 +258,7 @@ def add_point():
 # ==========================================================
 
 if __name__ == "__main__":
-    iec.start()
-    print("IEC-104 Client läuft")
+
+    print("SCADA GUI läuft")
+
     app.run("0.0.0.0", 1881)
