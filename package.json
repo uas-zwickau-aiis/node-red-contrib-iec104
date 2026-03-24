@@ -29,7 +29,8 @@
       "iec104-gateway": "iec104-gateway.js",
       "iec104-singlepoint": "iec104-singlepoint.js",
       "iec104-doublepoint": "iec104-doublepoint.js",
-      "iec104-measuredvalue": "iec104-measuredvalue.js"
+      "iec104-measuredvalue": "iec104-measuredvalue.js",
+      "iec104-integratedTotal": "iec104-integratedTotal.js"
     }
   }
 }

@@ -1,0 +1,115 @@
+<script type="text/javascript">
+  RED.nodes.registerType('iec104_integratedtotal', {
+    category: 'IEC 104',
+    color: '#dce5f5',
+    defaults: {
+      name: { value: "" },
+
+      ioa0: { value: 232, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+      ioa1: { value: 3, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+      ioa2: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+
+      itType: { value: "M_IT_NA_1" },
+      tsSource: { value: "now" },
+
+      qInvalidMode: { value: "msg" },
+      qAdjustedMode: { value: "msg" },
+      qCarryMode: { value: "msg" }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "bridge.svg",
+    label: function () {
+      return this.name || "iec104_integratedtotal";
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="iec104_integratedtotal">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+
+  <div class="form-row">
+    <label>IOA (Objektadresse)</label>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa0">IOA Byte 0</label>
+    <input type="number" id="node-input-ioa0" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa1">IOA Byte 1</label>
+    <input type="number" id="node-input-ioa1" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa2">IOA Byte 2</label>
+    <input type="number" id="node-input-ioa2" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-itType">Meldetyp</label>
+    <select id="node-input-itType">
+      <option value="M_IT_NA_1">M_IT_NA_1 (ohne Zeit)</option>
+      <option value="M_IT_TA_1">M_IT_TA_1 (CP24Time2a)</option>
+      <option value="M_IT_TB_1">M_IT_TB_1 (CP56Time2a)</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-tsSource">Zeitquelle (nur TA/TB)</label>
+    <select id="node-input-tsSource">
+      <option value="now">jetzt (ISO)</option>
+      <option value="msg">msg.ts übernehmen</option>
+    </select>
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label>Quality-Verhalten</label>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-qInvalidMode">invalid</label>
+    <select id="node-input-qInvalidMode">
+      <option value="msg">aus msg.quality.invalid</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-qAdjustedMode">adjusted</label>
+    <select id="node-input-qAdjustedMode">
+      <option value="msg">aus msg.quality.adjusted</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-qCarryMode">carry</label>
+    <select id="node-input-qCarryMode">
+      <option value="msg">aus msg.quality.carry</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="iec104_integratedtotal">
+  <p>
+    Diese Node erzeugt eine IEC104-Integrated-Total-Meldung aus <code>msg.payload</code>.
+  </p>
+  <p>
+    Die Quality-Merkmale <code>invalid</code>, <code>adjusted</code> und <code>carry</code> können entweder
+    aus <code>msg.quality</code> übernommen oder in der Node fest erzwungen werden.
+  </p>
+  <p>
+    Wenn in der Node ein Wert fest gesetzt wird, hat dieser immer Vorrang vor <code>msg.quality</code>.
+  </p>
+</script>

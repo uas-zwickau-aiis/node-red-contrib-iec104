@@ -1,7 +1,7 @@
 module.exports = function (RED) {
   "use strict";
 
-  function Iec104SinglePoint(config) {
+  function Iec104IntegratedTotal(config) {
     RED.nodes.createNode(this, config);
     const node = this;
 
@@ -9,16 +9,15 @@ module.exports = function (RED) {
     const ioa1 = Number(config.ioa1);
     const ioa2 = Number(config.ioa2);
 
-    const spType = String(config.spType || "M_SP_NA_1"); // M_SP_NA_1 | M_SP_TA_1 | M_SP_TB_1
-    const tsSource = String(config.tsSource || "now");   // now | msg
+    const itType = String(config.itType || "M_IT_NA_1");
+    const tsSource = String(config.tsSource || "now");
 
     const qInvalidMode = String(config.qInvalidMode || "msg");
-    const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
-    const qBlockedMode = String(config.qBlockedMode || "msg");
-    const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
+    const qAdjustedMode = String(config.qAdjustedMode || "msg");
+    const qCarryMode = String(config.qCarryMode || "msg");
 
     function needsTimestamp(typeStr) {
-      return typeStr === "M_SP_TA_1" || typeStr === "M_SP_TB_1";
+      return typeStr === "M_IT_TA_1" || typeStr === "M_IT_TB_1";
     }
 
     function isByte(value) {
@@ -37,22 +36,22 @@ module.exports = function (RED) {
       try {
         let value = msg.payload;
 
-        // Optional String "true"/"false" akzeptieren
         if (typeof value === "string") {
-          const s = value.trim().toLowerCase();
-          if (s === "true") value = true;
-          else if (s === "false") value = false;
+          const trimmed = value.trim();
+          if (trimmed !== "") {
+            value = Number(trimmed);
+          }
         }
 
-        if (typeof value !== "boolean") {
-          node.status({ fill: "red", shape: "ring", text: "payload muss boolean sein" });
-          done(new Error("iec104_singlepoint: msg.payload muss boolean (true/false) sein"));
+        if (!Number.isFinite(value)) {
+          node.status({ fill: "red", shape: "ring", text: "payload muss Zahl sein" });
+          done(new Error("iec104_integratedtotal: msg.payload muss eine Zahl sein"));
           return;
         }
 
         if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_singlepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
+          done(new Error("iec104_integratedtotal: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
@@ -60,21 +59,20 @@ module.exports = function (RED) {
 
         const quality = {
           invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
-          substituted: resolveQualityBit(qSubstitutedMode, incomingQuality.substituted),
-          blocked: resolveQualityBit(qBlockedMode, incomingQuality.blocked),
-          notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical)
+          adjusted: resolveQualityBit(qAdjustedMode, incomingQuality.adjusted),
+          carry: resolveQualityBit(qCarryMode, incomingQuality.carry)
         };
 
         msg.quality = quality;
 
         const p = {
-          type: spType,
+          type: itType,
           ioa: [ioa0, ioa1, ioa2],
           value: value,
           quality: quality
         };
 
-        if (needsTimestamp(spType)) {
+        if (needsTimestamp(itType)) {
           if (tsSource === "msg" && msg.ts != null) {
             p.ts = msg.ts;
           } else {
@@ -87,7 +85,7 @@ module.exports = function (RED) {
         node.status({
           fill: "green",
           shape: "dot",
-          text: `${spType} ioa=[${ioa0},${ioa1},${ioa2}] value=${value ? "ON" : "OFF"}`
+          text: `${itType} ioa=[${ioa0},${ioa1},${ioa2}] value=${value}`
         });
 
         send(msg);
@@ -99,5 +97,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType("iec104_singlepoint", Iec104SinglePoint);
+  RED.nodes.registerType("iec104_integratedtotal", Iec104IntegratedTotal);
 };

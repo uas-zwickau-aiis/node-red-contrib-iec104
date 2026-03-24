@@ -4,19 +4,33 @@
     color: '#dce5f5',
     defaults: {
       name: { value: "" },
-      ioa: { value: 1000, validate: RED.validators.number() },
 
-      // NICHT "type" nennen
+      ioa0: {
+        value: 232,
+        validate: function(v) {
+          return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+        }
+      },
+      ioa1: {
+        value: 3,
+        validate: function(v) {
+          return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+        }
+      },
+      ioa2: {
+        value: 0,
+        validate: function(v) {
+          return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+        }
+      },
+
       dpType: { value: "M_DP_NA_1" },
-
-      // nur relevant bei TA/TB
       tsSource: { value: "now" },
 
-      // Quality Defaults
-      qInvalid: { value: false },
-      qSubstituted: { value: false },
-      qBlocked: { value: false },
-      qNotTopical: { value: false }
+      qInvalidMode: { value: "msg" },
+      qSubstitutedMode: { value: "msg" },
+      qBlockedMode: { value: "msg" },
+      qNotTopicalMode: { value: "msg" }
     },
     inputs: 1,
     outputs: 1,
@@ -34,8 +48,22 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-ioa">IOA (Objektadresse)</label>
-    <input type="number" id="node-input-ioa">
+    <label>IOA (Objektadresse)</label>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa0">IOA Byte 0</label>
+    <input type="number" id="node-input-ioa0" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa1">IOA Byte 1</label>
+    <input type="number" id="node-input-ioa1" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa2">IOA Byte 2</label>
+    <input type="number" id="node-input-ioa2" min="0" max="255">
   </div>
 
   <div class="form-row">
@@ -58,31 +86,51 @@
   <hr>
 
   <div class="form-row">
-    <label>Quality Defaults</label>
+    <label>Quality-Verhalten</label>
   </div>
 
   <div class="form-row">
-    <label for="node-input-qInvalid">invalid</label>
-    <input type="checkbox" id="node-input-qInvalid" style="width:auto;">
+    <label for="node-input-qInvalidMode">invalid</label>
+    <select id="node-input-qInvalidMode">
+      <option value="msg">aus msg.quality.invalid</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
   </div>
+
   <div class="form-row">
-    <label for="node-input-qSubstituted">substituted</label>
-    <input type="checkbox" id="node-input-qSubstituted" style="width:auto;">
+    <label for="node-input-qSubstitutedMode">substituted</label>
+    <select id="node-input-qSubstitutedMode">
+      <option value="msg">aus msg.quality.substituted</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
   </div>
+
   <div class="form-row">
-    <label for="node-input-qBlocked">blocked</label>
-    <input type="checkbox" id="node-input-qBlocked" style="width:auto;">
+    <label for="node-input-qBlockedMode">blocked</label>
+    <select id="node-input-qBlockedMode">
+      <option value="msg">aus msg.quality.blocked</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
   </div>
+
   <div class="form-row">
-    <label for="node-input-qNotTopical">notTopical</label>
-    <input type="checkbox" id="node-input-qNotTopical" style="width:auto;">
+    <label for="node-input-qNotTopicalMode">notTopical</label>
+    <select id="node-input-qNotTopicalMode">
+      <option value="msg">aus msg.quality.notTopical</option>
+      <option value="false">false</option>
+      <option value="true">true</option>
+    </select>
   </div>
 </script>
 
 <script type="text/html" data-help-name="iec104_doublepoint">
   <p>
-    Diese Node nimmt <code>msg.payload</code> als Double Point (DPI) entgegen und erzeugt eine IEC104 Doppelmeldung als Objekt in <code>msg.payload</code>.
+    Diese Node nimmt <code>msg.payload</code> als Double Point (DPI) entgegen und erzeugt eine IEC104-Doppelmeldung als Objekt in <code>msg.payload</code>.
   </p>
+
   <p><b>Input:</b> <code>msg.payload</code> muss Integer 0..3 sein:</p>
   <ul>
     <li>0 = Zwischenstellung (intermediate)</li>
@@ -90,10 +138,20 @@
     <li>2 = EIN (on)</li>
     <li>3 = unbestimmt/ungültig (indeterminate)</li>
   </ul>
+
   <p>
-    Bei <b>M_DP_TA_1</b> / <b>M_DP_TB_1</b> wird ein Zeitstempel in <code>ts</code> gesetzt (Simulation: ISO).
+    Die Objektadresse <code>ioa</code> wird als Array aus drei Bytes aufgebaut:
+    <code>[ioa0, ioa1, ioa2]</code>.
+  </p>
+
+  <p>
+    Die Quality-Merkmale <code>invalid</code>, <code>substituted</code>, <code>blocked</code> und
+    <code>notTopical</code> können entweder aus <code>msg.quality</code> übernommen oder in der Node
+    fest erzwungen werden.
+  </p>
+
+  <p>
+    Bei <b>M_DP_TA_1</b> / <b>M_DP_TB_1</b> wird ein Zeitstempel in <code>ts</code> gesetzt.
     Optional kann <code>msg.ts</code> übernommen werden, wenn "msg.ts übernehmen" gewählt ist.
   </p>
 </script>
-
-  
