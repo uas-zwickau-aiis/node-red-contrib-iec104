@@ -7,7 +7,6 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, config);
 
     this.port = Number(config.port);
-    this.ca = Number(config.ca); // Hier ersetzen, kommt von CA Node
     this.t1 = Number(config.t1) * 1000;
     this.t3 = Number(config.t3) * 1000;
 
@@ -18,13 +17,13 @@ module.exports = function(RED) {
     node.imageDirty = false;
 
     node.session = new Session({
-        ca: node.ca,
         send: data => tcpWrite(data),
         onStateChange: (s,msg) => setState(s,msg),
-        onGI: async sendPoint => {
+        onGI: async (ca,sendPoint) => {
 
             const snapshot = Array
                 .from(node.processImage.values())
+                .filter(p => ca === 65535 || p.ca === ca)
                 .sort((a, b) => a.ioa - b.ioa);
 
             for (const p of snapshot) {
@@ -80,7 +79,6 @@ module.exports = function(RED) {
         sock.on("error", tcpCleanup);
 
         sock.on("timeout", () => {
-
             tcpCleanup()
         });
         
@@ -155,7 +153,7 @@ module.exports = function(RED) {
             return;
         }
 
-        node.processImage.set(p.ioa, p);
+        node.processImage.set(`${p.caa}:${p.ioa}`, p);
 
         node.session.sendPoint(p, "SPONT");
     });

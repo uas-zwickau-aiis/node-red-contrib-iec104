@@ -8,9 +8,11 @@ module.exports = function(RED) {
 
         node.on("input", function (msg) {
             
-            console.log(msg)
+            console.log("AAA")
+            let p = msg.payload
+            console.log(p)
 
-            client.emit("iec104:input")
+            client.emit("iec104:input", msg)
         });
     }
   RED.nodes.registerType("iec104-station", IEC104Station);
