@@ -1,0 +1,40 @@
+<script type="text/javascript">
+RED.nodes.registerType('iec104-station',{
+  category: 'IEC 104',
+  color: '#dce5f5',
+  defaults: {
+    name: { value: "" },
+    ca: {value: 1, required: true, validate: RED.validators.number()},
+    connection: { type: "iec104-gateway", required: true }
+  },
+  inputs: 1,
+  icon: "font-awesome/fa-eye",
+  paletteLabel: "IEC104 Station",
+  label: function() {
+    return this.name || "IEC104 Station";
+  }
+});
+</script>
+
+<script type="text/html" data-template-name="iec104-station">
+
+  <div class="form-row">
+    <label for="node-input-name">Name</label>
+    <input type="text" id="node-input-name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection">Gateway</label>
+    <input type="text" id="node-input-connection">
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label>Info</label>
+    <span style="margin-left:10px; color:#888;">
+      Listens to IEC104 events (data/status)
+    </span>
+  </div>
+
+</script>

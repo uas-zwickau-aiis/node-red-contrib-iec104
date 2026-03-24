@@ -7,7 +7,7 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, config);
 
     this.port = Number(config.port);
-    this.ca = Number(config.ca);
+    this.ca = Number(config.ca); // Hier ersetzen, kommt von CA Node
     this.t1 = Number(config.t1) * 1000;
     this.t3 = Number(config.t3) * 1000;
 
@@ -140,13 +140,14 @@ module.exports = function(RED) {
     // ########################################### //
     function isValidPoint(p) {
         if (!p) return false;
+        if (typeof p.ca !== "number") return false;
         if (typeof p.ioa !== "number") return false;
         if (!p.type) return false;
         if (typeof p.value === "undefined") return false;
         return true;
     }
 
-    node.on("input", function (msg) {
+    node.on("iec104:input", function (msg) {
         const p = msg.payload;
 
         if (!isValidPoint(p)) {
@@ -156,8 +157,7 @@ module.exports = function(RED) {
 
         node.processImage.set(p.ioa, p);
 
-        // 5) Encoden & senden
-        node.session.sendPoint(p, "SPONT") // hier evtl noch CYC/PERIODIC
+        node.session.sendPoint(p, "SPONT");
     });
 
     node.on("close", function(done) {
@@ -179,27 +179,21 @@ module.exports = function(RED) {
 
     function emitData(asdu)
     {
-        node.send([
-            {
-                topic: "iec104/data",
-                payload: asdu,
-                ts: Date.now()
-            },
-            null
-        ]);
+        node.emit("iec104:data", {
+            topic: "iec104/data",
+            payload: asdu,
+            ts: Date.now()
+        });
     }
 
     function emitStatus(state, reason)
     {
-        node.send([
-            null,
-            {
-                topic: "iec104/status",
-                state,
-                reason,
-                ts: Date.now()
-            }
-        ]);
+        node.emit("iec104:status", {
+            topic: "iec104/status",
+            state,
+            reason,
+            ts: Date.now()
+        });
     }
   }
   RED.nodes.registerType("iec104-gateway", IEC104Gateway);
