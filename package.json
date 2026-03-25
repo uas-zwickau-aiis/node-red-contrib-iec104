@@ -30,7 +30,8 @@
       "iec104-singlepoint": "iec104-singlepoint.js",
       "iec104-doublepoint": "iec104-doublepoint.js",
       "iec104-measuredvalue": "iec104-measuredvalue.js",
-      "iec104-integratedTotal": "iec104-integratedTotal.js"
+      "iec104-observer": "iec104-observer.js",
+      "iec104-station": "iec104-station.js"
     }
   }
 }
