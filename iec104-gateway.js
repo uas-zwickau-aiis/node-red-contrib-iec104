@@ -137,12 +137,13 @@ module.exports = function(RED) {
     //                   NODE                      //
     // ########################################### //
     function isValidPoint(p) {
-        if (!p) return false;
-        if (typeof p.ca !== "number") return false;
-        if (typeof p.ioa !== "number") return false;
-        if (!p.type) return false;
-        if (typeof p.value === "undefined") return false;
-        return true;
+        return !!p &&
+            typeof p.ca === "number" &&
+            Array.isArray(p.ioa) &&
+            p.ioa.length === 3 &&
+            p.ioa.every(b => typeof b === "number" && b >= 0 && b <= 255) &&
+            p.type &&
+            typeof p.value !== "undefined";
     }
 
     node.on("iec104:input", function (msg) {
@@ -153,7 +154,11 @@ module.exports = function(RED) {
             return;
         }
 
-        node.processImage.set(`${p.caa}:${p.ioa}`, p);
+        if (Array.isArray(p.ioa)) {
+            p.ioa = ioaArrayToNumber(p.ioa);
+        }
+
+        node.processImage.set(`${p.ca}:${p.ioa}`, p);
 
         node.session.sendPoint(p, "SPONT");
     });

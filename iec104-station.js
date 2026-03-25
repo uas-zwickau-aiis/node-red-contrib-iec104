@@ -2,15 +2,16 @@ module.exports = function(RED) {
 
     function IEC104Station(config) {
         RED.nodes.createNode(this, config);
+        this.ca = config.ca
+
         const node = this;
 
         const client = RED.nodes.getNode(config.connection);
 
         node.on("input", function (msg) {
             
-            console.log("AAA")
-            let p = msg.payload
-            console.log(p)
+            msg.payload.ca = node.ca
+            console.log(msg)
 
             client.emit("iec104:input", msg)
         });
