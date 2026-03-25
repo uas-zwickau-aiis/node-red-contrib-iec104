@@ -4,22 +4,34 @@
     color: '#dce5f5',
     defaults: {
       name: { value: "" },
-      ioa: { value: 1000, validate: RED.validators.number() },
+
+      ioa0: {
+        value: 232,
+        validate: function(v) {
+          return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+        }
+      },
+      ioa1: {
+        value: 3,
+        validate: function(v) {
+          return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+        }
+      },
+      ioa2: {
+        value: 0,
+        validate: function(v) {
+          return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+        }
+      },
 
       meType: { value: "M_ME_NC_1" },
       tsSource: { value: "now" },
 
-      // Quality Defaults (IEC 60870-5-104 / IEC 60870-5-101 QDS bits)
-      // BL  = Blocked
-      // SB  = Substituted
-      // INT = Not topical (old value / not up-to-date)
-      // IV  = Invalid
-      // OV  = Overflow
-      qBL: { value: false },
-      qSB: { value: false },
-      qINT: { value: false },
-      qIV: { value: false },
-      qOV: { value: false }
+      qBLMode: { value: "msg" },
+      qSBMode: { value: "msg" },
+      qINTMode: { value: "msg" },
+      qIVMode: { value: "msg" },
+      qOVMode: { value: "msg" }
     },
     inputs: 1,
     outputs: 1,
@@ -30,7 +42,7 @@
 
     oneditprepare: function () {
       function isCp56Type(t) {
-        return t === "M_ME_TD_1" || t === "M_ME_TE_1";
+        return t === "M_ME_TD_1" || t === "M_ME_TE_1" || t === "M_ME_TF_1";
       }
 
       function updateVisibility() {
@@ -53,8 +65,22 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-ioa">IOA (Objektadresse)</label>
-    <input type="number" id="node-input-ioa">
+    <label>IOA (Objektadresse)</label>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa0">IOA Byte 0</label>
+    <input type="number" id="node-input-ioa0" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa1">IOA Byte 1</label>
+    <input type="number" id="node-input-ioa1" min="0" max="255">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ioa2">IOA Byte 2</label>
+    <input type="number" id="node-input-ioa2" min="0" max="255">
   </div>
 
   <div class="form-row">
@@ -64,6 +90,7 @@
       <option value="M_ME_NC_1">M_ME_NC_1 (float, ohne Zeit)</option>
       <option value="M_ME_TD_1">M_ME_TD_1 (scaled, CP56Time2a)</option>
       <option value="M_ME_TE_1">M_ME_TE_1 (float, CP56Time2a)</option>
+      <option value="M_ME_TF_1">M_ME_TF_1 (reserved/weitere Zeitvariante)</option>
     </select>
   </div>
 
@@ -78,39 +105,59 @@
   <hr>
 
   <div class="form-row">
-    <label>Quality Defaults (QDS)</label>
+    <label>Quality-Verhalten (QDS)</label>
   </div>
 
   <div class="form-row">
-    <label for="node-input-qBL">BL (Blocked / gesperrt)</label>
-    <input type="checkbox" id="node-input-qBL">
-  </div>
+  <label for="node-input-qBlockedMode">blocked</label>
+  <select id="node-input-qBlockedMode">
+    <option value="msg">aus msg.quality.blocked</option>
+    <option value="false">false</option>
+    <option value="true">true</option>
+  </select>
+</div>
 
-  <div class="form-row">
-    <label for="node-input-qSB">SB (Substituted / ersetzt)</label>
-    <input type="checkbox" id="node-input-qSB">
-  </div>
+<div class="form-row">
+  <label for="node-input-qSubstitutedMode">substituted</label>
+  <select id="node-input-qSubstitutedMode">
+    <option value="msg">aus msg.quality.substituted</option>
+    <option value="false">false</option>
+    <option value="true">true</option>
+  </select>
+</div>
 
-  <div class="form-row">
-    <label for="node-input-qINT">INT (Not topical / nicht aktuell)</label>
-    <input type="checkbox" id="node-input-qINT">
-  </div>
+<div class="form-row">
+  <label for="node-input-qNotTopicalMode">notTopical</label>
+  <select id="node-input-qNotTopicalMode">
+    <option value="msg">aus msg.quality.notTopical</option>
+    <option value="false">false</option>
+    <option value="true">true</option>
+  </select>
+</div>
 
-  <div class="form-row">
-    <label for="node-input-qIV">IV (Invalid / ungültig)</label>
-    <input type="checkbox" id="node-input-qIV">
-  </div>
+<div class="form-row">
+  <label for="node-input-qInvalidMode">invalid</label>
+  <select id="node-input-qInvalidMode">
+    <option value="msg">aus msg.quality.invalid</option>
+    <option value="false">false</option>
+    <option value="true">true</option>
+  </select>
+</div>
 
-  <div class="form-row">
-    <label for="node-input-qOV">OV (Overflow / Überlauf)</label>
-    <input type="checkbox" id="node-input-qOV">
-  </div>
+<div class="form-row">
+  <label for="node-input-qOverflowMode">overflow</label>
+  <select id="node-input-qOverflowMode">
+    <option value="msg">aus msg.quality.overflow</option>
+    <option value="false">false</option>
+    <option value="true">true</option>
+  </select>
+</div>
 
 </script>
 
 <script type="text/html" data-help-name="iec104_measuredvalue">
   <p>
-    Erzeugt aus <code>msg.payload</code> einen IEC-104 Messwert (z. B. <code>M_ME_NC_1</code>) und schreibt ihn als Objekt in <code>msg.payload</code>.
+    Erzeugt aus <code>msg.payload</code> einen IEC-104 Messwert und schreibt ihn als Objekt in <code>msg.payload</code>.
   </p>
 
   <h3>Eingang</h3>
@@ -120,14 +167,13 @@
 
     <dt class="optional">quality <span class="property-type">object</span></dt>
     <dd>
-      Optionales Quality-Objekt überschreibt die Defaults.
-      Unterstützte Felder (voll ausgeschrieben):
+      Optionales Quality-Objekt. Die QDS-Bits können aus <code>msg.quality</code> übernommen oder in der Node fest erzwungen werden:
       <ul>
-        <li><code>BL</code> = <b>Blocked</b> (gesperrt / blockiert)</li>
-        <li><code>SB</code> = <b>Substituted</b> (ersetzt)</li>
-        <li><code>INT</code> = <b>Not topical</b> (nicht aktuell / Wert ist veraltet)</li>
-        <li><code>IV</code> = <b>Invalid</b> (ungültig)</li>
-        <li><code>OV</code> = <b>Overflow</b> (Überlauf)</li>
+        <li><code>BL</code> = Blocked</li>
+        <li><code>SB</code> = Substituted</li>
+        <li><code>INT</code> = Not topical</li>
+        <li><code>IV</code> = Invalid</li>
+        <li><code>OV</code> = Overflow</li>
       </ul>
     </dd>
 
@@ -142,16 +188,16 @@
       IEC-104 Messwertobjekt:
       <pre>{
   "type": "M_ME_NC_1",
-  "ioa": 1000,
+  "ioa": [232, 3, 0],
   "value": 12.34,
   "quality": {
-    "BL": false,   // Blocked
-    "SB": false,   // Substituted
-    "INT": false,  // Not topical
-    "IV": false,   // Invalid
-    "OV": false    // Overflow
+    "blocked": false,
+    "substituted": false,
+    "notTopical": false,
+    "invalid": false,
+    "overflow": false
   },
-  "ts": "2026-03-04T12:34:56.789Z" // nur bei CP56-Typen (TD/TE/TF)
+  "ts": "2026-03-04T12:34:56.789Z"
 }</pre>
     </dd>
   </dl>

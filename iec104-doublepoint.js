@@ -5,20 +5,30 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     const node = this;
 
-    // Konfig lesen (aus der HTML defaults)
-    const ioa = Number(config.ioa);
+    const ioa0 = Number(config.ioa0);
+    const ioa1 = Number(config.ioa1);
+    const ioa2 = Number(config.ioa2);
+
     const dpType = String(config.dpType || "M_DP_NA_1"); // M_DP_NA_1 | M_DP_TA_1 | M_DP_TB_1
     const tsSource = String(config.tsSource || "now");   // now | msg
 
-    const defaultQuality = {
-      invalid: !!config.qInvalid,
-      substituted: !!config.qSubstituted,
-      blocked: !!config.qBlocked,
-      notTopical: !!config.qNotTopical
-    };
+    const qInvalidMode = String(config.qInvalidMode || "msg");
+    const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
+    const qBlockedMode = String(config.qBlockedMode || "msg");
+    const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
 
     function needsTimestamp(typeStr) {
       return typeStr === "M_DP_TA_1" || typeStr === "M_DP_TB_1";
+    }
+
+    function isByte(value) {
+      return Number.isInteger(value) && value >= 0 && value <= 255;
+    }
+
+    function resolveQualityBit(mode, incomingValue) {
+      if (mode === "true") return true;
+      if (mode === "false") return false;
+      return !!incomingValue;
     }
 
     function normalizeDpi(value) {
@@ -58,32 +68,32 @@ module.exports = function (RED) {
           return;
         }
 
-        if (!Number.isFinite(ioa)) {
+        if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_doublepoint: IOA (config.ioa) ist ungültig"));
+          done(new Error("iec104_doublepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
-        // Quality: Defaults + optional msg.quality überschreibt (wenn Objekt)
-        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : null;
-        const quality = Object.assign({}, defaultQuality, incomingQuality || {});
+        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : {};
+
+        const quality = {
+          invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
+          substituted: resolveQualityBit(qSubstitutedMode, incomingQuality.substituted),
+          blocked: resolveQualityBit(qBlockedMode, incomingQuality.blocked),
+          notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical)
+        };
+
+        msg.quality = quality;
 
         const p = {
           type: dpType,
-          ioa: ioa,
+          ioa: [ioa0, ioa1, ioa2],
           value: dpi,
-          quality: {
-            invalid: !!quality.invalid,
-            substituted: !!quality.substituted,
-            blocked: !!quality.blocked,
-            notTopical: !!quality.notTopical
-          }
+          quality: quality
         };
 
-        // Timestamp nur wenn Typ TA/TB
         if (needsTimestamp(dpType)) {
           if (tsSource === "msg" && msg.ts != null) {
-            // msg.ts kann ISO-String oder epoch(ms) sein – später in CP24/CP56 umsetzen
             p.ts = msg.ts;
           } else {
             p.ts = new Date().toISOString();
@@ -95,7 +105,7 @@ module.exports = function (RED) {
         node.status({
           fill: "green",
           shape: "dot",
-          text: `${dpType} ioa=${ioa} dpi=${dpi} (${dpiText(dpi)})`
+          text: `${dpType} ioa=[${ioa0},${ioa1},${ioa2}] dpi=${dpi} (${dpiText(dpi)})`
         });
 
         send(msg);
