@@ -6,13 +6,13 @@
       name: { value: "" },
 
       ioa0: {
-        value: 232,
+        value: 0,
         validate: function(v) {
           return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
         }
       },
       ioa1: {
-        value: 3,
+        value: 0,
         validate: function(v) {
           return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
         }

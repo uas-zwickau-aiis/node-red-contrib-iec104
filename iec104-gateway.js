@@ -198,6 +198,12 @@ module.exports = function(RED) {
             ts: Date.now()
         });
     }
+
+    function ioaArrayToNumber(ioa) {
+        return (ioa[0] << 16) | (ioa[1] << 8) | ioa[2];
+    }
   }
+
+  
   RED.nodes.registerType("iec104-gateway", IEC104Gateway);
 };

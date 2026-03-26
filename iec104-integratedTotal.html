@@ -5,8 +5,8 @@
     defaults: {
       name: { value: "" },
 
-      ioa0: { value: 232, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
-      ioa1: { value: 3, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+      ioa0: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+      ioa1: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
       ioa2: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
 
       itType: { value: "M_IT_NA_1" },

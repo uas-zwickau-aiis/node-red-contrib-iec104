@@ -6,13 +6,13 @@
       name: { value: "" },
 
       ioa0: {
-        value: 232,
+        value: 0,
         validate: function(v) {
           return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
         }
       },
       ioa1: {
-        value: 3,
+        value: 0,
         validate: function(v) {
           return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
         }
@@ -88,9 +88,8 @@
     <select id="node-input-meType">
       <option value="M_ME_NB_1">M_ME_NB_1 (scaled, ohne Zeit)</option>
       <option value="M_ME_NC_1">M_ME_NC_1 (float, ohne Zeit)</option>
-      <option value="M_ME_TD_1">M_ME_TD_1 (scaled, CP56Time2a)</option>
-      <option value="M_ME_TE_1">M_ME_TE_1 (float, CP56Time2a)</option>
-      <option value="M_ME_TF_1">M_ME_TF_1 (reserved/weitere Zeitvariante)</option>
+      <option value="M_ME_TE_1">M_ME_TE_1 (scaled, CP56Time2a)</option>
+      <option value="M_ME_TF_1">M_ME_TF_1 (float, CP56Time2a)</option>
     </select>
   </div>
 
