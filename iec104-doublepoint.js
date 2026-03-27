@@ -64,13 +64,13 @@ module.exports = function (RED) {
 
         if (dpi === null) {
           node.status({ fill: "red", shape: "ring", text: "payload muss 0..3 (int) sein" });
-          done(new Error("iec104_doublepoint: msg.payload muss Integer 0..3 sein (DPI)"));
+          done(new Error("iec104-doublepoint: msg.payload muss Integer 0..3 sein (DPI)"));
           return;
         }
 
         if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_doublepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
+          done(new Error("iec104-doublepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
@@ -117,5 +117,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType("iec104_doublepoint", Iec104DoublePoint);
+  RED.nodes.registerType("iec104-doublepoint", Iec104DoublePoint);
 };

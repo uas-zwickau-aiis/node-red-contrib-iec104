@@ -33,6 +33,7 @@ module.exports = function (RED) {
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
 
+      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
       try {
         let value = msg.payload;
 
@@ -45,13 +46,13 @@ module.exports = function (RED) {
 
         if (!Number.isFinite(value)) {
           node.status({ fill: "red", shape: "ring", text: "payload muss Zahl sein" });
-          done(new Error("iec104_integratedtotal: msg.payload muss eine Zahl sein"));
+          done(new Error("iec104-integratedtotal: msg.payload muss eine Zahl sein"));
           return;
         }
 
         if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_integratedtotal: IOA-Bytes müssen zwischen 0 und 255 liegen"));
+          done(new Error("iec104-integratedtotal: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
@@ -67,7 +68,7 @@ module.exports = function (RED) {
 
         const p = {
           type: itType,
-          ioa: [ioa0, ioa1, ioa2],
+          ioa: ioa,
           value: value,
           quality: quality
         };
@@ -97,5 +98,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType("iec104_integratedtotal", Iec104IntegratedTotal);
+  RED.nodes.registerType("iec104-integratedtotal", Iec104IntegratedTotal);
 };

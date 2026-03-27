@@ -51,14 +51,14 @@ module.exports = function (RED) {
       try {
         if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_measuredvalue: IOA-Bytes müssen zwischen 0 und 255 liegen"));
+          done(new Error("iec104-measuredvalue: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
         const value = parseNumberMaybe(msg.payload);
         if (value == null) {
           node.status({ fill: "red", shape: "ring", text: "payload muss Zahl sein" });
-          done(new Error("iec104_measuredvalue: msg.payload muss eine Zahl sein"));
+          done(new Error("iec104-measuredvalue: msg.payload muss eine Zahl sein"));
           return;
         }
 
@@ -110,5 +110,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType("iec104_measuredvalue", Iec104MeasuredValue);
+  RED.nodes.registerType("iec104-measuredvalue", Iec104MeasuredValue);
 };

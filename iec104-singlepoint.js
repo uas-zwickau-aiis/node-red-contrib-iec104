@@ -46,13 +46,13 @@ module.exports = function (RED) {
 
         if (typeof value !== "boolean") {
           node.status({ fill: "red", shape: "ring", text: "payload muss boolean sein" });
-          done(new Error("iec104_singlepoint: msg.payload muss boolean (true/false) sein"));
+          done(new Error("iec104-singlepoint: msg.payload muss boolean (true/false) sein"));
           return;
         }
 
         if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_singlepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
+          done(new Error("iec104-singlepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
@@ -99,5 +99,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType("iec104_singlepoint", Iec104SinglePoint);
+  RED.nodes.registerType("iec104-singlepoint", Iec104SinglePoint);
 };

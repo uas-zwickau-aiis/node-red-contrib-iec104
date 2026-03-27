@@ -139,9 +139,7 @@ module.exports = function(RED) {
     function isValidPoint(p) {
         return !!p &&
             typeof p.ca === "number" &&
-            Array.isArray(p.ioa) &&
-            p.ioa.length === 3 &&
-            p.ioa.every(b => typeof b === "number" && b >= 0 && b <= 255) &&
+            typeof p.ioa === "number" &&
             p.type &&
             typeof p.value !== "undefined";
     }
@@ -152,10 +150,6 @@ module.exports = function(RED) {
         if (!isValidPoint(p)) {
             node.error("Invalid IEC104 point");
             return;
-        }
-
-        if (Array.isArray(p.ioa)) {
-            p.ioa = ioaArrayToNumber(p.ioa);
         }
 
         node.processImage.set(`${p.ca}:${p.ioa}`, p);
@@ -197,10 +191,6 @@ module.exports = function(RED) {
             reason,
             ts: Date.now()
         });
-    }
-
-    function ioaArrayToNumber(ioa) {
-        return (ioa[0] << 16) | (ioa[1] << 8) | ioa[2];
     }
   }
 

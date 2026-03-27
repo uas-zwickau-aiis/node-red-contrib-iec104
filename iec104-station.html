@@ -9,9 +9,9 @@ RED.nodes.registerType('iec104-station',{
   },
   inputs: 1,
   icon: "font-awesome/fa-eye",
-  paletteLabel: "IEC104 Station",
+  paletteLabel: "Stationsadresse",
   label: function() {
-    return this.name || "IEC104 Station";
+    return this.name || `Stationsadresse (${this.ca})`;
   },
 
   oneditsave: function() {
