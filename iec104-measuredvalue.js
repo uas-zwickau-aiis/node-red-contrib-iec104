@@ -1,4 +1,3 @@
-// iec104_measuredvalue.js
 module.exports = function (RED) {
   "use strict";
 
@@ -6,79 +5,84 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     const node = this;
 
-    const ioa = Number(config.ioa);
-    const meType = String(config.meType || "M_ME_NC_1");
-    const tsSource = String(config.tsSource || "now"); // now | msg
+    const ioa0 = Number(config.ioa0);
+    const ioa1 = Number(config.ioa1);
+    const ioa2 = Number(config.ioa2);
 
-    // Quality Defaults (IEC 60870-5-104 / QDS bits)
-    // BL  = Blocked
-    // SB  = Substituted
-    // INT = Not topical (old value / not up-to-date)
-    // IV  = Invalid
-    // OV  = Overflow
-    const defaultQuality = {
-      BL: !!config.qBL,
-      SB: !!config.qSB,
-      INT: !!config.qINT,
-      IV: !!config.qIV,
-      OV: !!config.qOV
-    };
+    const meType = String(config.meType || "M_ME_NC_1");
+    const tsSource = String(config.tsSource || "now");
+
+    const qBlockedMode = String(config.qBlockedMode || "msg");
+    const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
+    const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
+    const qInvalidMode = String(config.qInvalidMode || "msg");
+    const qOverflowMode = String(config.qOverflowMode || "msg");
 
     function needsTimestamp(typeStr) {
-      // Zeitvarianten für measured values (CP56Time2a): M_ME_TD_1 / M_ME_TE_1 / M_ME_TF_1
       return /^M_ME_T[D-F]_1$/.test(typeStr || "");
+    }
+
+    function isByte(value) {
+      return Number.isInteger(value) && value >= 0 && value <= 255;
+    }
+
+    function resolveQualityBit(mode, incomingValue) {
+      if (mode === "true") return true;
+      if (mode === "false") return false;
+      return !!incomingValue;
     }
 
     function parseNumberMaybe(v) {
       if (typeof v === "number" && Number.isFinite(v)) return v;
+
       if (typeof v === "string") {
-        const s = v.trim().replace(",", "."); // Komma erlauben
+        const s = v.trim().replace(",", ".");
         if (s === "") return null;
         const n = Number(s);
         if (Number.isFinite(n)) return n;
       }
+
       return null;
     }
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
+      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
       try {
-        if (!Number.isFinite(ioa)) {
+        if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
           node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104_measuredvalue: IOA (config.ioa) ist ungültig"));
+          done(new Error("iec104-measuredvalue: IOA-Bytes müssen zwischen 0 und 255 liegen"));
           return;
         }
 
-        // Payload -> Number
         const value = parseNumberMaybe(msg.payload);
         if (value == null) {
           node.status({ fill: "red", shape: "ring", text: "payload muss Zahl sein" });
-          done(new Error("iec104_measuredvalue: msg.payload muss eine Zahl sein"));
+          done(new Error("iec104-measuredvalue: msg.payload muss eine Zahl sein"));
           return;
         }
 
-        // Quality: Defaults + optional msg.quality überschreibt (wenn Objekt)
-        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : null;
-        const quality = Object.assign({}, defaultQuality, incomingQuality || {});
+        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : {};
+
+        const quality = {
+          blocked: resolveQualityBit(qBlockedMode, incomingQuality.blocked),
+          substituted: resolveQualityBit(qSubstitutedMode, incomingQuality.substituted),
+          notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical),
+          invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
+          overflow: resolveQualityBit(qOverflowMode, incomingQuality.overflow)
+        };
 
         const p = {
           type: meType,
           ioa: ioa,
           value: value,
-          quality: {
-            blocked: !!quality.BL,     // Blocked
-            substituted: !!quality.SB,     // Substituted
-            notTopical: !!quality.INT,   // Not topical
-            invalid: !!quality.IV,     // Invalid
-            overflow: !!quality.OV      // Overflow
-          }
+          quality: quality
         };
 
-        // Timestamp nur bei CP56-Varianten (TD/TE/TF)
         if (needsTimestamp(meType)) {
           if (tsSource === "msg" && msg.ts != null) {
-            p.ts = msg.ts; // ISO oder epoch(ms)
+            p.ts = msg.ts;
           } else {
             p.ts = new Date().toISOString();
           }
@@ -89,7 +93,7 @@ module.exports = function (RED) {
         node.status({
           fill: "green",
           shape: "dot",
-          text: `${meType} ioa=${ioa} value=${value}`
+          text: `${meType} ioa=[${ioa0},${ioa1},${ioa2}] value=${value}`
         });
 
         send(msg);
@@ -105,5 +109,5 @@ module.exports = function (RED) {
     });
   }
 
-  RED.nodes.registerType("iec104_measuredvalue", Iec104MeasuredValue);
+  RED.nodes.registerType("iec104-measuredvalue", Iec104MeasuredValue);
 };

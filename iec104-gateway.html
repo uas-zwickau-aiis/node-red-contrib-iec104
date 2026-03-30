@@ -1,24 +1,14 @@
 <script type="text/javascript">
 RED.nodes.registerType('iec104-gateway',{
-  category: 'IEC 104',
-  color: '#dce5f5',
+  category: 'config',
   defaults: {
-    name: {value:""},
+    name: {value: ''},
     port: {value: 2404, required: true, validate: RED.validators.number()},
-    ca: {value: 1, required: true, validate: RED.validators.number()},
     t1: { value: 15, validate: RED.validators.number()},
     t3: { value: 20, validate: RED.validators.number()}
   },
-  inputs:1,
-  outputs:2,
-  outputLabels: [
-    "Data",
-    "Status"
-  ],
-  icon: "bridge.svg",
-  paletteLabel: "IEC104 Gateway",
   label: function() {
-    return this.name || "IEC104 Gateway";
+    return this.name || "IEC 60870-5-104 Gateway";
   }
 });
 </script>
@@ -26,91 +16,23 @@ RED.nodes.registerType('iec104-gateway',{
 <script type="text/html" data-template-name="iec104-gateway">
 
   <div class="form-row">
-    <label for="node-input-name">Name</label>
-    <input type="text" id="node-input-name">
+    <label for="node-config-input-name">Name</label>
+    <input type="text" id="node-config-input-name">
+  </div>
+  
+  <div class="form-row">
+    <label for="node-config-input-port">Port</label>
+    <input type="number" id="node-config-input-port">
   </div>
 
   <div class="form-row">
-    <label for="node-input-ca">Common Address</label>
-    <input type="number" id="node-input-ca">
+    <label for="node-config-input-t1">t1 (s)</label>
+    <input type="number" id="node-config-input-t1">
   </div>
 
   <div class="form-row">
-    <label for="node-input-port">Port</label>
-    <input type="number" id="node-input-port">
+    <label for="node-config-input-t3">t3 (s)</label>
+    <input type="number" id="node-config-input-t3">
   </div>
-
-  <hr>
-
-  <div class="form-row">
-    <label for="node-input-t1">t1 (s)</label>
-    <input type="number" id="node-input-t1" min="0">
-  </div>
-
-  <div class="form-row">
-    <label>t2</label>
-    <span style="margin-left:10px; color:#888;">nicht implementiert</span>
-  </div>
-
-  <div class="form-row">
-    <label for="node-input-t3">t3 (s)</label>
-    <input type="number" id="node-input-t3" min="0">
-  </div>
-
-</script>
-
-<script type="text/html" data-help-name="iec104-gateway">
-
-  <p>
-    <b>IEC 60870-5-104 Gateway</b><br>
-    Stellt eine IEC-104 Server-Verbindung (RTU) bereit.
-  </p>
-
-  <h3>Funktion</h3>
-  <p>
-    Die Node empfängt IEC-104 Verbindungen über TCP (Standardport 2404)
-    und sendet eingehende Punkte als I-Frames.
-  </p>
-
-  <h3>Eingang</h3>
-  <p>
-    Erwartet ein JSON-Objekt im <code>msg.payload</code>:
-  </p>
-
-  <pre>
-  {
-    "ioa": 12,
-    "type": "M_SP_NA_1",
-    "value": true,
-    "quality": {
-      "invalid": false,
-      "substituted": false,
-      "blocked": false,
-      "notTopical": false
-    },
-    "timestamp": 1700000000000
-  }
-  </pre>
-
-  <h3>Ausgänge</h3>
-  <ul>
-  <li><b>Output 1:</b> Gesendete IEC-Frames (Buffer)</li>
-  <li><b>Output 2:</b> Statusmeldungen (Verbindung, StartDT, StopDT, Timer)</li>
-  </ul>
-
-  <h3>Parameter</h3>
-  <ul>
-  <li><b>Common Address:</b> Stationsadresse der RTU</li>
-  <li><b>Port:</b> TCP-Port (Standard 2404)</li>
-  <li><b>t1:</b> Timeout für nicht bestätigte I-Frames (Sekunden, 0 = deaktiviert)</li>
-  <li><b>t3:</b> Inaktivitäts-Timeout für TESTFR (Sekunden, 0 = deaktiviert)</li>
-  </ul>
-
-  <h3>Hinweise</h3>
-  <ul>
-  <li>Unterstützt Global Interrogation (GI)</li>
-  <li>Process Image wird intern verwaltet</li>
-  <li>SPONT Meldungen werden sofort übertragen</li>
-  </ul>
 
 </script>

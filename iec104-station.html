@@ -1,0 +1,40 @@
+<script type="text/javascript">
+RED.nodes.registerType('iec104-station',{
+  category: 'IEC 104',
+  color: '#dce5f5',
+  defaults: {
+    name: { value: '' },
+    ca: {value: 1, required: true, validate: RED.validators.number()},
+    connection: { type: "iec104-gateway", required: true }
+  },
+  inputs: 1,
+  icon: "bridge.svg",
+  paletteLabel: "Stationsadresse",
+  label: function() {
+    return this.name || `Stationsadresse (${this.ca})`;
+  },
+
+  oneditsave: function() {
+      this.ca = Number($("#node-input-ca").val());
+  }
+
+});
+</script>
+
+<script type="text/html" data-template-name="iec104-station">
+
+  <div class="form-row">
+    <label for="node-input-name">Name</label>
+    <input type="text" id="node-input-name">
+  </div>
+   <div class="form-row">
+    <label for="node-input-ca">Stationsadresse</label>
+    <input type="number" id="node-input-ca">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection">Gateway</label>
+    <input type="text" id="node-input-connection">
+  </div>
+
+</script>
