@@ -9,8 +9,8 @@ module.exports = function (RED) {
     const ioa1 = Number(config.ioa1);
     const ioa2 = Number(config.ioa2);
 
-    const dpType = String(config.dpType || "M_DP_NA_1"); // M_DP_NA_1 | M_DP_TA_1 | M_DP_TB_1
-    const tsSource = String(config.tsSource || "now");   // now | msg
+    const dpType = String(config.dpType || "M_DP_NA_1");
+    const tsSource = String(config.tsSource || "now");
 
     const qInvalidMode = String(config.qInvalidMode || "msg");
     const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
@@ -32,15 +32,13 @@ module.exports = function (RED) {
     }
 
     function normalizeDpi(value) {
-      // akzeptiert number oder string "0".."3"
       if (typeof value === "string") {
         const s = value.trim();
         if (s === "") return null;
         if (!Number.isFinite(Number(s))) return null;
         value = Number(s);
       }
-
-      // DPI muss Integer 0..3 sein
+      
       if (typeof value !== "number" || !Number.isFinite(value) || !Number.isInteger(value)) return null;
       if (value < 0 || value > 3) return null;
       return value;
@@ -58,6 +56,7 @@ module.exports = function (RED) {
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
+      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
       try {
         const dpi = normalizeDpi(msg.payload);
@@ -83,11 +82,9 @@ module.exports = function (RED) {
           notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical)
         };
 
-        msg.quality = quality;
-
         const p = {
           type: dpType,
-          ioa: [ioa0, ioa1, ioa2],
+          ioa: ioa,
           value: dpi,
           quality: quality
         };

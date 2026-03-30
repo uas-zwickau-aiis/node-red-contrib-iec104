@@ -8,7 +8,7 @@ RED.nodes.registerType('iec104-station',{
     connection: { type: "iec104-gateway", required: true }
   },
   inputs: 1,
-  icon: "font-awesome/fa-eye",
+  icon: "bridge.svg",
   paletteLabel: "Stationsadresse",
   label: function() {
     return this.name || `Stationsadresse (${this.ca})`;

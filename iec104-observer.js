@@ -12,11 +12,11 @@ module.exports = function(RED) {
     }
 
     function onData(msg) {
-        node.warn("DATA: " + JSON.stringify(msg));
+        node.send(msg)
     }
 
     function onStatus(msg) {
-        node.warn("STATUS: " + JSON.stringify(msg));
+         node.send([null, msg]);
     }
 
     client.on("iec104:data", onData);

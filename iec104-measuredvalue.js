@@ -47,6 +47,7 @@ module.exports = function (RED) {
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
+      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
       try {
         if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
@@ -72,11 +73,9 @@ module.exports = function (RED) {
           overflow: resolveQualityBit(qOverflowMode, incomingQuality.overflow)
         };
 
-        msg.quality = quality;
-
         const p = {
           type: meType,
-          ioa: [ioa0, ioa1, ioa2],
+          ioa: ioa,
           value: value,
           quality: quality
         };

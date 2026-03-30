@@ -11,8 +11,6 @@ module.exports = function(RED) {
         node.on("input", function (msg) {
             
             msg.payload.ca = node.ca
-            console.log(msg)
-
             client.emit("iec104:input", msg)
         });
     }

@@ -33,7 +33,7 @@ module.exports = function (RED) {
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
-
+      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
       try {
         let value = msg.payload;
 
@@ -65,11 +65,9 @@ module.exports = function (RED) {
           notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical)
         };
 
-        msg.quality = quality;
-
         const p = {
           type: spType,
-          ioa: [ioa0, ioa1, ioa2],
+          ioa: ioa,
           value: value,
           quality: quality
         };
