@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('iec104-singlepoint', {
+  RED.nodes.registerType('iec104-integratedtotal', {
     category: 'IEC 104',
     color: '#dce5f5',
     defaults: {
@@ -9,20 +9,19 @@
       ioa1: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
       ioa2: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
 
-      spType: { value: "M_SP_NA_1" },
+      itType: { value: "M_IT_NA_1" },
       tsSource: { value: "now" },
 
       qInvalidMode: { value: "msg" },
-      qSubstitutedMode: { value: "msg" },
-      qBlockedMode: { value: "msg" },
-      qNotTopicalMode: { value: "msg" }
+      qAdjustedMode: { value: "msg" },
+      qCarryMode: { value: "msg" }
     },
     inputs: 1,
     outputs: 1,
     icon: "serial.svg",
-    paletteLabel: "Einzelmeldung",
+    paletteLabel: "Zählwert",
     label: function () {
-      return this.name || "Einzelmeldung";
+      return this.name || "Zählwert";
     },
     oneditprepare: function () {
       function updateIoaPreview() {
@@ -45,9 +44,10 @@
       updateIoaPreview();
     }
   });
+
 </script>
 
-<script type="text/html" data-template-name="iec104-singlepoint">
+<script type="text/html" data-template-name="iec104-integratedtotal">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
@@ -65,13 +65,12 @@
       Dezimal (Hex): 0 (0x000000)
     </div>
   </div>
-
   <div class="form-row">
-    <label for="node-input-spType">Meldetyp</label>
-    <select id="node-input-spType">
-      <option value="M_SP_NA_1">M_SP_NA_1 (ohne Zeit)</option>
-      <option value="M_SP_TA_1">M_SP_TA_1 (CP24Time2a)</option>
-      <option value="M_SP_TB_1">M_SP_TB_1 (CP56Time2a)</option>
+    <label for="node-input-itType">Meldetyp</label>
+    <select id="node-input-itType">
+      <option value="M_IT_NA_1">M_IT_NA_1 (ohne Zeit)</option>
+      <option value="M_IT_TA_1">M_IT_TA_1 (CP24Time2a)</option>
+      <option value="M_IT_TB_1">M_IT_TB_1 (CP56Time2a)</option>
     </select>
   </div>
 
@@ -99,56 +98,33 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-qSubstitutedMode">substituted</label>
-    <select id="node-input-qSubstitutedMode">
-      <option value="msg">aus msg.quality.substituted</option>
+    <label for="node-input-qAdjustedMode">adjusted</label>
+    <select id="node-input-qAdjustedMode">
+      <option value="msg">aus msg.quality.adjusted</option>
       <option value="false">false</option>
       <option value="true">true</option>
     </select>
   </div>
 
   <div class="form-row">
-    <label for="node-input-qBlockedMode">blocked</label>
-    <select id="node-input-qBlockedMode">
-      <option value="msg">aus msg.quality.blocked</option>
-      <option value="false">false</option>
-      <option value="true">true</option>
-    </select>
-  </div>
-
-  <div class="form-row">
-    <label for="node-input-qNotTopicalMode">notTopical</label>
-    <select id="node-input-qNotTopicalMode">
-      <option value="msg">aus msg.quality.notTopical</option>
+    <label for="node-input-qCarryMode">carry</label>
+    <select id="node-input-qCarryMode">
+      <option value="msg">aus msg.quality.carry</option>
       <option value="false">false</option>
       <option value="true">true</option>
     </select>
   </div>
 </script>
 
-<script type="text/html" data-help-name="iec104-singlepoint">
+<script type="text/html" data-help-name="iec104-integratedtotal">
   <p>
-    Diese Node nimmt <code>msg.payload</code> (true/false) entgegen und erzeugt eine IEC104 Single-Point-Meldung als Objekt in <code>msg.payload</code>.
+    Diese Node erzeugt eine IEC104-Integrated-Total-Meldung aus <code>msg.payload</code>.
   </p>
-
-  <ul>
-    <li><b>M_SP_NA_1</b>: ohne Zeitstempel</li>
-    <li><b>M_SP_TA_1</b>: mit Zeitstempel</li>
-    <li><b>M_SP_TB_1</b>: mit Zeitstempel</li>
-  </ul>
-
   <p>
-    Die Objektadresse <code>ioa</code> wird als Array aus drei Bytes aufgebaut:
-    <code>[ioa0, ioa1, ioa2]</code>.
+    Die Quality-Merkmale <code>invalid</code>, <code>adjusted</code> und <code>carry</code> können entweder
+    aus <code>msg.quality</code> übernommen oder in der Node fest erzwungen werden.
   </p>
-
   <p>
-    Die Quality-Merkmale <code>invalid</code>, <code>substituted</code>, <code>blocked</code> und
-    <code>notTopical</code> können entweder aus <code>msg.quality</code> übernommen oder in der Node
-    fest erzwungen werden.
-  </p>
-
-  <p>
-    Optional kannst du bei TA/TB <code>msg.ts</code> mitgeben, wenn du "msg.ts übernehmen" auswählst.
+    Wenn in der Node ein Wert fest gesetzt wird, hat dieser immer Vorrang vor <code>msg.quality</code>.
   </p>
 </script>

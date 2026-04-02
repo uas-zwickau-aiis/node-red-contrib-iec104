@@ -7,7 +7,6 @@ module.exports = function(RED) {
     RED.nodes.createNode(this, config);
 
     this.port = Number(config.port);
-    this.ca = Number(config.ca);
     this.t1 = Number(config.t1) * 1000;
     this.t3 = Number(config.t3) * 1000;
 
@@ -18,13 +17,13 @@ module.exports = function(RED) {
     node.imageDirty = false;
 
     node.session = new Session({
-        ca: node.ca,
         send: data => tcpWrite(data),
         onStateChange: (s,msg) => setState(s,msg),
-        onGI: async sendPoint => {
+        onGI: async (ca,sendPoint) => {
 
             const snapshot = Array
                 .from(node.processImage.values())
+                .filter(p => ca === 65535 || p.ca === ca)
                 .sort((a, b) => a.ioa - b.ioa);
 
             for (const p of snapshot) {
@@ -80,7 +79,6 @@ module.exports = function(RED) {
         sock.on("error", tcpCleanup);
 
         sock.on("timeout", () => {
-
             tcpCleanup()
         });
         
@@ -139,14 +137,14 @@ module.exports = function(RED) {
     //                   NODE                      //
     // ########################################### //
     function isValidPoint(p) {
-        if (!p) return false;
-        if (typeof p.ioa !== "number") return false;
-        if (!p.type) return false;
-        if (typeof p.value === "undefined") return false;
-        return true;
+        return !!p &&
+            typeof p.ca === "number" &&
+            typeof p.ioa === "number" &&
+            p.type &&
+            typeof p.value !== "undefined";
     }
 
-    node.on("input", function (msg) {
+    node.on("iec104:input", function (msg) {
         const p = msg.payload;
 
         if (!isValidPoint(p)) {
@@ -154,10 +152,9 @@ module.exports = function(RED) {
             return;
         }
 
-        node.processImage.set(p.ioa, p);
+        node.processImage.set(`${p.ca}:${p.ioa}`, p);
 
-        // 5) Encoden & senden
-        node.session.sendPoint(p, "SPONT") // hier evtl noch CYC/PERIODIC
+        node.session.sendPoint(p, "SPONT");
     });
 
     node.on("close", function(done) {
@@ -179,28 +176,24 @@ module.exports = function(RED) {
 
     function emitData(asdu)
     {
-        node.send([
-            {
-                topic: "iec104/data",
-                payload: asdu,
-                ts: Date.now()
-            },
-            null
-        ]);
+        node.emit("iec104:data", {
+            topic: "iec104/data",
+            payload: asdu,
+            ts: Date.now()
+        });
     }
 
     function emitStatus(state, reason)
     {
-        node.send([
-            null,
-            {
-                topic: "iec104/status",
-                state,
-                reason,
-                ts: Date.now()
-            }
-        ]);
+        node.emit("iec104:status", {
+            topic: "iec104/status",
+            state,
+            reason,
+            ts: Date.now()
+        });
     }
   }
+
+  
   RED.nodes.registerType("iec104-gateway", IEC104Gateway);
 };

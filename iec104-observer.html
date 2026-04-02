@@ -1,0 +1,44 @@
+<script type="text/javascript">
+RED.nodes.registerType('iec104-observer',{
+  category: 'IEC 104',
+  color: '#dce5f5',
+  defaults: {
+    name: { value: "" },
+    connection: { type: "iec104-gateway", required: true }
+  },
+  inputs: 0,
+  outputs: 2,
+  outputLabels: [
+    "Data",
+    "Status"
+  ],
+  icon: "font-awesome/fa-eye",
+  paletteLabel: "Beobachter",
+  label: function() {
+    return this.name || "Beobachter";
+  }
+});
+</script>
+
+<script type="text/html" data-template-name="iec104-observer">
+
+  <div class="form-row">
+    <label for="node-input-name">Name</label>
+    <input type="text" id="node-input-name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection">Gateway</label>
+    <input type="text" id="node-input-connection">
+  </div>
+
+  <hr>
+
+  <div class="form-row">
+    <label>Info</label>
+    <span style="margin-left:10px; color:#888;">
+      Listens to IEC104 events (data/status)
+    </span>
+  </div>
+
+</script>
