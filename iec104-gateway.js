@@ -3,7 +3,6 @@ const IEC104 = require("./lib/core/constants");
 const Session = require("./lib/protocol/session");
 
 module.exports = function (RED) {
-    // Einmalige Registrierung der Admin-Route
     if (!RED.httpAdmin._iec104StatusRouteRegistered) {
         RED.httpAdmin._iec104StatusRouteRegistered = true;
 
@@ -31,10 +30,8 @@ module.exports = function (RED) {
             res.setHeader("Connection", "keep-alive");
             res.flushHeaders?.();
 
-            // Client registrieren
             node._sseClients.add(res);
 
-            // Direkt aktuellen Zustand pushen
             const payload = JSON.stringify({
                 state: node.currentState || "UNKNOWN",
                 reason: node.currentReason || "",
@@ -44,7 +41,6 @@ module.exports = function (RED) {
             res.write(`event: status\n`);
             res.write(`data: ${payload}\n\n`);
 
-            // Verbindung sauber abbauen
             req.on("close", () => {
                 node._sseClients.delete(res);
             });
@@ -91,7 +87,27 @@ module.exports = function (RED) {
             node.currentReason = reason || "";
             node.currentTs = Date.now();
 
+            emitStatus(state, reason);
             broadcastStatus();
+        }
+
+        function emitData(asdu)
+        {
+            node.emit("iec104:data", {
+                topic: "iec104/data",
+                payload: asdu,
+                ts: Date.now()
+            });
+        }
+
+        function emitStatus(state, reason)
+        {
+            node.emit("iec104:status", {
+                topic: "iec104/status",
+                state,
+                reason,
+                ts: Date.now()
+            });
         }
 
         node.session = new Session({
@@ -139,6 +155,7 @@ module.exports = function (RED) {
         function tcpWrite(data) {
             if (node.socket) {
                 node.socket.write(data);
+                emitData(data);
             }
         }
 
