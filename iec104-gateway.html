@@ -9,10 +9,72 @@ RED.nodes.registerType('iec104-gateway',{
   },
   label: function() {
     return this.name || "IEC 60870-5-104 Gateway";
+  },
+
+  oneditprepare: function () {
+    const nodeId = this.id;
+    let es = null;
+
+    const colors = {
+      IDLE: "#666",
+      CONNECTED: "#d98c00",
+      DATA_TRANSFER: "green",
+      STOPPED: "#1d6fd1",
+      UNKNOWN: "#999"
+    };
+
+    function renderStatus(data) {
+      const state = data?.state || "UNKNOWN";
+      const reason = data?.reason || "";
+      const color = colors[state] || colors.UNKNOWN;
+
+      $("#node-config-status")
+        .text(state)
+        .css("color", color);
+
+      $("#node-config-reason")
+        .text(reason);
+    }
+
+    $.getJSON("iec104/" + nodeId + "/status")
+      .done(renderStatus)
+      .fail(function () {
+        renderStatus({ state: "UNKNOWN", reason: "keine Verbindung" });
+      });
+
+    es = new EventSource("iec104/" + nodeId + "/events");
+    es.addEventListener("status", function (evt) {
+      try {
+        renderStatus(JSON.parse(evt.data));
+      } catch (err) {
+        console.warn("IEC104 status parse error", err);
+      }
+    });
+
+    es.onerror = function () {
+      $("#node-config-status")
+        .text("DISCONNECTED")
+        .css("color", "red");
+    };
+
+    this._iec104EventSource = es;
+  },
+
+  oneditcancel: function () {
+    if (this._iec104EventSource) {
+      this._iec104EventSource.close();
+      this._iec104EventSource = null;
+    }
+  },
+
+  oneditsave: function () {
+    if (this._iec104EventSource) {
+      this._iec104EventSource.close();
+      this._iec104EventSource = null;
+    }
   }
 });
 </script>
-
 <script type="text/html" data-template-name="iec104-gateway">
 
   <div class="form-row">
@@ -33,6 +95,19 @@ RED.nodes.registerType('iec104-gateway',{
   <div class="form-row">
     <label for="node-config-input-t3">t3 (s)</label>
     <input type="number" id="node-config-input-t3">
+  </div>
+
+  <hr>
+
+  <!-- 🔥 NEU: Statusanzeige -->
+  <div class="form-row">
+    <label>Status</label>
+    <span id="node-config-status" style="font-weight:bold;">UNKNOWN</span>
+  </div>
+
+  <div class="form-row">
+    <label>Reason</label>
+    <span id="node-config-reason" style="color:#666;"></span>
   </div>
 
 </script>
