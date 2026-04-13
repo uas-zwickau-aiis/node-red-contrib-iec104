@@ -1,199 +1,106 @@
-const net = require("net");
-const IEC104 = require("./lib/core/constants");
-const Session = require("./lib/protocol/session")
+const Session = require("./lib/protocol/session");
+const StatusPublisher = require("./lib/core/statusPublisher");
+const FrameParser = require("./lib/protocol/frameParser");
+const TcpConnection = require("./lib/tcp/connection");
+const registerRoutes = require("./lib/admin/routes");
+const {isValidPoint} = require("./lib/core/validators")
 
-module.exports = function(RED) {
-  function IEC104Gateway(config) {
-    RED.nodes.createNode(this, config);
+module.exports = function (RED) {
+    registerRoutes(RED);
 
-    this.port = Number(config.port);
-    this.t1 = Number(config.t1) * 1000;
-    this.t3 = Number(config.t3) * 1000;
+    function IEC104Gateway(config) {
+        RED.nodes.createNode(this, config);
+        const node = this;
 
-    const node = this;
+        node.port = Number(config.port);
+        node.t1 = Number(config.t1) * 1000;
+        node.t3 = Number(config.t3) * 1000;
 
-    // Zustand aller Punkte
-    node.processImage = new Map();
-    node.imageDirty = false;
+        node.processImage = new Map();
 
-    node.session = new Session({
-        send: data => tcpWrite(data),
-        onStateChange: (s,msg) => setState(s,msg),
-        onGI: async (ca,sendPoint) => {
+        node.currentState = "IDLE";
+        node.currentReason = "Warte auf Verbindungen";
+        node.currentTs = Date.now();
 
-            const snapshot = Array
-                .from(node.processImage.values())
-                .filter(p => ca === 65535 || p.ca === ca)
-                .sort((a, b) => a.ioa - b.ioa);
+        node.statusPub = new StatusPublisher(node);
+        node.session = new Session({
+            send: data => {
+                node.tcp.send(data);
+                emitData(data);
+            },
+            onStateChange: (s, msg) => node.statusPub.publish(s, msg),
+            onGI: async (ca, sendPoint) => {
+                const snapshot = Array
+                    .from(node.processImage.values())
+                    .filter(p => ca === 65535 || p.ca === ca)
+                    .sort((a, b) => a.ioa - b.ioa);
 
-            for (const p of snapshot) {
-                sendPoint(p);
-            }
-        },
-        onConnectionLost: reason => {
-            tcpCleanup(reason);
-        },
-        t1: node.t1,
-        t3: node.t3
-    });
-
-
-    function setState(state, reason)
-    {
-        let color = "red";
-        let statusText = "Keine Verbindung";
-        switch(state)
-        {
-            case "CONNECTED":
-                color = "yellow";
-                statusText = "Verbindung angenommen";
-                break;
-            case "DATA_TRANSFER":
-                color = "green";
-                statusText = "Datentransfer aktiv";
-                break;
-            case "STOPPED":
-                color = "blue";
-                statusText = "Datentransfer gestoppt"
-                break;
-            default:
-                break;
-        }
-        node.status({ fill: color, shape: "dot", text: statusText || "" });
-        emitStatus(state, reason)
-    }
-
-    // ########################################### //
-    //                    TCP                      //
-    // ########################################### //
-    node.server = net.createServer(sock => {
-        node.socket = sock;
-        node.rxBuffer = Buffer.alloc(0);
-
-        sock.setNoDelay(true);
-        sock.setKeepAlive(true, 10000);
-
-        sock.on("data", onRxBytes); 
-        sock.on("end", tcpCleanup);
-        sock.on("close", tcpCleanup);
-        sock.on("error", tcpCleanup);
-
-        sock.on("timeout", () => {
-            tcpCleanup()
+                for (const p of snapshot) {
+                    sendPoint(p);
+                }
+            },
+            onConnectionLost: reason => {
+                node.session.stop(reason)
+            },
+            t1: node.t1,
+            t3: node.t3
         });
-        
-        node.session.start();
-    });
 
-    node.server.on("error", err => {
-        tcpCleanup(err.message)
-    });
 
-    node.server.listen(node.port, () => {
-       //
-    })
+        node.tcp = new TcpConnection({
+            port: node.port,
 
-    function tcpWrite(data) {
-        if (node.socket) {
-            node.socket.write(data);
-            emitData(data)
-        }
-    }
-    function tcpCleanup(reason = "") {
-        if (!node.socket) return;
+            onFrame: frame => {
+                node.session.handleFrame(frame).catch(err => node.error(err));
+            },
 
-        try { 
-            node.socket.destroy(); 
-        } catch (e) { }
-        
-        node.socket = null;
-        node.rxBuffer = Buffer.alloc(0);
+            onConnect: () => {
+                node.session.start();
+            },
 
-        node.session.stop(reason);
-    }
+            onDisconnect: reason => {
+                node.session.stop(reason);
+            },
 
-    function onRxBytes(data) {
-        node.rxBuffer = Buffer.concat([node.rxBuffer, data]);
+            onError: err => {
+                node.statusPub.publish("IDLE", err?.message || "tcp error");
+            }
+        });
 
-        while (node.rxBuffer.length >= 2) {
-            if (node.rxBuffer[0] !== IEC104.START) {
-                node.rxBuffer = node.rxBuffer.slice(1);
-                continue;
+        node.tcp.start();
+
+        node.on("iec104:input", function (msg) {
+            const p = msg.payload;
+
+            if (!isValidPoint(p)) {
+                node.error("Invalid IEC104 point");
+                return;
             }
 
-            const len = node.rxBuffer[1];
-            const frameLen = len + 2;
+            node.processImage.set(`${p.ca}:${p.ioa}`, p);
+            node.session.sendPoint(p, "SPONT");
+        });
 
-            if (node.rxBuffer.length < frameLen) return;
+        node.on("close", function (done) {
+            node.statusPub.closeAll();
 
-            const frame = node.rxBuffer.slice(0, frameLen);
-            node.rxBuffer = node.rxBuffer.slice(frameLen);
-
-            node.session.handleFrame(frame).catch(err => node.error(err));
-        }
-    }
-
-    // ########################################### //
-    //                   NODE                      //
-    // ########################################### //
-    function isValidPoint(p) {
-        return !!p &&
-            typeof p.ca === "number" &&
-            typeof p.ioa === "number" &&
-            p.type &&
-            typeof p.value !== "undefined";
-    }
-
-    node.on("iec104:input", function (msg) {
-        const p = msg.payload;
-
-        if (!isValidPoint(p)) {
-            node.error("Invalid IEC104 point");
-            return;
-        }
-
-        node.processImage.set(`${p.ca}:${p.ioa}`, p);
-
-        node.session.sendPoint(p, "SPONT");
-    });
-
-    node.on("close", function(done) {
-        if (node.socket) {
-            try {
-                node.socket.destroy(); 
-            } catch (e) {}
-            node.socket = null;
-        }
-
-        if(node.server)
-        {
-            node.server.close(() => {
+            if (node.tcp) {
+                node.tcp.stop(done);
+            } else {
                 done();
+            }
+        });
+
+        function emitData(asdu)
+        {
+            node.emit("iec104:data", {
+                topic: "iec104/data",
+                payload: asdu,
+                ts: Date.now()
             });
         }
-        else done();
-    });
-
-    function emitData(asdu)
-    {
-        node.emit("iec104:data", {
-            topic: "iec104/data",
-            payload: asdu,
-            ts: Date.now()
-        });
     }
 
-    function emitStatus(state, reason)
-    {
-        node.emit("iec104:status", {
-            topic: "iec104/status",
-            state,
-            reason,
-            ts: Date.now()
-        });
-    }
-  }
 
-  
-  RED.nodes.registerType("iec104-gateway", IEC104Gateway);
+    RED.nodes.registerType("iec104-gateway", IEC104Gateway);
 };
