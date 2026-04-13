@@ -1,51 +1,13 @@
 const net = require("net");
 const IEC104 = require("./lib/core/constants");
 const Session = require("./lib/protocol/session");
+const StatusPublisher = require("./lib/core/statusPublisher");
+
+const registerRoutes = require("./lib/admin/routes");
+const {isValidPoint} = require("./lib/core/validators")
 
 module.exports = function (RED) {
-    if (!RED.httpAdmin._iec104StatusRouteRegistered) {
-        RED.httpAdmin._iec104StatusRouteRegistered = true;
-
-        RED.httpAdmin.get("/iec104/:id/status", function (req, res) {
-            const node = RED.nodes.getNode(req.params.id);
-            if (!node) {
-                return res.sendStatus(404);
-            }
-
-            res.json({
-                state: node.currentState || "UNKNOWN",
-                reason: node.currentReason || "",
-                ts: node.currentTs || Date.now()
-            });
-        });
-
-        RED.httpAdmin.get("/iec104/:id/events", function (req, res) {
-            const node = RED.nodes.getNode(req.params.id);
-            if (!node) {
-                return res.sendStatus(404);
-            }
-
-            res.setHeader("Content-Type", "text/event-stream");
-            res.setHeader("Cache-Control", "no-cache, no-transform");
-            res.setHeader("Connection", "keep-alive");
-            res.flushHeaders?.();
-
-            node._sseClients.add(res);
-
-            const payload = JSON.stringify({
-                state: node.currentState || "UNKNOWN",
-                reason: node.currentReason || "",
-                ts: node.currentTs || Date.now()
-            });
-
-            res.write(`event: status\n`);
-            res.write(`data: ${payload}\n\n`);
-
-            req.on("close", () => {
-                node._sseClients.delete(res);
-            });
-        });
-    }
+    registerRoutes(RED);
 
     function IEC104Gateway(config) {
         RED.nodes.createNode(this, config);
@@ -63,34 +25,6 @@ module.exports = function (RED) {
         node.currentReason = "Warte auf Verbindungen";
         node.currentTs = Date.now();
 
-        node._sseClients = new Set();
-
-        function broadcastStatus() {
-            const payload = JSON.stringify({
-                state: node.currentState,
-                reason: node.currentReason,
-                ts: node.currentTs
-            });
-
-            for (const client of node._sseClients) {
-                try {
-                    client.write(`event: status\n`);
-                    client.write(`data: ${payload}\n\n`);
-                } catch (err) {
-                    node._sseClients.delete(client);
-                }
-            }
-        }
-
-        function setState(state, reason) {
-            node.currentState = state;
-            node.currentReason = reason || "";
-            node.currentTs = Date.now();
-
-            emitStatus(state, reason);
-            broadcastStatus();
-        }
-
         function emitData(asdu)
         {
             node.emit("iec104:data", {
@@ -100,19 +34,10 @@ module.exports = function (RED) {
             });
         }
 
-        function emitStatus(state, reason)
-        {
-            node.emit("iec104:status", {
-                topic: "iec104/status",
-                state,
-                reason,
-                ts: Date.now()
-            });
-        }
-
+        node.statusPub = new StatusPublisher(node);
         node.session = new Session({
             send: data => tcpWrite(data),
-            onStateChange: (s, msg) => setState(s, msg),
+            onStateChange: (s, msg) => node.statusPub.publish(s, msg),
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
                     .from(node.processImage.values())
@@ -147,7 +72,7 @@ module.exports = function (RED) {
         });
 
         node.server.on("error", err => {
-            setState("IDLE", err?.message || "server error");
+            node.statusPub.publish("IDLE", err?.message || "server error");
         });
 
         node.server.listen(node.port);
@@ -196,13 +121,7 @@ module.exports = function (RED) {
             }
         }
 
-        function isValidPoint(p) {
-            return !!p &&
-                typeof p.ca === "number" &&
-                typeof p.ioa === "number" &&
-                p.type &&
-                typeof p.value !== "undefined";
-        }
+
 
         node.on("iec104:input", function (msg) {
             const p = msg.payload;
@@ -226,14 +145,7 @@ module.exports = function (RED) {
                 node.socket = null;
             }
 
-            for (const client of node._sseClients) {
-                try {
-                    client.end();
-                } catch (_) {
-                    // ignore
-                }
-            }
-            node._sseClients.clear();
+            node.statusPub.closeAll();
 
             if (node.server) {
                 node.server.close(() => done());
