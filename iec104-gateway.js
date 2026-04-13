@@ -1,8 +1,7 @@
-const net = require("net");
-const IEC104 = require("./lib/core/constants");
 const Session = require("./lib/protocol/session");
 const StatusPublisher = require("./lib/core/statusPublisher");
-
+const FrameParser = require("./lib/protocol/frameParser");
+const TcpConnection = require("./lib/tcp/connection");
 const registerRoutes = require("./lib/admin/routes");
 const {isValidPoint} = require("./lib/core/validators")
 
@@ -18,25 +17,17 @@ module.exports = function (RED) {
         node.t3 = Number(config.t3) * 1000;
 
         node.processImage = new Map();
-        node.socket = null;
-        node.rxBuffer = Buffer.alloc(0);
 
         node.currentState = "IDLE";
         node.currentReason = "Warte auf Verbindungen";
         node.currentTs = Date.now();
 
-        function emitData(asdu)
-        {
-            node.emit("iec104:data", {
-                topic: "iec104/data",
-                payload: asdu,
-                ts: Date.now()
-            });
-        }
-
         node.statusPub = new StatusPublisher(node);
         node.session = new Session({
-            send: data => tcpWrite(data),
+            send: data => {
+                node.tcp.send(data);
+                emitData(data);
+            },
             onStateChange: (s, msg) => node.statusPub.publish(s, msg),
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
@@ -49,79 +40,34 @@ module.exports = function (RED) {
                 }
             },
             onConnectionLost: reason => {
-                tcpCleanup(reason);
+                node.session.stop(reason)
             },
             t1: node.t1,
             t3: node.t3
         });
 
-        node.server = net.createServer(sock => {
-            node.socket = sock;
-            node.rxBuffer = Buffer.alloc(0);
 
-            sock.setNoDelay(true);
-            sock.setKeepAlive(true, 10000);
+        node.tcp = new TcpConnection({
+            port: node.port,
 
-            sock.on("data", onRxBytes);
-            sock.on("end", () => tcpCleanup("socket end"));
-            sock.on("close", () => tcpCleanup("socket close"));
-            sock.on("error", err => tcpCleanup(err?.message || "socket error"));
-            sock.on("timeout", () => tcpCleanup("socket timeout"));
-
-            node.session.start();
-        });
-
-        node.server.on("error", err => {
-            node.statusPub.publish("IDLE", err?.message || "server error");
-        });
-
-        node.server.listen(node.port);
-
-        function tcpWrite(data) {
-            if (node.socket) {
-                node.socket.write(data);
-                emitData(data);
-            }
-        }
-
-        function tcpCleanup(reason = "") {
-            if (node.socket) {
-                try {
-                    node.socket.destroy();
-                } catch (_) {
-                    // ignore
-                }
-                node.socket = null;
-            }
-
-            node.rxBuffer = Buffer.alloc(0);
-            node.session.stop(reason);
-        }
-
-        function onRxBytes(data) {
-            node.rxBuffer = Buffer.concat([node.rxBuffer, data]);
-
-            while (node.rxBuffer.length >= 2) {
-                if (node.rxBuffer[0] !== IEC104.START) {
-                    node.rxBuffer = node.rxBuffer.slice(1);
-                    continue;
-                }
-
-                const len = node.rxBuffer[1];
-                const frameLen = len + 2;
-
-                if (node.rxBuffer.length < frameLen) {
-                    return;
-                }
-
-                const frame = node.rxBuffer.slice(0, frameLen);
-                node.rxBuffer = node.rxBuffer.slice(frameLen);
-
+            onFrame: frame => {
                 node.session.handleFrame(frame).catch(err => node.error(err));
+            },
+
+            onConnect: () => {
+                node.session.start();
+            },
+
+            onDisconnect: reason => {
+                node.session.stop(reason);
+            },
+
+            onError: err => {
+                node.statusPub.publish("IDLE", err?.message || "tcp error");
             }
-        }
+        });
 
-
+        node.tcp.start();
 
         node.on("iec104:input", function (msg) {
             const p = msg.payload;
@@ -136,24 +82,25 @@ module.exports = function (RED) {
         });
 
         node.on("close", function (done) {
-            if (node.socket) {
-                try {
-                    node.socket.destroy();
-                } catch (_) {
-                    // ignore
-                }
-                node.socket = null;
-            }
-
             node.statusPub.closeAll();
 
-            if (node.server) {
-                node.server.close(() => done());
+            if (node.tcp) {
+                node.tcp.stop(done);
             } else {
                 done();
             }
         });
+
+        function emitData(asdu)
+        {
+            node.emit("iec104:data", {
+                topic: "iec104/data",
+                payload: asdu,
+                ts: Date.now()
+            });
+        }
     }
+
 
     RED.nodes.registerType("iec104-gateway", IEC104Gateway);
 };
