@@ -34,5 +34,10 @@
       "iec104-observer": "iec104-observer.js",
       "iec104-station": "iec104-station.js"
     }
+  },
+  "devDependencies": {
+    "chai": "^6.2.2",
+    "mocha": "^11.7.5",
+    "sinon": "^21.1.0"
   }
 }
