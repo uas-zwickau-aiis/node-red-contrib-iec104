@@ -1,7 +1,7 @@
 const Session = require("./lib/protocol/session");
 const StatusPublisher = require("./lib/core/statusPublisher");
-const FrameParser = require("./lib/protocol/frameParser");
 const TcpConnection = require("./lib/tcp/connection");
+const IEC104 = require("./lib/core/constants");
 const registerRoutes = require("./lib/admin/routes");
 const {isValidPoint} = require("./lib/core/validators")
 
@@ -32,7 +32,7 @@ module.exports = function (RED) {
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
                     .from(node.processImage.values())
-                    .filter(p => ca === 65535 || p.ca === ca)
+                    .filter(p => ca === IEC104.CA.BROADCAST || p.ca === ca)
                     .sort((a, b) => a.ioa - b.ioa);
 
                 for (const p of snapshot) {
