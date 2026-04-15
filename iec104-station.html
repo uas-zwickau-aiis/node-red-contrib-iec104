@@ -1,24 +1,62 @@
 <script type="text/javascript">
-RED.nodes.registerType('iec104-station',{
-  category: 'IEC 104',
-  color: '#dce5f5',
-  defaults: {
-    name: { value: '' },
-    ca: {value: 1, required: true, validate: RED.validators.number()},
-    connection: { type: "iec104-gateway", required: true }
-  },
-  inputs: 1,
-  icon: "bridge.svg",
-  paletteLabel: "Stationsadresse",
-  label: function() {
-    return this.name || `Stationsadresse (${this.ca})`;
-  },
+  RED.nodes.registerType('iec104-station',{
+    category: 'IEC 104',
+    color: '#dce5f5',
+    defaults: {
+      name: { value: '' },
 
-  oneditsave: function() {
-      this.ca = Number($("#node-input-ca").val());
-  }
+      ca_hi: { 
+        value: 0, 
+        validate: v => RED.validators.number()(v) && v >= 0 && v <= 255 
+      },
+      ca_lo: { 
+        value: 1, 
+        validate: v => RED.validators.number()(v) && v >= 0 && v <= 255 
+      },
 
-});
+      ca: { value: 1 }, // interne Zahl
+
+      connection: { type: "iec104-gateway", required: true }
+    },
+
+    inputs: 1,
+    icon: "bridge.svg",
+    paletteLabel: "Stationsadresse",
+
+    label: function() {
+      return this.name || `Stationsadresse (${this.ca})`;
+    },
+
+    oneditprepare: function () {
+
+      function updateCAPreview() {
+        let hi = parseInt($("#node-input-ca_hi").val(), 10);
+        let lo = parseInt($("#node-input-ca_lo").val(), 10);
+
+        hi = isNaN(hi) ? 0 : hi;
+        lo = isNaN(lo) ? 0 : lo;
+
+        const ca = (hi << 8) + lo;
+        const hex = "0x" + ca.toString(16).toUpperCase().padStart(4, "0");
+
+        $("#node-ca-preview").text(
+          `Dezimal (Hex): ${ca} (${hex})`
+        );
+      }
+
+      $("#node-input-ca_hi, #node-input-ca_lo")
+        .on("input change", updateCAPreview);
+
+      updateCAPreview();
+    },
+
+    oneditsave: function() {
+      const hi = Number($("#node-input-ca_hi").val()) || 0;
+      const lo = Number($("#node-input-ca_lo").val()) || 0;
+
+      this.ca = (hi << 8) + lo;
+    }
+  });
 </script>
 
 <script type="text/html" data-template-name="iec104-station">
@@ -27,9 +65,18 @@ RED.nodes.registerType('iec104-station',{
     <label for="node-input-name">Name</label>
     <input type="text" id="node-input-name">
   </div>
-   <div class="form-row">
-    <label for="node-input-ca">Stationsadresse</label>
-    <input type="number" id="node-input-ca">
+
+  <div class="form-row">
+    <label>Stationsadresse (CA)</label>
+    <input type="number" id="node-input-ca_hi" min="0" max="255" placeholder="Hi" style="width:60px; margin-right:5px;">
+    <input type="number" id="node-input-ca_lo" min="0" max="255" placeholder="Lo" style="width:60px;">
+  </div>
+
+  <div class="form-row">
+    <label></label>
+    <div id="node-ca-preview" class="form-tips" style="width:auto;">
+      Dezimal (Hex): 1 (0x0001)
+    </div>
   </div>
 
   <div class="form-row">
