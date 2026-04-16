@@ -78,7 +78,7 @@ module.exports = function (RED) {
             }
 
             node.processImage.set(`${p.ca}:${p.ioa}`, p);
-            node.session.sendPoint(p, "SPONT");
+            node.session.sendPoint(p, IEC104.COT.SPONT);
         });
 
         node.on("close", function (done) {
