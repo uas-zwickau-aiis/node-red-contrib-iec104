@@ -15,6 +15,8 @@ module.exports = function (RED) {
         node.port = Number(config.port);
         node.t1 = Number(config.t1) * 1000;
         node.t3 = Number(config.t3) * 1000;
+        node.k = Number(config.k_win);
+        node.w = Number(config.w_win);
 
         node.processImage = new Map();
 
@@ -43,7 +45,9 @@ module.exports = function (RED) {
                 node.session.stop(reason)
             },
             t1: node.t1,
-            t3: node.t3
+            t3: node.t3,
+            k: node.k,
+            w: node.w
         });
 
 
