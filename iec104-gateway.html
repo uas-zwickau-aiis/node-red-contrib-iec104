@@ -4,8 +4,10 @@ RED.nodes.registerType('iec104-gateway',{
   defaults: {
     name: {value: ''},
     port: {value: 2404, required: true, validate: RED.validators.number()},
-    t1: { value: 15, validate: RED.validators.number()},
-    t3: { value: 20, validate: RED.validators.number()}
+    t1: { value: 15, required: true, validate: RED.validators.number()},
+    t3: { value: 20, required: true, validate: RED.validators.number()},
+    k_win: { value: 12, required: true, validate: RED.validators.number()},
+    w_win: { value: 8, required: true, validate: RED.validators.number()}
   },
   label: function() {
     return this.name || "IEC 60870-5-104 Gateway";
@@ -99,6 +101,18 @@ RED.nodes.registerType('iec104-gateway',{
     <input type="number" id="node-config-input-t1" style="width:80px;">
     <span style="margin-left:6px;">Sekunden</span>
   </div>
+   <div class="form-row">
+    <label for="node-config-input-t2">
+      T2
+      <i class="fa fa-info-circle" 
+        title="Timeout für Bestätigung (ACK)"
+        style="margin-left:6px; color:#888; cursor:help;">
+      </i>
+    </label>
+
+    <input type="number" id="node-config-input-t2" style="width:80px;">
+    <span style="margin-left:6px;">Sekunden</span>
+  </div>
 
   <div class="form-row">
     <label for="node-config-input-t3">
@@ -112,6 +126,16 @@ RED.nodes.registerType('iec104-gateway',{
     <input type="number" id="node-config-input-t3" style="width:80px;">
     <span style="margin-left:6px;">Sekunden</span>
   </div>
+  <div class="form-row">
+    
+  </div>
+
+  <div class="form-row"">
+    <label>k/w</label>
+    <input type="number" id="node-config-input-k_win" placeholder="k" style="width:80px; margin-right:5px;">
+    <input type="number" id="node-config-input-w_win" placeholder="w" style="width:80px;">
+  </div>
+
 
   <hr>
 
