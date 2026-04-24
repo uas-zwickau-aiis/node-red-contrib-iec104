@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "chai": "^6.2.2",
+    "fast-check": "^4.6.0",
     "mocha": "^11.7.5",
     "sinon": "^21.1.0"
   }
