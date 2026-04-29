@@ -12,6 +12,7 @@ RED.nodes.registerType('iec104-gateway',{
   label: function() {
     return this.name || "IEC 60870-5-104 Gateway";
   },
+  paletteLabel: "IEC 60870-5-104 Gateway",
 
   oneditprepare: function () {
     const nodeId = this.id;

@@ -32,13 +32,57 @@ RED.nodes.registerType('iec104-observer',{
     <input type="text" id="node-input-connection">
   </div>
 
-  <hr>
+</script>
+<script type="text/html" data-help-name="iec104-observer">
 
-  <div class="form-row">
-    <label>Info</label>
-    <span style="margin-left:10px; color:#888;">
-      Listens to IEC104 events (data/status)
-    </span>
-  </div>
+  <p>
+    Diese Node überwacht ein IEC 60870-5-104 Gateway und gibt empfangene Daten
+    und Statusereignisse an seine Ausgänge weiter.
+  </p>
+
+  <h3>Funktionsweise</h3>
+  <p>
+    Die Node hört auf Events des Gateways und reagiert auf eingehende Daten- und Statusmeldungen
+    <code>iec104:data</code> und <code>iec104:status</code>.
+    Diese werden an unterschiedliche Ausgänge gesendet.
+  </p>
+
+  <h3>Ausgänge</h3>
+  <dl>
+    <dt>1. Ausgang (Data)</dt>
+    <dd>
+      Gibt empfangene Telegramme weiter (<code>iec104:data</code>).
+    </dd>
+
+    <dt>2. Ausgang (Status)</dt>
+    <dd>
+      Gibt Statusmeldungen weiter (<code>iec104:status</code>), z. B. Verbindungszustände.
+    </dd>
+  </dl>
+
+  <h3>Einstellungen</h3>
+  <dl>
+
+    <dt>Gateway</dt>
+    <dd>
+      Verknüpftes Gateway, von dem Daten und Status empfangen werden
+    </dd>
+  </dl>
+
+  <h3>Beispiel</h3>
+  <pre>
+    Gateway sendet:
+    Event: iec104:data
+    msg.payload = { value: 42 }
+
+    → Ausgang 1:
+    msg.payload = { value: 42 }
+
+    Event: iec104:status
+    msg.payload = { state: DATA_TRANSFER }
+
+    → Ausgang 2:
+    msg.payload = { state: DATA_TRANSFER }
+  </pre>
 
 </script>

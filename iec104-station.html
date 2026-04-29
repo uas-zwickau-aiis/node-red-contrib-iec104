@@ -85,3 +85,36 @@
   </div>
 
 </script>
+</script>
+<script type="text/html" data-help-name="iec104-station">
+  <p>Diese Node definiert eine Stationsadresse. Sie ergänzt eingehende Nachrichten um diese Adresse und leitet sie an ein IEC 60870-5-104 Gateway weiter</p>
+
+  <h3>Einstellungen</h3>
+  <dl>
+    <dt>Stationsadresse (CA)</dt>
+    <dd>
+       Die Adresse wird aus zwei Oktetten gebildet
+      <ul>
+        <li><b>Hi</b>: High-Byte (0-255)</li>
+        <li><b>Lo</b>: Low-Byte (0-255)</li>
+      </ul>
+    </dd>
+    <dt>Gateway</dt>
+    <dd>Verknüpftes Gateway, an das die Nachricht weitergeleitet wird</dd>
+  </dl>
+  <h3>Beispiel</h3>
+  <pre>
+      Eingang:
+      msg.payload = { value: 42 }
+
+      Konfiguration:
+      Hi = 0, Lo = 1
+
+      Ergebnis:
+      msg.payload = { value: 42, ca: 1}
+  </pre>
+  <h3>Hinweise</h3>
+  <ul>
+    <li>Die Weiterleitung erfolgt über ein internes Event(<code>iec104:input</code>)</li>
+  </ul>
+</script>

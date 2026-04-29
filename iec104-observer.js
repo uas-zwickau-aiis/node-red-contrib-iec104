@@ -6,8 +6,8 @@ module.exports = function(RED) {
 
     const client = RED.nodes.getNode(config.connection);
 
-    if (!client) {
-        node.error("No IEC104 connection configured");
+    if(!client) {
+        node.warn("Kein Gateway konfiguriert");
         return;
     }
 
