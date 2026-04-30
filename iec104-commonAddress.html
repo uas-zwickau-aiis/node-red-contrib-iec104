@@ -21,10 +21,16 @@
 
     inputs: 1,
     icon: "bridge.svg",
-    paletteLabel: "Stationsadresse",
+    paletteLabel: function() {
+      return this._("paletteLabel");
+    },
+    label: function () {
+      if (this.name) return this.name;
 
-    label: function() {
-      return this.name || `Stationsadresse (${this.ca})`;
+      const gwNode = RED.nodes.node(this.connection);
+      const gwName = gwNode?.name || this._("label");
+
+      return `${gwName} [${this.ca ?? ""}]`;
     },
 
     oneditprepare: function () {
@@ -67,7 +73,7 @@
   </div>
 
   <div class="form-row">
-    <label>Stationsadresse (CA)</label>
+    <label><span data-i18n="input-label.ca"></span></label>
     <input type="number" id="node-input-ca_hi" min="0" max="255" placeholder="Hi" style="width:60px; margin-right:5px;">
     <input type="number" id="node-input-ca_lo" min="0" max="255" placeholder="Lo" style="width:60px;">
   </div>
@@ -84,37 +90,4 @@
     <input type="text" id="node-input-connection">
   </div>
 
-</script>
-</script>
-<script type="text/html" data-help-name="iec104-station">
-  <p>Diese Node definiert eine Stationsadresse. Sie ergänzt eingehende Nachrichten um diese Adresse und leitet sie an ein IEC 60870-5-104 Gateway weiter</p>
-
-  <h3>Einstellungen</h3>
-  <dl>
-    <dt>Stationsadresse (CA)</dt>
-    <dd>
-       Die Adresse wird aus zwei Oktetten gebildet
-      <ul>
-        <li><b>Hi</b>: High-Byte (0-255)</li>
-        <li><b>Lo</b>: Low-Byte (0-255)</li>
-      </ul>
-    </dd>
-    <dt>Gateway</dt>
-    <dd>Verknüpftes Gateway, an das die Nachricht weitergeleitet wird</dd>
-  </dl>
-  <h3>Beispiel</h3>
-  <pre>
-      Eingang:
-      msg.payload = { value: 42 }
-
-      Konfiguration:
-      Hi = 0, Lo = 1
-
-      Ergebnis:
-      msg.payload = { value: 42, ca: 1}
-  </pre>
-  <h3>Hinweise</h3>
-  <ul>
-    <li>Die Weiterleitung erfolgt über ein internes Event(<code>iec104:input</code>)</li>
-  </ul>
 </script>

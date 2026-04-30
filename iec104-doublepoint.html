@@ -21,9 +21,11 @@
     inputs: 1,
     outputs: 1,
     icon: "serial.svg",
-    paletteLabel: "Doppelmeldung",
-    label: function () {
-      return this.name || "Doppelmeldung";
+    paletteLabel: function() {
+      return this._("paletteLabel");
+    },
+    label: function() {
+      return this.name || this._("label");
     },
     oneditprepare: function () {
       function updateIoaPreview() {

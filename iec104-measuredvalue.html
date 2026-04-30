@@ -21,11 +21,12 @@
     inputs: 1,
     outputs: 1,
     icon: "serial.svg",
-    paletteLabel: "Messwert",
-    label: function () {
-      return this.name || "Messwert";
+    paletteLabel: function() {
+      return this._("paletteLabel");
     },
-
+    label: function() {
+      return this.name || this._("label");
+    },
     oneditprepare: function () {
       function isCp56Type(t) {
         return t === "M_ME_TD_1" || t === "M_ME_TE_1" || t === "M_ME_TF_1";
