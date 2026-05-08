@@ -69,7 +69,7 @@ module.exports = function (RED) {
         const p = {
           type: itType,
           ioa: ioa,
-          value: value,
+          value: Math.floor(value),
           quality: quality
         };
 

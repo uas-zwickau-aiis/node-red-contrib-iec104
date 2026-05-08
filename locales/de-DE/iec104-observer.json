@@ -1,4 +1,7 @@
 {
-  "label": "Beobachter",
-  "paletteLabel": "Beobachter"
+  "iec104": {
+    "label": "Beobachter",
+    "paletteLabel": "Beobachter"
+  }
+  
 }

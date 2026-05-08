@@ -1,0 +1,50 @@
+<script type="text/html" data-help-name="iec104-doublepoint">
+  <p>
+    Diese Node nimmt eine Ganzzahl entgegen und erzeugt Metadaten für eine Doppelmeldung in <code>msg.payload</code>.
+  </p>
+  <h3>Einstellungen</h3>
+  <dl>
+    <dt>Objektadresse (IOA)</dt>
+    <dd>
+        Die Objektadresse wird in 3 Oktetten (Big Endian) angegeben
+    </dd>
+    <dt>Meldetypen</dt>
+    <dd>
+        <ul>
+            <li><b>M_DP_NA_1</b>: ohne Zeit</li>
+            <li><b>M_DP_TA_1</b>: CP24</li>
+            <li><b>M_DP_TB_1</b>: CP56</li>
+        </ul>
+    </dd>
+    <dt>Zeitquelle</dt>
+    Die Zeit kann in <code>msg.time</code> übergeben werden. <br>
+    Bei der Auswahl von "Aktuelle Zeit" wird ein ISO Zeitstempel verwendet.
+
+    <dt>Qualitätsmerkmale</dt>
+    Die Qualitätsmerkmale können einzeln entweder aus <code>msg.quality</code> übernommen oder gesetzt werden. 
+  </dl>
+    <h3>Beispiel</h3>
+<pre>
+<b>Eingang</b>
+msg.payload = { 2 }
+
+<b>Konfiguration</b>
+Adresse: 0, 0, 213
+Meldetyp: M_DP_NA_1
+Zeitquelle: Aktuelle Zeit
+Qualitätsmerkmale: Alle auf "true" gesetzt, außer invalid
+
+<b>Ergebnis</b>
+msg.payload = {
+    type: "M_DP_NA_1",
+    ioa: 213,
+    value: 2,
+    quality: {
+        invalid: false,
+        substituted: true,
+        blocked: true,
+        notTopical: true
+    }
+}
+</pre>
+</script>

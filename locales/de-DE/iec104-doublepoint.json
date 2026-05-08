@@ -1,4 +1,6 @@
 {
-  "label": "Doppelmeldung",
-  "paletteLabel": "Doppelmeldung"
+  "iec104": {
+    "label": "Doppelmeldung",
+    "paletteLabel": "Doppelmeldung"
+  }
 }

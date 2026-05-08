@@ -1,4 +1,6 @@
 {
-  "label": "Single Point",
-  "paletteLabel": "Single Point"
+  "iec104": {
+    "label": "Single Point",
+    "paletteLabel": "Single Point"
+  }
 }

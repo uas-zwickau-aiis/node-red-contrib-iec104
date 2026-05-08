@@ -1,4 +1,6 @@
 {
-  "label": "Observer",
-  "paletteLabel": "Observer"
+  "iec104": {
+    "label": "Observer",
+    "paletteLabel": "Observer"
+  }
 }

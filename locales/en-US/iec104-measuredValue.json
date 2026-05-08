@@ -1,4 +1,6 @@
 {
-  "label": "Measured Value",
-  "paletteLabel": "Measured Value"
+  "iec104": {
+    "label": "Measured Value",
+    "paletteLabel": "Measured Value"
+  }
 }

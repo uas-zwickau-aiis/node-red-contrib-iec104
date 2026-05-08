@@ -1,4 +1,7 @@
 {
-  "label": "Zähler",
-  "paletteLabel": "Zähler"
+  "iec104": {
+    "label": "Zählwert",
+    "paletteLabel": "Zählwert"
+  }
+  
 }

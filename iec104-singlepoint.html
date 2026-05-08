@@ -1,13 +1,35 @@
 <script type="text/javascript">
+  function buildIoaFromOctets(b0, b1, b2) {
+    return (b0 << 16) | (b1 << 8) | b2;
+  } 
+  function parseByte(selector) {
+    return parseInt($(selector).val(), 10) || 0;
+  }
+  function byteValidator(v) {
+    return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+  }
+
+  function updateIoaPreview() {
+    const b0 = parseByte("#node-input-ioa0");
+    const b1 = parseByte("#node-input-ioa1");
+    const b2 = parseByte("#node-input-ioa2");
+
+    const ioa = buildIoaFromOctets(b0, b1, b2);
+    const hex = `0x${ioa.toString(16).toUpperCase().padStart(6, "0")}`;
+
+    $("#node-ioa-preview").text(
+      `IOA: ${ioa} | Hex: ${hex}`
+    );
+  }
   RED.nodes.registerType('iec104-singlepoint', {
     category: 'IEC 104',
     color: '#dce5f5',
     defaults: {
       name: { value: "" },
 
-      ioa0: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
-      ioa1: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
-      ioa2: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+      ioa0: { value: 0, validate: byteValidator },
+      ioa1: { value: 0, validate: byteValidator },
+      ioa2: { value: 0, validate: byteValidator },
 
       spType: { value: "M_SP_NA_1" },
       tsSource: { value: "now" },
@@ -21,28 +43,14 @@
     outputs: 1,
     icon: "serial.svg",
     paletteLabel: function() {
-      return this._("paletteLabel");
+      return this._("iec104.paletteLabel");
     },
     label: function() {
-      return this.name || this._("label");
+      return this.name || this._("iec104.label");
     },
     oneditprepare: function () {
-      function updateIoaPreview() {
-        var b0 = parseInt($("#node-input-ioa0").val(), 10);
-        var b1 = parseInt($("#node-input-ioa1").val(), 10);
-        var b2 = parseInt($("#node-input-ioa2").val(), 10);
-
-        b0 = isNaN(b0) ? 0 : b0;
-        b1 = isNaN(b1) ? 0 : b1;
-        b2 = isNaN(b2) ? 0 : b2;
-
-        var ioa = (b0 << 16) + (b1 << 8) + b2;
-        var hex = "0x" + ioa.toString(16).toUpperCase().padStart(6, "0");
-
-        $("#node-ioa-preview").text("Dezimal (Hex): " + ioa + " (" + hex + ")");
-      }
-
-      $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2").on("input change", updateIoaPreview);
+      $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2")
+      .on("input", updateIoaPreview);
 
       updateIoaPreview();
     }
@@ -55,16 +63,18 @@
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
 
-  <div class="form-row">
-    <label>IOA</label>
-    <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="B0" style="width:60px; margin-right:5px;">
-    <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="B1" style="width:60px; margin-right:5px;">
-    <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="B2" style="width:60px;">
-  </div>
-  <div class="form-row">
-    <label></label>
-    <div id="node-ioa-preview" class="form-tips" style="width:auto;">
-      Dezimal (Hex): 0 (0x000000)
+  <div class="ioa-input">
+    <div class="form-row">
+      <label>IOA</label>
+      <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
+      <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
+      <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
+    </div>
+    <div class="form-row">
+      <label></label>
+      <div id="node-ioa-preview" class="form-tips" style="width:auto;">
+        IOA: 0 | Hex: 0x000000
+      </div>
     </div>
   </div>
 
@@ -126,31 +136,4 @@
       <option value="true">true</option>
     </select>
   </div>
-</script>
-
-<script type="text/html" data-help-name="iec104-singlepoint">
-  <p>
-    Diese Node nimmt <code>msg.payload</code> (true/false) entgegen und erzeugt eine IEC104 Single-Point-Meldung als Objekt in <code>msg.payload</code>.
-  </p>
-
-  <ul>
-    <li><b>M_SP_NA_1</b>: ohne Zeitstempel</li>
-    <li><b>M_SP_TA_1</b>: mit Zeitstempel</li>
-    <li><b>M_SP_TB_1</b>: mit Zeitstempel</li>
-  </ul>
-
-  <p>
-    Die Objektadresse <code>ioa</code> wird als Array aus drei Bytes aufgebaut:
-    <code>[ioa0, ioa1, ioa2]</code>.
-  </p>
-
-  <p>
-    Die Quality-Merkmale <code>invalid</code>, <code>substituted</code>, <code>blocked</code> und
-    <code>notTopical</code> können entweder aus <code>msg.quality</code> übernommen oder in der Node
-    fest erzwungen werden.
-  </p>
-
-  <p>
-    Optional kannst du bei TA/TB <code>msg.ts</code> mitgeben, wenn du "msg.ts übernehmen" auswählst.
-  </p>
 </script>

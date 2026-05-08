@@ -1,4 +1,6 @@
 {
-  "label": "Integrated Total",
-  "paletteLabel": "Integrated Total"
+  "iec104": {
+    "label": "Integrated Total",
+    "paletteLabel": "Integrated Total"
+  }
 }

@@ -22,13 +22,13 @@
     inputs: 1,
     icon: "bridge.svg",
     paletteLabel: function() {
-      return this._("paletteLabel");
+      return this._("iec104.paletteLabel");
     },
     label: function () {
       if (this.name) return this.name;
 
       const gwNode = RED.nodes.node(this.connection);
-      const gwName = gwNode?.name || this._("label");
+      const gwName = gwNode?.name || this._("iec104.label");
 
       return `${gwName} [${this.ca ?? ""}]`;
     },
@@ -73,7 +73,7 @@
   </div>
 
   <div class="form-row">
-    <label><span data-i18n="input-label.ca"></span></label>
+    <label><span data-i18n="iec104.input-label.ca"></span></label>
     <input type="number" id="node-input-ca_hi" min="0" max="255" placeholder="Hi" style="width:60px; margin-right:5px;">
     <input type="number" id="node-input-ca_lo" min="0" max="255" placeholder="Lo" style="width:60px;">
   </div>

@@ -1,4 +1,6 @@
 {
-  "label": "Double Point",
-  "paletteLabel": "Double Point"
+  "iec104": {
+    "label": "Double Point",
+    "paletteLabel": "Double Point"
+  }
 }

@@ -1,4 +1,6 @@
 {
-  "label": "Einzelmeldung",
-  "paletteLabel": "Einzelmeldung"
+  "iec104": {
+    "label": "Einzelmeldung",
+    "paletteLabel": "Einzelmeldung"
+  }
 }

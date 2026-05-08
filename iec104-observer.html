@@ -14,13 +14,13 @@ RED.nodes.registerType('iec104-observer',{
   ],
   icon: "font-awesome/fa-eye",
   paletteLabel: function() {
-        return this._("paletteLabel");
+        return this._("iec104.paletteLabel");
   },
   label: function () {
     if (this.name) return this.name;
 
     const gwNode = RED.nodes.node(this.connection);
-    const baseLabel = this._("label");
+    const baseLabel = this._("iec104.label");
 
     if (gwNode && gwNode.name) {
         return `${baseLabel} [${gwNode.name}]`;

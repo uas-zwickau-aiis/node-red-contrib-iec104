@@ -1,0 +1,52 @@
+<script type="text/html" data-help-name="iec104-measuredvalue">
+  <p>
+    Diese Node nimmt eine Gleitkommazahl entgegen und erzeugt Metadaten für einen Messwert in <code>msg.payload</code>.
+  </p>
+  <h3>Einstellungen</h3>
+  <dl>
+    <dt>Objektadresse (IOA)</dt>
+    <dd>
+        Die Objektadresse wird in 3 Oktetten (Big Endian) angegeben
+    </dd>
+    <dt>Meldetypen</dt>
+    <dd>
+        <ul>
+            <li><b>M_ME_NB_1</b>: scaled, ohne Zeit</li>
+            <li><b>M_ME_NC_1</b>: float, ohne Zeit</li>
+            <li><b>M_ME_TE_1</b>: scaled, CP56</li>
+            <li><b>M_ME_TF_1</b>: float, CP56</li>
+        </ul>
+    </dd>
+    <dt>Zeitquelle</dt>
+    Die Zeit kann in <code>msg.time</code> übergeben werden. <br>
+    Bei der Auswahl von "Aktuelle Zeit" wird ein ISO Zeitstempel verwendet.
+
+    <dt>Qualitätsmerkmale</dt>
+    Die Qualitätsmerkmale können einzeln entweder aus <code>msg.quality</code> übernommen oder gesetzt werden. 
+  </dl>
+    <h3>Beispiel</h3>
+<pre>
+<b>Eingang</b>
+msg.payload = { 12.3 }
+
+<b>Konfiguration</b>
+Adresse: 1, 0, 5
+Meldetyp: M_ME_TE_1
+Zeitquelle: Aktuelle Zeit
+Qualitätsmerkmale: Alle auf "false" gesetzt
+
+<b>Ergebnis</b>
+msg.payload = {
+    type: "M_ME_TE_1",
+    ioa: 65541,
+    value: 12.3,
+    quality: {
+        invalid: false,
+        substituted: false,
+        blocked: false,
+        notTopical: false,
+        overflow: false
+    }
+}
+</pre>
+</script>
