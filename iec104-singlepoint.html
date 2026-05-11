@@ -46,7 +46,7 @@
       return this._("iec104.paletteLabel");
     },
     label: function() {
-      return this.name || this._("iec104.label");
+      return this.name || this._("iec104.label") + ` [${this.ioa0}, ${this.ioa1}, ${this.ioa2}]`;
     },
     oneditprepare: function () {
       $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2")
@@ -59,19 +59,18 @@
 
 <script type="text/html" data-template-name="iec104-singlepoint">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
 
   <div class="ioa-input">
     <div class="form-row">
-      <label>IOA</label>
+      <label><span data-i18n="iec104.settings.ioa"></span></label>
       <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
       <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
       <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
     </div>
     <div class="form-row">
-      <label></label>
       <div id="node-ioa-preview" class="form-tips" style="width:auto;">
         IOA: 0 | Hex: 0x000000
       </div>
@@ -79,7 +78,7 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-spType">Meldetyp</label>
+    <label for="node-input-spType"><span data-i18n="iec104.settings.type"></label>
     <select id="node-input-spType">
       <option value="M_SP_NA_1">M_SP_NA_1 (ohne Zeit)</option>
       <option value="M_SP_TA_1">M_SP_TA_1 (CP24Time2a)</option>
@@ -88,52 +87,53 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-tsSource">Zeitquelle (nur TA/TB)</label>
+    <label for="node-input-tsSource"><span data-i18n="iec104.settings.time"></label>
     <select id="node-input-tsSource">
-      <option value="now">jetzt (ISO)</option>
-      <option value="msg">msg.ts übernehmen</option>
+      <option value="now"><span data-i18n="iec104.settings.time-now"></option>
+      <option value="msg"><span data-i18n="iec104.settings.time-msg"></option>
     </select>
   </div>
 
   <hr>
 
   <div class="form-row">
-    <label>Quality-Verhalten</label>
+    <label><span data-i18n="iec104.settings.qds"></span></label>
   </div>
+  <div class="qds-settings">
+    <div class="form-row">
+      <label for="node-input-qInvalidMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds-invalid"></label>
+      <select id="node-input-qInvalidMode">
+        <option value="msg">aus msg.qds.invalid</option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
 
-  <div class="form-row">
-    <label for="node-input-qInvalidMode">invalid</label>
-    <select id="node-input-qInvalidMode">
-      <option value="msg">aus msg.quality.invalid</option>
-      <option value="false">false</option>
-      <option value="true">true</option>
-    </select>
-  </div>
+    <div class="form-row">
+      <label for="node-input-qSubstitutedMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds-substituted"></label>
+      <select id="node-input-qSubstitutedMode">
+        <option value="msg">aus msg.qds.substituted</option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
 
-  <div class="form-row">
-    <label for="node-input-qSubstitutedMode">substituted</label>
-    <select id="node-input-qSubstitutedMode">
-      <option value="msg">aus msg.quality.substituted</option>
-      <option value="false">false</option>
-      <option value="true">true</option>
-    </select>
-  </div>
+    <div class="form-row">
+      <label for="node-input-qBlockedMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds-blocked"></label>
+      <select id="node-input-qBlockedMode">
+        <option value="msg">aus msg.qds.blocked</option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
 
-  <div class="form-row">
-    <label for="node-input-qBlockedMode">blocked</label>
-    <select id="node-input-qBlockedMode">
-      <option value="msg">aus msg.quality.blocked</option>
-      <option value="false">false</option>
-      <option value="true">true</option>
-    </select>
-  </div>
-
-  <div class="form-row">
-    <label for="node-input-qNotTopicalMode">notTopical</label>
-    <select id="node-input-qNotTopicalMode">
-      <option value="msg">aus msg.quality.notTopical</option>
-      <option value="false">false</option>
-      <option value="true">true</option>
-    </select>
+   <div class="form-row">
+      <label for="node-input-qNotTopicalMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds-notTopical"></label>
+      <select id="node-input-qNotTopicalMode">
+        <option value="msg">aus msg.qds.notTopical</option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
   </div>
 </script>

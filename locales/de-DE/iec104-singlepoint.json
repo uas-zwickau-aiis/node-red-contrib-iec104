@@ -1,6 +1,18 @@
 {
   "iec104": {
     "label": "Einzelmeldung",
-    "paletteLabel": "Einzelmeldung"
+    "paletteLabel": "Einzelmeldung",
+    "settings": {
+      "ioa": "Adresse",
+      "qds": "Qualitätsmerkmale",
+      "qds-blocked": "Blockiert (BL)",
+      "qds-substituted": "Ersetzen (SB)",
+      "qds-notTopical": "Nicht Aktuell (NT)",
+      "qds-invalid": "Ungültig (IV)",
+      "time": "Zeitquelle",
+      "time-msg": "Aus msg.ts übernehmen",
+      "time-now": "Aktuelle Zeit",
+      "type": "Typ"
+    }
   }
 }

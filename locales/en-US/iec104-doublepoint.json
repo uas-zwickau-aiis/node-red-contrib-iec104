@@ -1,6 +1,18 @@
 {
   "iec104": {
     "label": "Double Point",
-    "paletteLabel": "Double Point"
+    "paletteLabel": "Double Point",
+    "settings": {
+      "ioa": "Address",
+      "qds": "Quality defaults",
+      "qds-blocked": "Blocked (BL)",
+      "qds-substituted": "Substituted (SB)",
+      "qds-notTopical": "Not topical (NT)",
+      "qds-invalid": "Invalid (IV)",
+      "type": "Type",
+      "time": "Time source",
+      "time-msg": "Adopt from msg.ts",
+      "time-now": "Current time"
+    }
   }
 }

@@ -1,3 +1,6 @@
+const { TYPES } = require("./lib/asdu/types");
+const { TIME } = require("./lib/asdu/time");
+
 module.exports = function (RED) {
   "use strict";
 
@@ -17,14 +20,6 @@ module.exports = function (RED) {
     const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
     const qInvalidMode = String(config.qInvalidMode || "msg");
     const qOverflowMode = String(config.qOverflowMode || "msg");
-
-    function needsTimestamp(typeStr) {
-      return /^M_ME_T[D-F]_1$/.test(typeStr || "");
-    }
-
-    function isByte(value) {
-      return Number.isInteger(value) && value >= 0 && value <= 255;
-    }
 
     function resolveQualityBit(mode, incomingValue) {
       if (mode === "true") return true;
@@ -50,12 +45,6 @@ module.exports = function (RED) {
       const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
       try {
-        if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
-          node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104-measuredvalue: IOA-Bytes müssen zwischen 0 und 255 liegen"));
-          return;
-        }
-
         const value = parseNumberMaybe(msg.payload);
         if (value == null) {
           node.status({ fill: "red", shape: "ring", text: "payload muss Zahl sein" });
@@ -63,7 +52,7 @@ module.exports = function (RED) {
           return;
         }
 
-        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : {};
+        const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
 
         const quality = {
           blocked: resolveQualityBit(qBlockedMode, incomingQuality.blocked),
@@ -77,24 +66,17 @@ module.exports = function (RED) {
           type: meType,
           ioa: ioa,
           value: value,
-          quality: quality
+          qds: quality
         };
 
-        if (needsTimestamp(meType)) {
-          if (tsSource === "msg" && msg.ts != null) {
-            p.ts = msg.ts;
-          } else {
-            p.ts = new Date().toISOString();
-          }
+        const typeMeta = TYPES[meType];
+        if (typeMeta?.time !== TIME.NONE) {
+          p.ts = (tsSource === "msg" && msg.ts != null)
+            ? msg.ts
+            : new Date().toISOString();
         }
 
         msg.payload = p;
-
-        node.status({
-          fill: "green",
-          shape: "dot",
-          text: `${meType} ioa=[${ioa0},${ioa1},${ioa2}] value=${value}`
-        });
 
         send(msg);
         done();

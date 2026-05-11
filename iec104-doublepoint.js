@@ -1,3 +1,6 @@
+const { TYPES } = require("./lib/asdu/types");
+const { TIME } = require("./lib/asdu/time");
+
 module.exports = function (RED) {
   "use strict";
 
@@ -16,14 +19,6 @@ module.exports = function (RED) {
     const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
     const qBlockedMode = String(config.qBlockedMode || "msg");
     const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
-
-    function needsTimestamp(typeStr) {
-      return typeStr === "M_DP_TA_1" || typeStr === "M_DP_TB_1";
-    }
-
-    function isByte(value) {
-      return Number.isInteger(value) && value >= 0 && value <= 255;
-    }
 
     function resolveQualityBit(mode, incomingValue) {
       if (mode === "true") return true;
@@ -44,16 +39,6 @@ module.exports = function (RED) {
       return value;
     }
 
-    function dpiText(dpi) {
-      switch (dpi) {
-        case 0: return "INTERMEDIATE";
-        case 1: return "OFF";
-        case 2: return "ON";
-        case 3: return "INDETERMINATE";
-        default: return String(dpi);
-      }
-    }
-
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
       const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
@@ -67,13 +52,7 @@ module.exports = function (RED) {
           return;
         }
 
-        if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
-          node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104-doublepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
-          return;
-        }
-
-        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : {};
+        const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
 
         const quality = {
           invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
@@ -86,25 +65,18 @@ module.exports = function (RED) {
           type: dpType,
           ioa: ioa,
           value: dpi,
-          quality: quality
+          qds: quality
         };
 
-        if (needsTimestamp(dpType)) {
-          if (tsSource === "msg" && msg.ts != null) {
-            p.ts = msg.ts;
-          } else {
-            p.ts = new Date().toISOString();
-          }
+        const typeMeta = TYPES[dpType];
+        if (typeMeta?.time !== TIME.NONE) {
+          p.ts = (tsSource === "msg" && msg.ts != null)
+            ? msg.ts
+            : new Date().toISOString();
         }
 
         msg.payload = p;
-
-        node.status({
-          fill: "green",
-          shape: "dot",
-          text: `${dpType} ioa=[${ioa0},${ioa1},${ioa2}] dpi=${dpi} (${dpiText(dpi)})`
-        });
-
+        
         send(msg);
         done();
       } catch (err) {

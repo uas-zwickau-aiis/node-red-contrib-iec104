@@ -14,7 +14,7 @@
         validate: v => RED.validators.number()(v) && v >= 0 && v <= 255 
       },
 
-      ca: { value: 1 }, // interne Zahl
+      ca: { value: 1 },
 
       connection: { type: "iec104-gateway", required: true }
     },
@@ -30,7 +30,7 @@
       const gwNode = RED.nodes.node(this.connection);
       const gwName = gwNode?.name || this._("iec104.label");
 
-      return `${gwName} [${this.ca ?? ""}]`;
+      return `${gwName} [${this.ca_hi}, ${this.ca_lo}]`;
     },
 
     oneditprepare: function () {

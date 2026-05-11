@@ -1,3 +1,6 @@
+const { TYPES } = require("./lib/asdu/types");
+const { TIME } = require("./lib/asdu/time");
+
 module.exports = function (RED) {
   "use strict";
 
@@ -9,21 +12,13 @@ module.exports = function (RED) {
     const ioa1 = Number(config.ioa1);
     const ioa2 = Number(config.ioa2);
 
-    const spType = String(config.spType || "M_SP_NA_1"); // M_SP_NA_1 | M_SP_TA_1 | M_SP_TB_1
-    const tsSource = String(config.tsSource || "now");   // now | msg
+    const spType = String(config.spType || "M_SP_NA_1");
+    const tsSource = String(config.tsSource || "now");
 
     const qInvalidMode = String(config.qInvalidMode || "msg");
     const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
     const qBlockedMode = String(config.qBlockedMode || "msg");
     const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
-
-    function needsTimestamp(typeStr) {
-      return typeStr === "M_SP_TA_1" || typeStr === "M_SP_TB_1";
-    }
-
-    function isByte(value) {
-      return Number.isInteger(value) && value >= 0 && value <= 255;
-    }
 
     function resolveQualityBit(mode, incomingValue) {
       if (mode === "true") return true;
@@ -34,6 +29,8 @@ module.exports = function (RED) {
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
       const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
+
+
       try {
         let value = msg.payload;
 
@@ -50,13 +47,7 @@ module.exports = function (RED) {
           return;
         }
 
-        if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
-          node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104-singlepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
-          return;
-        }
-
-        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : {};
+        const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
 
         const quality = {
           invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
@@ -69,24 +60,17 @@ module.exports = function (RED) {
           type: spType,
           ioa: ioa,
           value: value,
-          quality: quality
+          qds: quality
         };
 
-        if (needsTimestamp(spType)) {
-          if (tsSource === "msg" && msg.ts != null) {
-            p.ts = msg.ts;
-          } else {
-            p.ts = new Date().toISOString();
-          }
+        const typeMeta = TYPES[spType];
+        if (typeMeta?.time !== TIME.NONE) {
+          p.ts = (tsSource === "msg" && msg.ts != null)
+            ? msg.ts
+            : new Date().toISOString();
         }
 
         msg.payload = p;
-
-        node.status({
-          fill: "green",
-          shape: "dot",
-          text: `${spType} ioa=[${ioa0},${ioa1},${ioa2}] value=${value ? "ON" : "OFF"}`
-        });
 
         send(msg);
         done();

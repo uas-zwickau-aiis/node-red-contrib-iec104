@@ -1,7 +1,16 @@
 {
   "iec104": {
     "label": "Zählwert",
-    "paletteLabel": "Zählwert"
+    "paletteLabel": "Zählwert",
+    "settings": {
+      "ioa": "Adresse",
+      "qds": "Qualitätsmerkmale",
+      "qds-invalid": "Ungültig (IV)",
+      "time": "Zeitquelle",
+      "time-msg": "Aus msg.ts übernehmen",
+      "time-now": "Aktuelle Zeit",
+      "type": "Typ"
+    }
   }
   
 }

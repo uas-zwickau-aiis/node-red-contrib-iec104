@@ -1,6 +1,19 @@
 {
   "iec104": {
     "label": "Measured Value",
-    "paletteLabel": "Measured Value"
+    "paletteLabel": "Measured Value",
+    "settings": {
+      "ioa": "Address",
+      "qds": "Quality defaults",
+      "qds-blocked": "Blocked (BL)",
+      "qds-substituted": "Substituted (SB)",
+      "qds-notTopical": "Not topical (NT)",
+      "qds-invalid": "Invalid (IV)",
+      "qds-overflow": "Overflow (OV)",
+      "type": "Type",
+      "time": "Time source",
+      "time-msg": "Adopt from msg.ts",
+      "time-now": "Current time"
+    }
   }
 }

@@ -1,6 +1,15 @@
 {
   "iec104": {
     "label": "Integrated Total",
-    "paletteLabel": "Integrated Total"
+    "paletteLabel": "Integrated Total",
+    "settings": {
+      "ioa": "Address",
+      "qds": "Quality defaults",
+      "qds-invalid": "Invalid (IV)",
+      "type": "Type",
+      "time": "Time source",
+      "time-msg": "Adopt from msg.ts",
+      "time-now": "Current time"
+    }
   }
 }
