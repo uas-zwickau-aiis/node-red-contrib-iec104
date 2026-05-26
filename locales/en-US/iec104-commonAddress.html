@@ -1,0 +1,34 @@
+<script type="text/html" data-help-name="iec104-station">
+  <p>This node defines a station address. It adds this address to incoming messages and forwards them to an IEC 60870-5-104 gateway.</p>
+
+  <h3>Configuration</h3>
+  <dl>
+    <dt>Station Address (CA)</dt>
+    <dd>
+      The address is composed of two octets:
+      <ul>
+        <li><b>Hi</b>: High byte (0-255)</li>
+        <li><b>Lo</b>: Low byte (0-255)</li>
+      </ul>
+    </dd>
+    <dt>Gateway</dt>
+    <dd>Linked gateway to which the message is forwarded</dd>
+  </dl>
+
+  <h3>Example</h3>
+  <pre>
+      Input:
+      msg.payload = { value: 42 }
+
+      Configuration:
+      Hi = 0, Lo = 1
+
+      Result:
+      msg.payload = { value: 42, ca: 1 }
+  </pre>
+
+  <h3>Notes</h3>
+  <ul>
+    <li>Forwarding is done via the event (<code>iec104:input</code>)</li>
+  </ul>
+</script>

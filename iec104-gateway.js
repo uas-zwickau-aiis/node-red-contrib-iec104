@@ -1,6 +1,6 @@
 const Session = require("./lib/protocol/session");
 const StatusPublisher = require("./lib/core/statusPublisher");
-const TcpConnection = require("./lib/tcp/connection");
+const TcpServer = require("./lib/tcp/server");
 const IEC104 = require("./lib/core/constants");
 const registerRoutes = require("./lib/admin/routes");
 const {isValidPoint} = require("./lib/core/validators")
@@ -51,7 +51,7 @@ module.exports = function (RED) {
         });
 
 
-        node.tcp = new TcpConnection({
+        node.tcp = new TcpServer({
             port: node.port,
 
             onFrame: frame => {

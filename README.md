@@ -47,7 +47,7 @@ Converts a boolean `msg.payload` into a Single Point Information ASDU.
 |---|---|
 | IOA | Information Object Address |
 | Type | ASDU type (with/without timestamp) |
-| Quality | Default quality flags (can be overridden via `msg.quality`) |
+| Quality | Default quality flags (can be overridden via `msg.qds`) |
 
 ### iec104-doublepoint
 
@@ -57,7 +57,7 @@ Converts an integer `msg.payload` (0–3) into a Double Point Information ASDU.
 |---|---|
 | IOA | Information Object Address |
 | Type | ASDU type (with/without timestamp) |
-| Quality | Default quality flags (can be overridden via `msg.quality`) |
+| Quality | Default quality flags (can be overridden via `msg.qds`) |
 
 ### iec104-measuredvalue
 
@@ -69,7 +69,7 @@ Converts a numeric `msg.payload` into a Measured Value ASDU. Supports hysteresis
 | Type | ASDU type (normalized, short float, ± timestamp) |
 | Hysteresis | Mode and threshold for suppressing unchanged values |
 | Normalisation | Mode and range for normalised value types |
-| Quality | Default quality flags (can be overridden via `msg.quality`) |
+| Quality | Default quality flags (can be overridden via `msg.qds`) |
 
 ## Development
 

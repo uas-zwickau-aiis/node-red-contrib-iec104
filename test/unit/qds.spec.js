@@ -9,53 +9,53 @@ describe('Quality Defaults', function() {
         it('returns 0 when no flags set', () => {
             assert.strictEqual(buildQDS({}), 0x00);
         });
-        it('sets invalid flag', () => {
-            assert.strictEqual(buildQDS({ invalid: true }), 0x80);
+        it('sets iv flag', () => {
+            assert.strictEqual(buildQDS({ iv: true }), 0x80);
         });
-        it('sets notTopical flag', () => {
-            assert.strictEqual(buildQDS({ notTopical: true }), 0x40);
-        });
-
-        it('sets substituted flag', () => {
-            assert.strictEqual(buildQDS({ substituted: true }), 0x20);
+        it('sets nt flag', () => {
+            assert.strictEqual(buildQDS({ nt: true }), 0x40);
         });
 
-        it('sets blocked flag', () => {
-            assert.strictEqual(buildQDS({ blocked: true }), 0x10);
+        it('sets sb flag', () => {
+            assert.strictEqual(buildQDS({ sb: true }), 0x20);
         });
 
-        it('sets overflow flag', () => {
-            assert.strictEqual(buildQDS({ overflow: true }), 0x01);
+        it('sets bl flag', () => {
+            assert.strictEqual(buildQDS({ bl: true }), 0x10);
+        });
+
+        it('sets ov flag', () => {
+            assert.strictEqual(buildQDS({ ov: true }), 0x01);
         });
         it('sets all flags', () => {
             const result = buildQDS({
-                invalid: true,
-                notTopical: true,
-                substituted: true,
-                blocked: true,
-                overflow: true
+                iv: true,
+                nt: true,
+                sb: true,
+                bl: true,
+                ov: true
             });
 
             assert.strictEqual(result, 0xF1);
         });
         it('combines highest and lowest bit', () => {
             const result = buildQDS({
-                invalid: true,
-                overflow: true
+                iv: true,
+                ov: true
             });
 
             assert.strictEqual(result, 0x81);
         });
         it('ignores unknown properties', () => {
             const result = buildQDS({
-                invalid: true,
+                iv: true,
                 foo: true
             });
 
             assert.strictEqual(result, 0x80);
         });
         it('treats non-boolean values as truthy', () => {
-            const result = buildQDS({ invalid: 1 });
+            const result = buildQDS({ iv: 1 });
 
             assert.strictEqual(result, 0x80);
         });
@@ -72,53 +72,53 @@ describe('Quality Defaults', function() {
             const result = parseQDS(0x00);
 
             assert.deepStrictEqual(result, {
-                invalid: false,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: false
+                iv: false,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: false
             });
         });
 
-        it('parses invalid flag', () => {
+        it('parses iv flag', () => {
             const result = parseQDS(0x80);
 
-            assert.strictEqual(result.invalid, true);
+            assert.strictEqual(result.iv, true);
         });
 
-        it('parses notTopical flag', () => {
+        it('parses nt flag', () => {
             const result = parseQDS(0x40);
 
-            assert.strictEqual(result.notTopical, true);
+            assert.strictEqual(result.nt, true);
         });
 
-        it('parses substituted flag', () => {
+        it('parses sb flag', () => {
             const result = parseQDS(0x20);
 
-            assert.strictEqual(result.substituted, true);
+            assert.strictEqual(result.sb, true);
         });
 
-        it('parses blocked flag', () => {
+        it('parses bl flag', () => {
             const result = parseQDS(0x10);
 
-            assert.strictEqual(result.blocked, true);
+            assert.strictEqual(result.bl, true);
         });
 
-        it('parses overflow flag', () => {
+        it('parses ov flag', () => {
             const result = parseQDS(0x01);
 
-            assert.strictEqual(result.overflow, true);
+            assert.strictEqual(result.ov, true);
         });
 
         it('parses all flags set', () => {
             const result = parseQDS(0xF1);
 
             assert.deepStrictEqual(result, {
-                invalid: true,
-                notTopical: true,
-                substituted: true,
-                blocked: true,
-                overflow: true
+                iv: true,
+                nt: true,
+                sb: true,
+                bl: true,
+                ov: true
             });
         });
 
@@ -126,11 +126,11 @@ describe('Quality Defaults', function() {
             const result = parseQDS(0x81);
 
             assert.deepStrictEqual(result, {
-                invalid: true,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: true
+                iv: true,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: true
             });
         });
 
@@ -138,11 +138,11 @@ describe('Quality Defaults', function() {
             const result = parseQDS(0x0E);
 
             assert.deepStrictEqual(result, {
-                invalid: false,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: false
+                iv: false,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: false
             });
         });
 
@@ -150,11 +150,11 @@ describe('Quality Defaults', function() {
             const result = parseQDS();
 
             assert.deepStrictEqual(result, {
-                invalid: false,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: false
+                iv: false,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: false
             });
         });
 
@@ -162,11 +162,11 @@ describe('Quality Defaults', function() {
             const result = parseQDS(null);
 
             assert.deepStrictEqual(result, {
-                invalid: false,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: false
+                iv: false,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: false
             });
         });
     });
@@ -178,16 +178,16 @@ describe('Quality Defaults', function() {
             const decoded = parseQDS(encoded);
 
             assert.deepStrictEqual(decoded, {
-                invalid: false,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: false
+                iv: false,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: false
             });
         });
 
         it('roundtrips single flags', () => {
-            const flags = ['invalid', 'notTopical', 'substituted', 'blocked', 'overflow'];
+            const flags = ['iv', 'nt', 'sb', 'bl', 'ov'];
 
             flags.forEach(flag => {
                 const input = { [flag]: true };
@@ -208,11 +208,11 @@ describe('Quality Defaults', function() {
 
         it('roundtrips all flags', () => {
             const input = {
-                invalid: true,
-                notTopical: true,
-                substituted: true,
-                blocked: true,
-                overflow: true
+                iv: true,
+                nt: true,
+                sb: true,
+                bl: true,
+                ov: true
             };
 
             const encoded = buildQDS(input);
@@ -223,10 +223,10 @@ describe('Quality Defaults', function() {
 
         it('roundtrips mixed combinations', () => {
             const cases = [
-                { invalid: true, overflow: true },
-                { notTopical: true, blocked: true },
-                { substituted: true, overflow: true },
-                { invalid: true, substituted: true, blocked: true }
+                { iv: true, ov: true },
+                { nt: true, bl: true },
+                { sb: true, ov: true },
+                { iv: true, sb: true, bl: true }
             ];
 
             cases.forEach(input => {
@@ -234,11 +234,11 @@ describe('Quality Defaults', function() {
                 const decoded = parseQDS(encoded);
 
                 const expected = {
-                    invalid: !!input.invalid,
-                    notTopical: !!input.notTopical,
-                    substituted: !!input.substituted,
-                    blocked: !!input.blocked,
-                    overflow: !!input.overflow
+                    iv: !!input.iv,
+                    nt: !!input.nt,
+                    sb: !!input.sb,
+                    bl: !!input.bl,
+                    ov: !!input.ov
                 };
 
                 assert.deepStrictEqual(decoded, expected);
@@ -247,7 +247,7 @@ describe('Quality Defaults', function() {
 
         it('ignores unknown properties in roundtrip', () => {
             const input = {
-                invalid: true,
+                iv: true,
                 foo: true
             };
 
@@ -255,29 +255,29 @@ describe('Quality Defaults', function() {
             const decoded = parseQDS(encoded);
 
             assert.deepStrictEqual(decoded, {
-                invalid: true,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: false
+                iv: true,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: false
             });
         });
 
         it('handles truthy values in roundtrip', () => {
             const input = {
-                invalid: 1,
-                overflow: "yes"
+                iv: 1,
+                ov: "yes"
             };
 
             const encoded = buildQDS(input);
             const decoded = parseQDS(encoded);
 
             assert.deepStrictEqual(decoded, {
-                invalid: true,
-                notTopical: false,
-                substituted: false,
-                blocked: false,
-                overflow: true
+                iv: true,
+                nt: false,
+                sb: false,
+                bl: false,
+                ov: true
             });
         });
 
@@ -296,11 +296,11 @@ describe('Quality Defaults', function() {
                 fc.property(
                     // Generates random objects with boolean flags
                     fc.record({
-                        invalid: fc.boolean(),
-                        notTopical: fc.boolean(),
-                        substituted: fc.boolean(),
-                        blocked: fc.boolean(),
-                        overflow: fc.boolean()
+                        iv: fc.boolean(),
+                        nt: fc.boolean(),
+                        sb: fc.boolean(),
+                        bl: fc.boolean(),
+                        ov: fc.boolean()
                     }),
                     (input) => {
                         const encoded = buildQDS(input);
@@ -308,11 +308,11 @@ describe('Quality Defaults', function() {
 
                         // Normalize input: undefined -> false
                         const expected = {
-                            invalid: !!input.invalid,
-                            notTopical: !!input.notTopical,
-                            substituted: !!input.substituted,
-                            blocked: !!input.blocked,
-                            overflow: !!input.overflow
+                            iv: !!input.iv,
+                            nt: !!input.nt,
+                            sb: !!input.sb,
+                            bl: !!input.bl,
+                            ov: !!input.ov
                         };
 
                         assert.deepStrictEqual(decoded, expected);
@@ -327,7 +327,7 @@ describe('Quality Defaults', function() {
          *
          * Goal: Ensure robustness against unexpected or malformed inputs.
          */
-        it('never produces invalid states for arbitrary input', () => {
+        it('never produces iv states for arbitrary input', () => {
             fc.assert(
                 fc.property(
                     // Generates ANY possible JavaScript value
@@ -349,11 +349,11 @@ describe('Quality Defaults', function() {
          * buildQDS must only set defined bits.
          *
          * Allowed bits:
-         * 0x80 invalid
-         * 0x40 notTopical
-         * 0x20 substituted
-         * 0x10 blocked
-         * 0x01 overflow
+         * 0x80 iv
+         * 0x40 nt
+         * 0x20 sb
+         * 0x10 bl
+         * 0x01 ov
          *
          * Combined allowed mask: 0xF1
          */
@@ -361,11 +361,11 @@ describe('Quality Defaults', function() {
             fc.assert(
                 fc.property(
                     fc.record({
-                        invalid: fc.boolean(),
-                        notTopical: fc.boolean(),
-                        substituted: fc.boolean(),
-                        blocked: fc.boolean(),
-                        overflow: fc.boolean()
+                        iv: fc.boolean(),
+                        nt: fc.boolean(),
+                        sb: fc.boolean(),
+                        bl: fc.boolean(),
+                        ov: fc.boolean()
                     }),
                     (input) => {
                         const encoded = buildQDS(input);

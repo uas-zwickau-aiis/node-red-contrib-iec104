@@ -13,9 +13,20 @@ RED.nodes.registerType('iec104-observer',{
     "Status"
   ],
   icon: "font-awesome/fa-eye",
-  paletteLabel: "Beobachter",
-  label: function() {
-    return this.name || "Beobachter";
+  paletteLabel: function() {
+        return this._("iec104.paletteLabel");
+  },
+  label: function () {
+    if (this.name) return this.name;
+
+    const gwNode = RED.nodes.node(this.connection);
+    const baseLabel = this._("iec104.label");
+
+    if (gwNode && gwNode.name) {
+        return `${baseLabel} [${gwNode.name}]`;
+    }
+
+    return `${baseLabel}`;
   }
 });
 </script>
@@ -30,15 +41,6 @@ RED.nodes.registerType('iec104-observer',{
   <div class="form-row">
     <label for="node-input-connection">Gateway</label>
     <input type="text" id="node-input-connection">
-  </div>
-
-  <hr>
-
-  <div class="form-row">
-    <label>Info</label>
-    <span style="margin-left:10px; color:#888;">
-      Listens to IEC104 events (data/status)
-    </span>
   </div>
 
 </script>

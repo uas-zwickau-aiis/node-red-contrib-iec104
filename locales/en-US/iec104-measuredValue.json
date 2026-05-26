@@ -1,0 +1,28 @@
+{
+  "iec104": {
+    "label": "Measured Value",
+    "paletteLabel": "Measured Value",
+    "settings": {
+      "ioa": "Address",
+      "qds": {
+        "label": "Quality defaults",
+        "opts" : {
+          "label-bl": "Blocked (BL)",
+          "label-iv": "Invalid (IV)",
+          "label-nt": "Not topical (NT)",
+          "label-ov": "Overflow (OV)",
+          "label-sb": "Substituted (SB)",
+          "select-bl": "Adopt from msg.qds.bl",
+          "select-iv": "Adopt from msg.qds.iv",
+          "select-nt": "Adopt from msg.qds.nt",
+          "select-ov": "Adopt from msg.qds.ov",
+          "select-sb": "Adopt from msg.qds.sb"
+        }
+      },
+      "type": "Type",
+      "time": "Time source",
+      "time-msg": "Adopt from msg.ts",
+      "time-now": "Current time"
+    }
+  }
+}

@@ -14,17 +14,23 @@
         validate: v => RED.validators.number()(v) && v >= 0 && v <= 255 
       },
 
-      ca: { value: 1 }, // interne Zahl
+      ca: { value: 1 },
 
       connection: { type: "iec104-gateway", required: true }
     },
 
     inputs: 1,
     icon: "bridge.svg",
-    paletteLabel: "Stationsadresse",
+    paletteLabel: function() {
+      return this._("iec104.paletteLabel");
+    },
+    label: function () {
+      if (this.name) return this.name;
 
-    label: function() {
-      return this.name || `Stationsadresse (${this.ca})`;
+      const gwNode = RED.nodes.node(this.connection);
+      const gwName = gwNode?.name || this._("iec104.label");
+
+      return `${gwName} [${this.ca_hi}, ${this.ca_lo}]`;
     },
 
     oneditprepare: function () {
@@ -67,7 +73,7 @@
   </div>
 
   <div class="form-row">
-    <label>Stationsadresse (CA)</label>
+    <label><span data-i18n="iec104.input-label.ca"></span></label>
     <input type="number" id="node-input-ca_hi" min="0" max="255" placeholder="Hi" style="width:60px; margin-right:5px;">
     <input type="number" id="node-input-ca_lo" min="0" max="255" placeholder="Lo" style="width:60px;">
   </div>

@@ -1,0 +1,26 @@
+{
+  "iec104": {
+    "label": "Doppelmeldung",
+    "paletteLabel": "Doppelmeldung",
+    "settings": {
+      "ioa": "Adresse",
+      "qds": {
+        "label": "Qualitätsmerkmale",
+        "opts" : {
+          "label-bl": "Blockiert (BL)",
+          "label-iv": "Ungültig (IV)",
+          "label-nt": "Nicht aktuell (NT)",
+          "label-sb": "Ersetzen (SB)",
+          "select-bl": "Aus msg.qds.bl übernehmen",
+          "select-iv": "Aus msg.qds.iv übernehmen",
+          "select-nt": "Aus msg.qds.nt übernehmen",
+          "select-sb": "Aus msg.qds.sb übernehmen"
+        }
+      },
+      "time": "Zeitquelle",
+      "time-msg": "Aus msg.ts übernehmen",
+      "time-now": "Aktuelle Zeit",
+      "type": "Typ"
+    }
+  }
+}

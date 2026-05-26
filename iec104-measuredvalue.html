@@ -1,13 +1,35 @@
 <script type="text/javascript">
+  function buildIoaFromOctets(b0, b1, b2) {
+    return (b0 << 16) | (b1 << 8) | b2;
+  } 
+  function parseByte(selector) {
+    return parseInt($(selector).val(), 10) || 0;
+  }
+  function byteValidator(v) {
+    return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
+  }
+
+  function updateIoaPreview() {
+    const b0 = parseByte("#node-input-ioa0");
+    const b1 = parseByte("#node-input-ioa1");
+    const b2 = parseByte("#node-input-ioa2");
+
+    const ioa = buildIoaFromOctets(b0, b1, b2);
+    const hex = `0x${ioa.toString(16).toUpperCase().padStart(6, "0")}`;
+
+    $("#node-ioa-preview").text(
+      `IOA: ${ioa} | Hex: ${hex}`
+    );
+  }
   RED.nodes.registerType('iec104-measuredvalue', {
     category: 'IEC 104',
     color: '#dce5f5',
     defaults: {
       name: { value: "" },
 
-      ioa0: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
-      ioa1: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
-      ioa2: { value: 0, validate: function(v) { return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255; } },
+      ioa0: { value: 0, validate: byteValidator },
+      ioa1: { value: 0, validate: byteValidator },
+      ioa2: { value: 0, validate: byteValidator },
 
       meType: { value: "M_ME_NC_1" },
       tsSource: { value: "now" },
@@ -21,42 +43,15 @@
     inputs: 1,
     outputs: 1,
     icon: "serial.svg",
-    paletteLabel: "Messwert",
-    label: function () {
-      return this.name || "Messwert";
+    paletteLabel: function() {
+      return this._("iec104.paletteLabel");
     },
-
-    oneditprepare: function () {
-      function isCp56Type(t) {
-        return t === "M_ME_TD_1" || t === "M_ME_TE_1" || t === "M_ME_TF_1";
-      }
-
-      function updateVisibility() {
-        const t = $("#node-input-meType").val();
-        if (isCp56Type(t)) $(".row-ts").show();
-        else $(".row-ts").hide();
-      }
-
-      $("#node-input-meType").on("change", updateVisibility);
-      updateVisibility();
+    label: function() {
+      return this.name || this._("iec104.label") + ` [${this.ioa0}, ${this.ioa1}, ${this.ioa2}]`;
     },
     oneditprepare: function () {
-      function updateIoaPreview() {
-        var b0 = parseInt($("#node-input-ioa0").val(), 10);
-        var b1 = parseInt($("#node-input-ioa1").val(), 10);
-        var b2 = parseInt($("#node-input-ioa2").val(), 10);
-
-        b0 = isNaN(b0) ? 0 : b0;
-        b1 = isNaN(b1) ? 0 : b1;
-        b2 = isNaN(b2) ? 0 : b2;
-
-        var ioa = (b0 << 16) + (b1 << 8) + b2;
-        var hex = "0x" + ioa.toString(16).toUpperCase().padStart(6, "0");
-
-        $("#node-ioa-preview").text("Dezimal (Hex): " + ioa + " (" + hex + ")");
-      }
-
-      $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2").on("input change", updateIoaPreview);
+      $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2")
+      .on("input", updateIoaPreview);
 
       updateIoaPreview();
     }
@@ -66,25 +61,26 @@
 <script type="text/html" data-template-name="iec104-measuredvalue">
 
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
     <input type="text" id="node-input-name">
   </div>
 
-  <div class="form-row">
-    <label>IOA</label>
-    <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="B0" style="width:60px; margin-right:5px;">
-    <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="B1" style="width:60px; margin-right:5px;">
-    <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="B2" style="width:60px;">
-  </div>
-  <div class="form-row">
-    <label></label>
-    <div id="node-ioa-preview" class="form-tips" style="width:auto;">
-      Dezimal (Hex): 0 (0x000000)
+  <div class="ioa-input">
+    <div class="form-row">
+      <label><span data-i18n="iec104.settings.ioa"></span></label>
+      <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
+      <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
+      <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
+    </div>
+    <div class="form-row">
+      <div id="node-ioa-preview" class="form-tips" style="width:auto;">
+        IOA: 0 | Hex: 0x000000
+      </div>
     </div>
   </div>
 
   <div class="form-row">
-    <label for="node-input-meType">Meldetyp</label>
+    <label for="node-input-meType"><span data-i18n="iec104.settings.type"></label>
     <select id="node-input-meType">
       <option value="M_ME_NB_1">M_ME_NB_1 (scaled, ohne Zeit)</option>
       <option value="M_ME_NC_1">M_ME_NC_1 (float, ohne Zeit)</option>
@@ -94,110 +90,61 @@
   </div>
 
   <div class="form-row row-ts">
-    <label for="node-input-tsSource">Zeitquelle (CP56)</label>
+    <label for="node-input-tsSource"><span data-i18n="iec104.settings.time"></label>
     <select id="node-input-tsSource">
-      <option value="now">jetzt</option>
-      <option value="msg">msg.ts verwenden</option>
+      <option value="now"><span data-i18n="iec104.settings.time-now"></option>
+      <option value="msg"><span data-i18n="iec104.settings.time-msg"></option>
     </select>
   </div>
 
   <hr>
 
   <div class="form-row">
-    <label>Quality-Verhalten (QDS)</label>
+    <label><span data-i18n="iec104.settings.qds.label"></span></label>
   </div>
+  <div class="qds-settings">
+    <div class="form-row">
+      <label for="node-input-qInvalidMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-iv"></label>
+      <select id="node-input-qInvalidMode">
+        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-iv"></option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
 
-  <div class="form-row">
-  <label for="node-input-qBlockedMode">blocked</label>
-  <select id="node-input-qBlockedMode">
-    <option value="msg">aus msg.quality.blocked</option>
-    <option value="false">false</option>
-    <option value="true">true</option>
-  </select>
-</div>
+    <div class="form-row">
+      <label for="node-input-qSubstitutedMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-sb"></label>
+      <select id="node-input-qSubstitutedMode">
+        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-sb"></option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
 
-<div class="form-row">
-  <label for="node-input-qSubstitutedMode">substituted</label>
-  <select id="node-input-qSubstitutedMode">
-    <option value="msg">aus msg.quality.substituted</option>
-    <option value="false">false</option>
-    <option value="true">true</option>
-  </select>
-</div>
+    <div class="form-row">
+      <label for="node-input-qBlockedMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-bl"></label>
+      <select id="node-input-qBlockedMode">
+        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-bl"></option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
 
-<div class="form-row">
-  <label for="node-input-qNotTopicalMode">notTopical</label>
-  <select id="node-input-qNotTopicalMode">
-    <option value="msg">aus msg.quality.notTopical</option>
-    <option value="false">false</option>
-    <option value="true">true</option>
-  </select>
-</div>
-
-<div class="form-row">
-  <label for="node-input-qInvalidMode">invalid</label>
-  <select id="node-input-qInvalidMode">
-    <option value="msg">aus msg.quality.invalid</option>
-    <option value="false">false</option>
-    <option value="true">true</option>
-  </select>
-</div>
-
-<div class="form-row">
-  <label for="node-input-qOverflowMode">overflow</label>
-  <select id="node-input-qOverflowMode">
-    <option value="msg">aus msg.quality.overflow</option>
-    <option value="false">false</option>
-    <option value="true">true</option>
-  </select>
-</div>
-
-</script>
-
-<script type="text/html" data-help-name="iec104-measuredvalue">
-  <p>
-    Erzeugt aus <code>msg.payload</code> einen IEC-104 Messwert und schreibt ihn als Objekt in <code>msg.payload</code>.
-  </p>
-
-  <h3>Eingang</h3>
-  <dl class="message-properties">
-    <dt>payload <span class="property-type">number|string</span></dt>
-    <dd>Messwert. Strings dürfen Komma oder Punkt enthalten.</dd>
-
-    <dt class="optional">quality <span class="property-type">object</span></dt>
-    <dd>
-      Optionales Quality-Objekt. Die QDS-Bits können aus <code>msg.quality</code> übernommen oder in der Node fest erzwungen werden:
-      <ul>
-        <li><code>BL</code> = Blocked</li>
-        <li><code>SB</code> = Substituted</li>
-        <li><code>INT</code> = Not topical</li>
-        <li><code>IV</code> = Invalid</li>
-        <li><code>OV</code> = Overflow</li>
-      </ul>
-    </dd>
-
-    <dt class="optional">ts <span class="property-type">string|number</span></dt>
-    <dd>Nur bei CP56-Typen: Timestamp (ISO oder epoch ms), wenn Zeitquelle auf <code>msg.ts</code> steht.</dd>
-  </dl>
-
-  <h3>Ausgang</h3>
-  <dl class="message-properties">
-    <dt>payload <span class="property-type">object</span></dt>
-    <dd>
-      IEC-104 Messwertobjekt:
-      <pre>{
-  "type": "M_ME_NC_1",
-  "ioa": [232, 3, 0],
-  "value": 12.34,
-  "quality": {
-    "blocked": false,
-    "substituted": false,
-    "notTopical": false,
-    "invalid": false,
-    "overflow": false
-  },
-  "ts": "2026-03-04T12:34:56.789Z"
-}</pre>
-    </dd>
-  </dl>
+   <div class="form-row">
+      <label for="node-input-qNotTopicalMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-nt"></label>
+      <select id="node-input-qNotTopicalMode">
+        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-nt"></option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="node-input-qOverflowMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-ov"></label>
+      <select id="node-input-qOverflowMode">
+        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-ov"></option>
+        <option value="false">false</option>
+        <option value="true">true</option>
+      </select>
+    </div>
+  </div>
 </script>
