@@ -10,16 +10,16 @@ describe('BCR Flags', function() {
             assert.strictEqual(buildBCRFlags({}, 0), 0x00);
         });
 
-        it('sets invalid flag', () => {
-            assert.strictEqual(buildBCRFlags({ invalid: true }), 0x80);
+        it('sets iv flag', () => {
+            assert.strictEqual(buildBCRFlags({ iv: true }), 0x80);
         });
 
         it('sets adjusted flag', () => {
             assert.strictEqual(buildBCRFlags({ adjusted: true }), 0x40);
         });
 
-        it('sets overflow flag', () => {
-            assert.strictEqual(buildBCRFlags({ overflow: true }), 0x20);
+        it('sets ov flag', () => {
+            assert.strictEqual(buildBCRFlags({ ov: true }), 0x20);
         });
 
         it('sets sequence number (lower 5 bits)', () => {
@@ -33,7 +33,7 @@ describe('BCR Flags', function() {
 
         it('combines flags and sequence', () => {
             const result = buildBCRFlags(
-                { invalid: true, adjusted: true, overflow: true },
+                { iv: true, adjusted: true, ov: true },
                 0x1F
             );
 
@@ -42,7 +42,7 @@ describe('BCR Flags', function() {
 
         it('combines single flag with sequence', () => {
             const result = buildBCRFlags(
-                { invalid: true },
+                { iv: true },
                 0x01
             );
 
@@ -51,7 +51,7 @@ describe('BCR Flags', function() {
 
         it('ignores unknown properties', () => {
             const result = buildBCRFlags(
-                { invalid: true, foo: true },
+                { iv: true, foo: true },
                 0
             );
 
@@ -60,7 +60,7 @@ describe('BCR Flags', function() {
 
         it('treats non-boolean values as truthy', () => {
             const result = buildBCRFlags(
-                { invalid: 1, adjusted: "yes" },
+                { iv: 1, adjusted: "yes" },
                 0
             );
 
@@ -82,16 +82,16 @@ describe('BCR Flags', function() {
             const result = parseBCRFlags(0x00);
 
             assert.deepStrictEqual(result, {
-                invalid: false,
+                iv: false,
                 adjusted: false,
-                overflow: false,
+                ov: false,
                 sequence: 0
             });
         });
 
-        it('parses invalid flag', () => {
+        it('parses iv flag', () => {
             const result = parseBCRFlags(0x80);
-            assert.strictEqual(result.invalid, true);
+            assert.strictEqual(result.iv, true);
         });
 
         it('parses adjusted flag', () => {
@@ -99,9 +99,9 @@ describe('BCR Flags', function() {
             assert.strictEqual(result.adjusted, true);
         });
 
-        it('parses overflow flag', () => {
+        it('parses ov flag', () => {
             const result = parseBCRFlags(0x20);
-            assert.strictEqual(result.overflow, true);
+            assert.strictEqual(result.ov, true);
         });
 
         it('parses sequence number', () => {
@@ -113,9 +113,9 @@ describe('BCR Flags', function() {
             const result = parseBCRFlags(0xE5); // 1110 0101
 
             assert.deepStrictEqual(result, {
-                invalid: true,
+                iv: true,
                 adjusted: true,
-                overflow: true,
+                ov: true,
                 sequence: 0x05
             });
         });
@@ -124,9 +124,9 @@ describe('BCR Flags', function() {
             const result = parseBCRFlags(0xFF);
 
             assert.deepStrictEqual(result, {
-                invalid: true,
+                iv: true,
                 adjusted: true,
-                overflow: true,
+                ov: true,
                 sequence: 0x1F
             });
         });
@@ -135,9 +135,9 @@ describe('BCR Flags', function() {
             const result = parseBCRFlags();
 
             assert.deepStrictEqual(result, {
-                invalid: false,
+                iv: false,
                 adjusted: false,
-                overflow: false,
+                ov: false,
                 sequence: 0
             });
         });
@@ -146,9 +146,9 @@ describe('BCR Flags', function() {
             const result = parseBCRFlags(null);
 
             assert.deepStrictEqual(result, {
-                invalid: false,
+                iv: false,
                 adjusted: false,
-                overflow: false,
+                ov: false,
                 sequence: 0
             });
         });
@@ -157,19 +157,19 @@ describe('BCR Flags', function() {
     describe('Roundtrip (buildBCRFlags -> parseBCRFlags', function () {
         it('parse(build(x)) preserves flags and sequence', () => {
             const input = {
-                invalid: true,
+                iv: true,
                 adjusted: false,
-                overflow: true
+                ov: true
             };
             const seq = 17;
 
             const encoded = buildBCRFlags(input, seq);
             const decoded = parseBCRFlags(encoded);
-
+            
             assert.deepStrictEqual(decoded, {
-                invalid: true,
+                iv: true,
                 adjusted: false,
-                overflow: true,
+                ov: true,
                 sequence: seq & 0x1F
             });
         });

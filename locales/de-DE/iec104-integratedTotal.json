@@ -4,13 +4,19 @@
     "paletteLabel": "Zählwert",
     "settings": {
       "ioa": "Adresse",
-      "qds": "Qualitätsmerkmale",
-      "qds-invalid": "Ungültig (IV)",
+      "qds": {
+        "label": "Qualitätsmerkmale",
+        "opts" : {
+          "label-iv": "Ungültig (IV)",
+          "select-iv": "Aus msg.qds.iv übernehmen"
+        }
+      },
       "time": "Zeitquelle",
       "time-msg": "Aus msg.ts übernehmen",
       "time-now": "Aktuelle Zeit",
       "type": "Typ"
     }
   }
-  
 }
+
+

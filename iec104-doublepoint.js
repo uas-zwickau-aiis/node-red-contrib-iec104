@@ -55,10 +55,10 @@ module.exports = function (RED) {
         const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
 
         const quality = {
-          invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
-          substituted: resolveQualityBit(qSubstitutedMode, incomingQuality.substituted),
-          blocked: resolveQualityBit(qBlockedMode, incomingQuality.blocked),
-          notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical)
+          iv: resolveQualityBit(qInvalidMode, incomingQuality.iv),
+          sb: resolveQualityBit(qSubstitutedMode, incomingQuality.sb),
+          bl: resolveQualityBit(qBlockedMode, incomingQuality.bl),
+          nt: resolveQualityBit(qNotTopicalMode, incomingQuality.nt)
         };
 
         const p = {

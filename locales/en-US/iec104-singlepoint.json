@@ -4,11 +4,19 @@
     "paletteLabel": "Single Point",
     "settings": {
       "ioa": "Address",
-      "qds": "Quality defaults",
-      "qds-blocked": "Blocked (BL)",
-      "qds-substituted": "Substituted (SB)",
-      "qds-notTopical": "Not topical (NT)",
-      "qds-invalid": "Invalid (IV)",
+      "qds": {
+        "label": "Quality defaults",
+        "opts" : {
+          "label-bl": "Blocked (BL)",
+          "label-iv": "Invalid (IV)",
+          "label-nt": "Not topical (NT)",
+          "label-sb": "Substituted (SB)",
+          "select-bl": "Adopt from msg.qds.bl",
+          "select-iv": "Adopt from msg.qds.iv",
+          "select-nt": "Adopt from msg.qds.nt",
+          "select-sb": "Adopt from msg.qds.sb"
+        }
+      },
       "type": "Type",
       "time": "Time source",
       "time-msg": "Adopt from msg.ts",

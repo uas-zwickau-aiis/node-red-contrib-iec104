@@ -4,8 +4,13 @@
     "paletteLabel": "Integrated Total",
     "settings": {
       "ioa": "Address",
-      "qds": "Quality defaults",
-      "qds-invalid": "Invalid (IV)",
+      "qds": {
+        "label": "Quality defaults",
+        "opts" : {
+          "label-iv": "Invalid (IV)",
+          "select-iv": "Adopt from msg.qds.iv"
+        }
+      },
       "type": "Type",
       "time": "Time source",
       "time-msg": "Adopt from msg.ts",

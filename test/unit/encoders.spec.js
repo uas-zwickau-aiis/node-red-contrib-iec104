@@ -21,7 +21,7 @@ describe('Encoders (Value + QDS/BCR)', function (){
         it('includes QDS flags', () => {
             const buf = singlePoint({
                 value: true,
-                quality: { invalid: true }
+                quality: { iv: true }
             });
 
             assert.strictEqual(buf[0] & 0x80, 0x80);
@@ -60,7 +60,7 @@ describe('Encoders (Value + QDS/BCR)', function (){
         it('includes QDS', () => {
             const buf = measuredScaled({
                 value: 1,
-                quality: { overflow: true }
+                quality: { ov: true }
             });
 
             assert.strictEqual(buf[2] & 0x01, 1);
@@ -84,7 +84,7 @@ describe('Encoders (Value + QDS/BCR)', function (){
         it('includes QDS', () => {
             const buf = measuredFloat({
                 value: 1.5,
-                quality: { invalid: true }
+                quality: { iv: true }
             });
 
             assert.strictEqual(buf[4] & 0x80, 0x80);
@@ -108,18 +108,18 @@ describe('Encoders (Value + QDS/BCR)', function (){
         it('encodes BCR flags and sequence', () => {
             const buf = integratedTotals({
                 value: 1,
-                quality: { invalid: true, overflow: true },
+                quality: { iv: true, ov: true },
                 sequence: 5
             });
 
             const flags = buf[4];
 
-            assert.strictEqual(flags & 0x80, 0x80); // invalid
-            assert.strictEqual(flags & 0x20, 0x20); // overflow
+            assert.strictEqual(flags & 0x80, 0x80); // iv
+            assert.strictEqual(flags & 0x20, 0x20); // ov
             assert.strictEqual(flags & 0x1F, 5);    // sequence
         });
 
-        it('handles invalid numeric values', () => {
+        it('handles iv numeric values', () => {
             const buf = integratedTotals({ value: Infinity });
 
             assert.strictEqual(buf.readInt32LE(0), 0);
@@ -127,16 +127,16 @@ describe('Encoders (Value + QDS/BCR)', function (){
         it('roundtrip: integratedTotals flags decode correctly', () => {
             const buf = integratedTotals({
                 value: 42,
-                quality: { invalid: true, adjusted: true },
+                quality: { iv: true, adjusted: true },
                 sequence: 17
             });
 
             const decoded = parseBCRFlags(buf[4]);
 
             assert.deepStrictEqual(decoded, {
-                invalid: true,
+                iv: true,
                 adjusted: true,
-                overflow: false,
+                ov: false,
                 sequence: 17
             });
         });

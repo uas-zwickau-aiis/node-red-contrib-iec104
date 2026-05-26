@@ -144,9 +144,6 @@ describe('IEC104 Idle Stability', function () {
 
         await client.expectStartDTCon();
 
-        // Session bewusst idle lassen
-        // damit interne Timerpfade aktiv werden
-
         console.log('session established - entering idle phase');
 
         await new Promise(resolve => setTimeout(resolve, 30000));
@@ -179,9 +176,6 @@ describe('IEC104 Reconnect Stress', function () {
             await client.sendStartDTAct();
 
             await client.expectStartDTCon();
-
-            // sofort sauber disconnecten
-            // keine Pause zwischen den Zyklen
 
             await client.disconnect();
 

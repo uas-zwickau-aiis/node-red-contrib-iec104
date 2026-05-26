@@ -45,9 +45,7 @@ module.exports = function (RED) {
         const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
 
         const quality = {
-          invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
-          adjusted: resolveQualityBit(qAdjustedMode, incomingQuality.adjusted),
-          carry: resolveQualityBit(qCarryMode, incomingQuality.carry)
+          iv: resolveQualityBit(qInvalidMode, incomingQuality.iv)
         };
 
         const p = {
