@@ -11,6 +11,7 @@ module.exports = function (RED) {
     const ioa0 = Number(config.ioa0);
     const ioa1 = Number(config.ioa1);
     const ioa2 = Number(config.ioa2);
+    const ioaFromMsg = config.ioaFromMsg === true || config.ioaFromMsg === "true";
 
     const dpType = String(config.dpType || "M_DP_NA_1");
     const tsSource = String(config.tsSource || "now");
@@ -38,11 +39,40 @@ module.exports = function (RED) {
       if (value < 0 || value > 3) return null;
       return value;
     }
+    function normalizeIoa(value) {
+      if (!Array.isArray(value) || value.length !== 3) return null;
+
+      const bytes = value.map(Number);
+
+      if (!bytes.every(b =>
+        Number.isInteger(b) &&
+        b >= 0 &&
+        b <= 255
+      )) {
+        return null;
+      }
+
+      return (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
+    }
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
-      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
+      const configuredIoa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
+      const ioa = ioaFromMsg
+        ? normalizeIoa(msg.ioa)
+        : configuredIoa;
+
+      if (ioa === null) {
+        node.status({
+          fill: "red",
+          shape: "ring",
+          text: "msg.ioa muss [b0,b1,b2] sein"
+        });
+
+        done(new Error("iec104-doublepoint: msg.ioa muss ein Big-Endian Byte-Array [b0,b1,b2] mit Werten 0..255 sein"));
+        return;
+      }
       try {
         const dpi = normalizeDpi(msg.payload);
 

@@ -3,9 +3,14 @@
     "label": "Doppelmeldung",
     "paletteLabel": "Doppelmeldung",
     "settings": {
-      "ioa": "Adresse",
+      "general": {
+        "label": "Allgemeine Objektinformationen",
+        "label-ioa": "Adresse",
+        "label-ioa-box": "Aus msg.ioa übernehmen"
+      },
+      
       "qds": {
-        "label": "Qualitätsmerkmale",
+        "label": "Qualitätsinformationen",
         "opts" : {
           "label-bl": "Blockiert (BL)",
           "label-iv": "Ungültig (IV)",

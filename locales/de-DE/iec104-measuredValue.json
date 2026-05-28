@@ -5,7 +5,7 @@
     "settings": {
       "ioa": "Adresse",
       "qds": {
-        "label": "Qualitätsmerkmale",
+        "label": "Qualitätsinformationen",
         "opts" : {
           "label-bl": "Blockiert (BL)",
           "label-iv": "Ungültig (IV)",

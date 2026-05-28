@@ -22,12 +22,27 @@
     );
   }
 
+  function toggleIoaInputs() {
+    const fromMsg = $("#node-input-ioaFromMsg").prop("checked");
+
+    $("#node-input-ioa0").prop("disabled", fromMsg);
+    $("#node-input-ioa1").prop("disabled", fromMsg);
+    $("#node-input-ioa2").prop("disabled", fromMsg);
+
+    if (fromMsg) {
+      $("#node-ioa-preview").text("IOA wird aus msg.ioa übernommen");
+    } else {
+      updateIoaPreview();
+    }
+  }
+
   RED.nodes.registerType('iec104-doublepoint', {
     category: 'IEC 104',
     color: '#dce5f5',
     defaults: {
       name: { value: "" },
 
+      ioaFromMsg: { value: false },
       ioa0: { value: 0, validate: byteValidator },
       ioa1: { value: 0, validate: byteValidator },
       ioa2: { value: 0, validate: byteValidator },
@@ -47,13 +62,22 @@
       return this._("iec104.paletteLabel");
     },
     label: function() {
-      return this.name || this._("iec104.label") + ` [${this.ioa0}, ${this.ioa1}, ${this.ioa2}]`;
+      return this.name || (
+        this._("iec104.label") +
+        (
+          this.ioaFromMsg
+            ? " [msg.ioa]"
+            : ` [${this.ioa0}, ${this.ioa1}, ${this.ioa2}]`
+        )
+      );
     },
     oneditprepare: function () {
       $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2")
       .on("input", updateIoaPreview);
 
+      $("#node-input-ioaFromMsg").on("change", toggleIoaInputs);
       updateIoaPreview();
+      toggleIoaInputs();
     }
   });
 </script>
@@ -63,12 +87,28 @@
     <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
+  <hr>
+
+  <div class="form-row">
+    <label><span data-i18n="iec104.settings.general.label"></span></label>
+  </div>
   <div class="ioa-input">
     <div class="form-row">
-      <label><span data-i18n="iec104.settings.ioa"></span></label>
+      <label><span data-i18n="iec104.settings.general.label-ioa"></span></label>
       <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
       <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
       <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
+    </div>
+    <div class="form-row">
+      <label>&nbsp;</label>
+      <input type="checkbox"
+            id="node-input-ioaFromMsg"
+            style="display:inline-block; width:auto; vertical-align:top;">
+            
+      <label for="node-input-ioaFromMsg"
+            style="width:70%;">
+            <span data-i18n="iec104.settings.general.label-ioa-box"></span>
+      </label>
     </div>
     <div class="form-row">
       <div id="node-ioa-preview" class="form-tips" style="width:auto;">

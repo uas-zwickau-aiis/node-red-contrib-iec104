@@ -5,7 +5,7 @@
     "settings": {
       "ioa": "Adresse",
       "qds": {
-        "label": "Qualitätsmerkmale",
+        "label": "Qualitätsinformationen",
         "opts" : {
           "label-iv": "Ungültig (IV)",
           "select-iv": "Aus msg.qds.iv übernehmen"
