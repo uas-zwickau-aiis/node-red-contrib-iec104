@@ -3,7 +3,12 @@
     "label": "Messwert",
     "paletteLabel": "Messwert",
     "settings": {
-      "ioa": "Adresse",
+      "general": {
+        "label": "Allgemeine Objektinformationen",
+        "label-ioa": "Adresse",
+        "label-ioa-box": "Aus msg.ioa übernehmen"
+      },
+      
       "qds": {
         "label": "Qualitätsinformationen",
         "opts" : {

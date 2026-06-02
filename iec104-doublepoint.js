@@ -1,5 +1,12 @@
 const { TYPES } = require("./lib/asdu/types");
 const { TIME } = require("./lib/asdu/time");
+const {
+  parseBoolConfig,
+  resolveIoa,
+  buildQuality,
+  applyTimestamp,
+  normalizeDpi
+} = require("./lib/admin/node-helpers");
 
 module.exports = function (RED) {
   "use strict";
@@ -8,111 +15,45 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     const node = this;
 
-    const ioa0 = Number(config.ioa0);
-    const ioa1 = Number(config.ioa1);
-    const ioa2 = Number(config.ioa2);
-    const ioaFromMsg = config.ioaFromMsg === true || config.ioaFromMsg === "true";
-
     const dpType = String(config.dpType || "M_DP_NA_1");
     const tsSource = String(config.tsSource || "now");
 
-    const qInvalidMode = String(config.qInvalidMode || "msg");
-    const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
-    const qBlockedMode = String(config.qBlockedMode || "msg");
-    const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
-
-    function resolveQualityBit(mode, incomingValue) {
-      if (mode === "true") return true;
-      if (mode === "false") return false;
-      return !!incomingValue;
-    }
-
-    function normalizeDpi(value) {
-      if (typeof value === "string") {
-        const s = value.trim();
-        if (s === "") return null;
-        if (!Number.isFinite(Number(s))) return null;
-        value = Number(s);
-      }
-      
-      if (typeof value !== "number" || !Number.isFinite(value) || !Number.isInteger(value)) return null;
-      if (value < 0 || value > 3) return null;
-      return value;
-    }
-    function normalizeIoa(value) {
-      if (!Array.isArray(value) || value.length !== 3) return null;
-
-      const bytes = value.map(Number);
-
-      if (!bytes.every(b =>
-        Number.isInteger(b) &&
-        b >= 0 &&
-        b <= 255
-      )) {
-        return null;
-      }
-
-      return (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
-    }
+    const qualityModes = {
+      iv: parseBoolConfig(config.qInvalidMode),
+      sb: parseBoolConfig(config.qSubstitutedMode),
+      bl: parseBoolConfig(config.qBlockedMode),
+      nt: parseBoolConfig(config.qNotTopicalMode)
+    };
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
-      const configuredIoa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
-      const ioa = ioaFromMsg
-        ? normalizeIoa(msg.ioa)
-        : configuredIoa;
-
+      const ioa = resolveIoa(config, msg);
       if (ioa === null) {
-        node.status({
-          fill: "red",
-          shape: "ring",
-          text: "msg.ioa muss [b0,b1,b2] sein"
-        });
-
+        node.status({ fill: "red", shape: "ring", text: "msg.ioa muss [b0,b1,b2] sein" });
         done(new Error("iec104-doublepoint: msg.ioa muss ein Big-Endian Byte-Array [b0,b1,b2] mit Werten 0..255 sein"));
         return;
       }
-      try {
-        const dpi = normalizeDpi(msg.payload);
 
-        if (dpi === null) {
-          node.status({ fill: "red", shape: "ring", text: "payload muss 0..3 (int) sein" });
-          done(new Error("iec104-doublepoint: msg.payload muss Integer 0..3 sein (DPI)"));
-          return;
-        }
-
-        const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
-
-        const quality = {
-          iv: resolveQualityBit(qInvalidMode, incomingQuality.iv),
-          sb: resolveQualityBit(qSubstitutedMode, incomingQuality.sb),
-          bl: resolveQualityBit(qBlockedMode, incomingQuality.bl),
-          nt: resolveQualityBit(qNotTopicalMode, incomingQuality.nt)
-        };
-
-        const p = {
-          type: dpType,
-          ioa: ioa,
-          value: dpi,
-          qds: quality
-        };
-
-        const typeMeta = TYPES[dpType];
-        if (typeMeta?.time !== TIME.NONE) {
-          p.ts = (tsSource === "msg" && msg.ts != null)
-            ? msg.ts
-            : new Date().toISOString();
-        }
-
-        msg.payload = p;
-        
-        send(msg);
-        done();
-      } catch (err) {
-        node.status({ fill: "red", shape: "ring", text: "error" });
-        done(err);
+      const dpi = normalizeDpi(msg.payload);
+      if (dpi === null) {
+        node.status({ fill: "red", shape: "ring", text: "payload muss 0..3 sein" });
+        done(new Error("iec104-doublepoint: msg.payload muss Integer 0..3 sein"));
+        return;
       }
+
+      const payload = {
+        type: dpType,
+        ioa,
+        value: dpi,
+        qds: buildQuality(msg, qualityModes, ["iv", "sb", "bl", "nt"])
+      };
+
+      applyTimestamp(payload, TYPES[dpType], TIME, tsSource, msg);
+
+      msg.payload = payload;
+      send(msg);
+      done();
     });
   }
 

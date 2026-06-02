@@ -3,7 +3,11 @@
     "label": "Measured Value",
     "paletteLabel": "Measured Value",
     "settings": {
-      "ioa": "Address",
+      "general": {
+        "label": "General Settings",
+        "label-ioa": "Address",
+        "label-ioa-box": "Adopt from msg.ioa"
+      },
       "qds": {
         "label": "Quality defaults",
         "opts" : {

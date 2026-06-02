@@ -1,85 +1,46 @@
+<script src="resources/node-red-contrib-iec104/iec104-editor.js"></script>
+
 <script type="text/javascript">
-  function buildIoaFromOctets(b0, b1, b2) {
-    return (b0 << 16) | (b1 << 8) | b2;
-  } 
-  function parseByte(selector) {
-    return parseInt($(selector).val(), 10) || 0;
-  }
-  function byteValidator(v) {
-    return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
-  }
+RED.nodes.registerType("iec104-doublepoint", {
+    category: "IEC 104",
+    color: "#dce5f5",
 
-  function updateIoaPreview() {
-    const b0 = parseByte("#node-input-ioa0");
-    const b1 = parseByte("#node-input-ioa1");
-    const b2 = parseByte("#node-input-ioa2");
-
-    const ioa = buildIoaFromOctets(b0, b1, b2);
-    const hex = `0x${ioa.toString(16).toUpperCase().padStart(6, "0")}`;
-
-    $("#node-ioa-preview").text(
-      `IOA: ${ioa} | Hex: ${hex}`
-    );
-  }
-
-  function toggleIoaInputs() {
-    const fromMsg = $("#node-input-ioaFromMsg").prop("checked");
-
-    $("#node-input-ioa0").prop("disabled", fromMsg);
-    $("#node-input-ioa1").prop("disabled", fromMsg);
-    $("#node-input-ioa2").prop("disabled", fromMsg);
-
-    if (fromMsg) {
-      $("#node-ioa-preview").text("IOA wird aus msg.ioa übernommen");
-    } else {
-      updateIoaPreview();
-    }
-  }
-
-  RED.nodes.registerType('iec104-doublepoint', {
-    category: 'IEC 104',
-    color: '#dce5f5',
     defaults: {
-      name: { value: "" },
+        name: { value: "" },
 
-      ioaFromMsg: { value: false },
-      ioa0: { value: 0, validate: byteValidator },
-      ioa1: { value: 0, validate: byteValidator },
-      ioa2: { value: 0, validate: byteValidator },
+        ioaFromMsg: { value: false },
+        ioa0: { value: 0, validate: window.iec104Editor.byteValidator },
+        ioa1: { value: 0, validate: window.iec104Editor.byteValidator },
+        ioa2: { value: 0, validate: window.iec104Editor.byteValidator },
 
-      dpType: { value: "M_DP_NA_1" },
-      tsSource: { value: "now" },
+        dpType: { value: "M_DP_NA_1" },
+        tsSource: { value: "now" },
 
-      qInvalidMode: { value: "msg" },
-      qSubstitutedMode: { value: "msg" },
-      qBlockedMode: { value: "msg" },
-      qNotTopicalMode: { value: "msg" }
+        qInvalidMode: { value: "msg" },
+        qSubstitutedMode: { value: "msg" },
+        qBlockedMode: { value: "msg" },
+        qNotTopicalMode: { value: "msg" }
     },
+
     inputs: 1,
     outputs: 1,
     icon: "serial.svg",
-    paletteLabel: function() {
-      return this._("iec104.paletteLabel");
-    },
-    label: function() {
-      return this.name || (
-        this._("iec104.label") +
-        (
-          this.ioaFromMsg
-            ? " [msg.ioa]"
-            : ` [${this.ioa0}, ${this.ioa1}, ${this.ioa2}]`
-        )
-      );
-    },
-    oneditprepare: function () {
-      $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2")
-      .on("input", updateIoaPreview);
 
-      $("#node-input-ioaFromMsg").on("change", toggleIoaInputs);
-      updateIoaPreview();
-      toggleIoaInputs();
+    paletteLabel: function () {
+        return this._("iec104.paletteLabel");
+    },
+
+    label: function () {
+        return window.iec104Editor.labelWithIoa(
+            this,
+            this._("iec104.label")
+        );
+    },
+
+    oneditprepare: function () {
+        window.iec104Editor.initIoaEditor();
     }
-  });
+});
 </script>
 
 <script type="text/html" data-template-name="iec104-doublepoint">

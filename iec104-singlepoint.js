@@ -1,5 +1,11 @@
 const { TYPES } = require("./lib/asdu/types");
 const { TIME } = require("./lib/asdu/time");
+const {
+  parseBoolConfig,
+  resolveIoa,
+  buildQuality,
+  applyTimestamp
+} = require("./lib/admin/node-helpers");
 
 module.exports = function (RED) {
   "use strict";
@@ -8,76 +14,52 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     const node = this;
 
-    const ioa0 = Number(config.ioa0);
-    const ioa1 = Number(config.ioa1);
-    const ioa2 = Number(config.ioa2);
-
     const spType = String(config.spType || "M_SP_NA_1");
     const tsSource = String(config.tsSource || "now");
 
-    const qInvalidMode = String(config.qInvalidMode || "msg");
-    const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
-    const qBlockedMode = String(config.qBlockedMode || "msg");
-    const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
-
-    function resolveQualityBit(mode, incomingValue) {
-      if (mode === "true") return true;
-      if (mode === "false") return false;
-      return !!incomingValue;
-    }
+    const qualityModes = {
+      iv: parseBoolConfig(config.qInvalidMode),
+      sb: parseBoolConfig(config.qSubstitutedMode),
+      bl: parseBoolConfig(config.qBlockedMode),
+      nt: parseBoolConfig(config.qNotTopicalMode)
+    };
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
-      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
 
-
-      try {
-        let value = msg.payload;
-
-        // Optional String "true"/"false" akzeptieren
-        if (typeof value === "string") {
-          const s = value.trim().toLowerCase();
-          if (s === "true") value = true;
-          else if (s === "false") value = false;
-        }
-
-        if (typeof value !== "boolean") {
-          node.status({ fill: "red", shape: "ring", text: "payload muss boolean sein" });
-          done(new Error("iec104-singlepoint: msg.payload muss boolean (true/false) sein"));
-          return;
-        }
-
-        const incomingQuality = (msg.qds && typeof msg.qds === "object") ? msg.qds : {};
-
-        const quality = {
-          iv: resolveQualityBit(qInvalidMode, incomingQuality.iv),
-          sb: resolveQualityBit(qSubstitutedMode, incomingQuality.sb),
-          bl: resolveQualityBit(qBlockedMode, incomingQuality.bl),
-          nt: resolveQualityBit(qNotTopicalMode, incomingQuality.nt)
-        };
-
-        const p = {
-          type: spType,
-          ioa: ioa,
-          value: value,
-          qds: quality
-        };
-
-        const typeMeta = TYPES[spType];
-        if (typeMeta?.time !== TIME.NONE) {
-          p.ts = (tsSource === "msg" && msg.ts != null)
-            ? msg.ts
-            : new Date().toISOString();
-        }
-
-        msg.payload = p;
-
-        send(msg);
-        done();
-      } catch (err) {
-        node.status({ fill: "red", shape: "ring", text: "error" });
-        done(err);
+      const ioa = resolveIoa(config, msg);
+      if (ioa === null) {
+        node.status({ fill: "red", shape: "ring", text: "msg.ioa muss [b0,b1,b2] sein" });
+        done(new Error("iec104-singlepoint: msg.ioa muss ein Big-Endian Byte-Array [b0,b1,b2] mit Werten 0..255 sein"));
+        return;
       }
+
+      let value = msg.payload;
+
+      if (typeof value === "string") {
+        const s = value.trim().toLowerCase();
+        if (s === "true") value = true;
+        else if (s === "false") value = false;
+      }
+
+      if (typeof value !== "boolean") {
+        node.status({ fill: "red", shape: "ring", text: "payload muss boolean sein" });
+        done(new Error("iec104-singlepoint: msg.payload muss boolean (true/false) sein"));
+        return;
+      }
+
+      const payload = {
+        type: spType,
+        ioa,
+        value,
+        qds: buildQuality(msg, qualityModes, ["iv", "sb", "bl", "nt"])
+      };
+
+      applyTimestamp(payload, TYPES[spType], TIME, tsSource, msg);
+
+      msg.payload = payload;
+      send(msg);
+      done();
     });
   }
 
