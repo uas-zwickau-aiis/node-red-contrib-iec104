@@ -1,13 +1,13 @@
 <script type="text/html" data-help-name="iec104-observer">
 
   <p>
-    This node monitors an IEC 60870-5-104 gateway and forwards received data
+    This node monitors an IEC 60870-5-104 slave and forwards received data
     and status events to its outputs.
   </p>
 
   <h3>Functionality</h3>
   <p>
-    The node listens to gateway events and reacts to incoming data and status messages
+    The node listens to slave events and reacts to incoming data and status messages
     <code>iec104:data</code> and <code>iec104:status</code>.
     These are sent to different outputs.
   </p>
@@ -28,15 +28,15 @@
   <h3>Configuration</h3>
   <dl>
 
-    <dt>Gateway</dt>
+    <dt>IEC 60870-5-104 Slave</dt>
     <dd>
-      Linked gateway from which data and status are received
+      Linked slave from which data and status are received
     </dd>
   </dl>
 
   <h3>Example</h3>
   <pre>
-    Gateway sends:
+    Slave sends:
     Event: iec104:data
     msg.payload = { value: 42 }
 

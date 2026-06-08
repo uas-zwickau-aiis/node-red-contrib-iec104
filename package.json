@@ -23,11 +23,16 @@
   "engines": {
     "node": ">=14.0.0"
   },
+  "scripts": {
+    "test": "mocha \"test/**/*.spec.js\"",
+    "test:unit": "mocha \"test/unit/**/*.spec.js\"",
+    "test:integration": "mocha \"test/integration/**/*.spec.js\""
+  },
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
       "iec104-editor-helpers": "nodes/iec104-editor-helpers.html",
-      "iec104-gateway": "iec104-gateway.js",
+      "iec104-slave": "iec104-slave.js",
       "iec104-singlepoint": "iec104-singlepoint.js",
       "iec104-integratedtotal": "iec104-integratedTotal.js",
       "iec104-doublepoint": "iec104-doublepoint.js",

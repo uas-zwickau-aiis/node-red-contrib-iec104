@@ -10,7 +10,7 @@ module.exports = function(RED) {
 
         node.on("input", function (msg) {
             if(!client) {
-                node.warn("Kein Gateway konfiguriert");
+                node.warn("Kein Slave konfiguriert");
                 return;
             }
 
