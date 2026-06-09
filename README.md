@@ -6,6 +6,9 @@ This package currently implements an IEC 104 **Slave** (Controlled Station) that
 
 Support for IEC 104 **Master** (Controlling Station) functionality is planned for future releases.
 
+## Changelog
+Before updating, review the [changelog](CHANGELOG.md) to check for breaking changes.
+
 ## Features
 
 * **Expose process values to external SCADA and control systems**
@@ -19,7 +22,7 @@ Support for IEC 104 **Master** (Controlling Station) functionality is planned fo
 Install from your Node-RED user directory:
 
 ```bash
-git clone 
+git clone https://github.com/uas-zwickau-aiis/node-red-contrib-iec104.git
 npm install ./node-red-contrib-iec104
 ```
 

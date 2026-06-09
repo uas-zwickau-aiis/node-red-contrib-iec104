@@ -31,15 +31,15 @@ module.exports = function (RED) {
 
       const ioa = resolveIoa(config, msg);
       if (ioa === null) {
-        node.status({ fill: "red", shape: "ring", text: "msg.ioa muss [b0,b1,b2] sein" });
-        done(new Error("iec104-measuredvalue: msg.ioa muss ein Big-Endian Byte-Array [b0,b1,b2] mit Werten 0..255 sein"));
+        node.status({ fill: "red", shape: "ring", text: RED._("iec104.error.ioa") });
+        done();
         return;
       }
 
       const value = parseNumberMaybe(msg.payload);
       if (value === null) {
-        node.status({ fill: "red", shape: "ring", text: "payload muss Zahl sein" });
-        done(new Error("iec104-measuredvalue: msg.payload muss eine Zahl sein"));
+        node.status({ fill: "red", shape: "ring", text: RED._("iec104.error.value") });
+        done();
         return;
       }
 
@@ -54,6 +54,7 @@ module.exports = function (RED) {
 
       msg.payload = payload;
       send(msg);
+      node.status({});
       done();
     });
   }

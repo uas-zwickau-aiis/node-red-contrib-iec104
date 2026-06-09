@@ -1,6 +1,6 @@
 # Changelog
 
-## [unchanged]
+## [0.1.0]
 
 ### Added
 

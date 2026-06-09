@@ -79,10 +79,12 @@ RED.nodes.registerType("iec104-measuredvalue", {
   <div class="form-row">
     <label for="node-input-meType"><span data-i18n="iec104.settings.type"></label>
     <select id="node-input-meType">
-      <option value="M_ME_NB_1">M_ME_NB_1 (scaled, ohne Zeit)</option>
-      <option value="M_ME_NC_1">M_ME_NC_1 (float, ohne Zeit)</option>
-      <option value="M_ME_TE_1">M_ME_TE_1 (scaled, CP56Time2a)</option>
-      <option value="M_ME_TF_1">M_ME_TF_1 (float, CP56Time2a)</option>
+      <option value="M_ME_NB_1">M_ME_NB_1 (<span data-i18n="iec104.settings.type-scaled"></span>)</option>
+      <option value="M_ME_NC_1">M_ME_NC_1 (<span data-i18n="iec104.settings.type-float"></span>)</option>
+      <option value="M_ME_TE_1">M_ME_TB_1 (<span data-i18n="iec104.settings.type-scaled"></span>, CP24)</option>
+      <option value="M_ME_TE_1">M_ME_TC_1 (<span data-i18n="iec104.settings.type-float"></span>, CP24)</option>
+      <option value="M_ME_TE_1">M_ME_TE_1 (<span data-i18n="iec104.settings.type-scaled"></span>, CP56)</option>
+      <option value="M_ME_TF_1">M_ME_TF_1 (<span data-i18n="iec104.settings.type-float"></span>, CP56)</option>
     </select>
   </div>
 

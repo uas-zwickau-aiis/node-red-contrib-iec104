@@ -26,6 +26,10 @@
       "time-msg": "Aus msg.ts übernehmen",
       "time-now": "Aktuelle Zeit",
       "type": "Typ"
+    },
+    "error": {
+      "ioa": "Ungültige Objektadresse",
+      "value": "Ungültiger Wert"
     }
   }
 }

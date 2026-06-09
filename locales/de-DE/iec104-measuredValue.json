@@ -27,7 +27,13 @@
       "time": "Zeitquelle",
       "time-msg": "Aus msg.ts übernehmen",
       "time-now": "Aktuelle Zeit",
-      "type": "Typ"
+      "type": "Typ",
+      "type-scaled": "Skaliert",
+      "type-float": "Gleitkomma"
+    },
+    "error": {
+      "ioa": "Ungültige Objektadresse",
+      "value": "Ungültiger Wert"
     }
   }
 }
