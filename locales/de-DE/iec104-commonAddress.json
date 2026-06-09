@@ -1,0 +1,9 @@
+{
+  "iec104": {
+    "label": "Stationsadresse",
+    "paletteLabel": "Stationsadresse",
+    "input-label": {
+      "ca": "Adresse"
+    }
+  }
+}

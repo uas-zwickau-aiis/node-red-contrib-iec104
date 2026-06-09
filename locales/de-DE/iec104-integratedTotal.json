@@ -1,0 +1,37 @@
+{
+  "iec104": {
+    "label": "Zählwert",
+    "paletteLabel": "Zählwert",
+    "settings": {
+      "general": {
+        "label": "Allgemeine Objektinformationen",
+        "label-ioa": "Adresse",
+        "label-ioa-box": "Aus msg.ioa übernehmen"
+      },
+      
+      "qds": {
+        "label": "Qualitätsinformationen",
+        "opts" : {
+          "label-bl": "Blockiert (BL)",
+          "label-iv": "Ungültig (IV)",
+          "label-nt": "Nicht aktuell (NT)",
+          "label-sb": "Ersetzen (SB)",
+          "select-bl": "Aus msg.qds.bl übernehmen",
+          "select-iv": "Aus msg.qds.iv übernehmen",
+          "select-nt": "Aus msg.qds.nt übernehmen",
+          "select-sb": "Aus msg.qds.sb übernehmen"
+        }
+      },
+      "time": "Zeitquelle",
+      "time-msg": "Aus msg.ts übernehmen",
+      "time-now": "Aktuelle Zeit",
+      "type": "Typ"
+    },
+    "error": {
+      "ioa": "Ungültige Objektadresse",
+      "value": "Ungültiger Wert"
+    }
+  }
+}
+
+

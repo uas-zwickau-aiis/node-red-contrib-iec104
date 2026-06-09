@@ -1,0 +1,55 @@
+<script type="text/html" data-help-name="iec104-integratedtotal">
+  <p>
+    Diese Node nimmt eine Ganzzahl entgegen und erzeugt Metadaten für einen Zählwert in <code>msg.payload</code>.
+  </p>
+  <h3>Einstellungen</h3>
+  <dl>
+    <dt>Objektadresse (IOA)</dt>
+    <dd>
+        Die Objektadresse wird in 3 Oktetten (Big Endian) angegeben
+    </dd>
+    <dt>Meldetypen</dt>
+    <dd>
+        <ul>
+            <li><b>M_IT_NA_1</b>: ohne Zeit</li>
+            <li><b>M_IT_TA_1</b>: CP24</li>
+            <li><b>M_IT_TB_1</b>: CP56</li>
+        </ul>
+    </dd>
+    <dt>Zeitquelle</dt>
+    Die Zeit kann in <code>msg.time</code> übergeben werden. <br>
+    Bei der Auswahl von "Aktuelle Zeit" wird ein ISO Zeitstempel verwendet.
+
+    <dt>Qualitätsinformationen</dt>
+    Die Qualitätsinformationen können einzeln entweder aus <code>msg.qds</code> übernommen oder gesetzt werden. 
+  </dl>
+    <h3>Beispiel</h3>
+<pre>
+<b>Eingang</b>
+msg.payload = { 243.087 }
+
+<b>Konfiguration</b>
+Adresse: 0, 1, 0
+Meldetyp: M_IT_TA_1
+Zeitquelle: Aktuelle Zeit
+Qualitätsinformationen: invalid auf "false", adjusted und carry auf "true" gesetzt
+
+<b>Ergebnis</b>
+msg.payload = {
+    type: "M_IT_TA_1",
+    ioa: 256,
+    value: 243,
+    quality: {
+        invalid: false,
+        substituted: false,
+        blocked: false,
+        notTopical: false,
+        overflow: false
+    }
+}
+</pre>
+<h3>Hinweise</h3>
+  <ul>
+    <li>Die Sequenz wird nicht in der Node gesetzt. Das über die Stationsadresse verbundene Slave ist für die Sequenzen aller verbundenen Nodes zuständig</li>
+  </ul>
+</script>

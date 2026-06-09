@@ -1,0 +1,51 @@
+<script type="text/html" data-help-name="iec104-singlepoint">
+  <p>
+    Diese Node nimmt einen Wahrheitswert entgegen und erzeugt Metadaten für eine Einzelmeldung in <code>msg.payload</code>.
+  </p>
+  <h3>Einstellungen</h3>
+  <dl>
+    <dt>Objektadresse (IOA)</dt>
+    <dd>
+        Die Objektadresse wird in 3 Oktetten (Big Endian) angegeben
+    </dd>
+    <dt>Meldetypen</dt>
+    <dd>
+        <ul>
+            <li><b>M_SP_NA_1</b>: ohne Zeit</li>
+            <li><b>M_SP_TA_1</b>: CP24</li>
+            <li><b>M_SP_TB_1</b>: CP56</li>
+        </ul>
+    </dd>
+    <dt>Zeitquelle</dt>
+    Die Zeit kann in <code>msg.time</code> übergeben werden. <br>
+    Bei der Auswahl von "Aktuelle Zeit" wird ein ISO Zeitstempel verwendet.
+
+    <dt>Qualitätsinformationen</dt>
+    Die Qualitätsinformationen können einzeln entweder aus <code>msg.qds</code> übernommen oder gesetzt werden. 
+  </dl>
+    <h3>Beispiel</h3>
+<pre>
+<b>Eingang</b>
+msg.payload = { true }
+
+<b>Konfiguration</b>
+Adresse: 0, 2, 2
+Meldetyp: M_SP_TB_1
+Zeitquelle: Aktuelle Zeit
+Qualitätsinformationen: Alle auf "true" gesetzt
+
+<b>Ergebnis</b>
+msg.payload = {
+    type: "M_SP_TB_1",
+    ioa: 514,
+    value: true,
+    quality: {
+        invalid: true,
+        substituted: true,
+        blocked: true,
+        notTopical: true
+    },
+    ts: "2026-05-07T13:17:24:886Z"
+}
+</pre>
+</script>

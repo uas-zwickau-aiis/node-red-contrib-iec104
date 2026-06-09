@@ -1,3 +1,12 @@
+const { TYPES } = require("./lib/asdu/types");
+const { TIME } = require("./lib/asdu/time");
+const {
+  parseBoolConfig,
+  resolveIoa,
+  buildQuality,
+  applyTimestamp
+} = require("./lib/admin/node-helpers");
+
 module.exports = function (RED) {
   "use strict";
 
@@ -5,95 +14,53 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     const node = this;
 
-    const ioa0 = Number(config.ioa0);
-    const ioa1 = Number(config.ioa1);
-    const ioa2 = Number(config.ioa2);
+    const spType = String(config.spType || "M_SP_NA_1");
+    const tsSource = String(config.tsSource || "now");
 
-    const spType = String(config.spType || "M_SP_NA_1"); // M_SP_NA_1 | M_SP_TA_1 | M_SP_TB_1
-    const tsSource = String(config.tsSource || "now");   // now | msg
-
-    const qInvalidMode = String(config.qInvalidMode || "msg");
-    const qSubstitutedMode = String(config.qSubstitutedMode || "msg");
-    const qBlockedMode = String(config.qBlockedMode || "msg");
-    const qNotTopicalMode = String(config.qNotTopicalMode || "msg");
-
-    function needsTimestamp(typeStr) {
-      return typeStr === "M_SP_TA_1" || typeStr === "M_SP_TB_1";
-    }
-
-    function isByte(value) {
-      return Number.isInteger(value) && value >= 0 && value <= 255;
-    }
-
-    function resolveQualityBit(mode, incomingValue) {
-      if (mode === "true") return true;
-      if (mode === "false") return false;
-      return !!incomingValue;
-    }
+    const qualityModes = {
+      iv: parseBoolConfig(config.qInvalidMode),
+      sb: parseBoolConfig(config.qSubstitutedMode),
+      bl: parseBoolConfig(config.qBlockedMode),
+      nt: parseBoolConfig(config.qNotTopicalMode)
+    };
 
     node.on("input", function (msg, send, done) {
       send = send || function () { node.send.apply(node, arguments); };
-      const ioa = (ioa0 << 16) | (ioa1 << 8) | ioa2;
-      try {
-        let value = msg.payload;
 
-        // Optional String "true"/"false" akzeptieren
-        if (typeof value === "string") {
-          const s = value.trim().toLowerCase();
-          if (s === "true") value = true;
-          else if (s === "false") value = false;
-        }
-
-        if (typeof value !== "boolean") {
-          node.status({ fill: "red", shape: "ring", text: "payload muss boolean sein" });
-          done(new Error("iec104-singlepoint: msg.payload muss boolean (true/false) sein"));
-          return;
-        }
-
-        if (!isByte(ioa0) || !isByte(ioa1) || !isByte(ioa2)) {
-          node.status({ fill: "red", shape: "ring", text: "IOA ungültig" });
-          done(new Error("iec104-singlepoint: IOA-Bytes müssen zwischen 0 und 255 liegen"));
-          return;
-        }
-
-        const incomingQuality = (msg.quality && typeof msg.quality === "object") ? msg.quality : {};
-
-        const quality = {
-          invalid: resolveQualityBit(qInvalidMode, incomingQuality.invalid),
-          substituted: resolveQualityBit(qSubstitutedMode, incomingQuality.substituted),
-          blocked: resolveQualityBit(qBlockedMode, incomingQuality.blocked),
-          notTopical: resolveQualityBit(qNotTopicalMode, incomingQuality.notTopical)
-        };
-
-        const p = {
-          type: spType,
-          ioa: ioa,
-          value: value,
-          quality: quality
-        };
-
-        if (needsTimestamp(spType)) {
-          if (tsSource === "msg" && msg.ts != null) {
-            p.ts = msg.ts;
-          } else {
-            p.ts = new Date().toISOString();
-          }
-        }
-
-        msg.payload = p;
-
-        node.status({
-          fill: "green",
-          shape: "dot",
-          text: `${spType} ioa=[${ioa0},${ioa1},${ioa2}] value=${value ? "ON" : "OFF"}`
-        });
-
-        send(msg);
+      const ioa = resolveIoa(config, msg);
+      if (ioa === null) {
+        node.status({ fill: "red", shape: "ring", text: RED._("iec104.error.ioa") });
         done();
-      } catch (err) {
-        node.status({ fill: "red", shape: "ring", text: "error" });
-        done(err);
+        return;
       }
+
+      let value = msg.payload;
+
+      if (typeof value === "string") {
+        const s = value.trim().toLowerCase();
+        if (s === "true") value = true;
+        else if (s === "false") value = false;
+      }
+
+      if (typeof value !== "boolean") {
+        node.status({ fill: "red", shape: "ring", text: RED._("iec104.error.value") });
+        done();
+        return;
+      }
+
+      const payload = {
+        type: spType,
+        ioa,
+        value,
+        qds: buildQuality(msg, qualityModes, ["iv", "sb", "bl", "nt"])
+      };
+
+      applyTimestamp(payload, TYPES[spType], TIME, tsSource, msg);
+
+      msg.payload = payload;
+      send(msg);
+      node.status({});
+      done();
     });
   }
 

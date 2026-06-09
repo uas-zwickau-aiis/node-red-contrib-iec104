@@ -1,6 +1,6 @@
 const Session = require("./lib/protocol/session");
 const StatusPublisher = require("./lib/core/statusPublisher");
-const TcpConnection = require("./lib/tcp/connection");
+const TcpServer = require("./lib/tcp/server");
 const IEC104 = require("./lib/core/constants");
 const registerRoutes = require("./lib/admin/routes");
 const {isValidPoint} = require("./lib/core/validators")
@@ -8,7 +8,7 @@ const {isValidPoint} = require("./lib/core/validators")
 module.exports = function (RED) {
     registerRoutes(RED);
 
-    function IEC104Gateway(config) {
+    function IEC104Slave(config) {
         RED.nodes.createNode(this, config);
         const node = this;
 
@@ -51,7 +51,7 @@ module.exports = function (RED) {
         });
 
 
-        node.tcp = new TcpConnection({
+        node.tcp = new TcpServer({
             port: node.port,
 
             onFrame: frame => {
@@ -106,5 +106,5 @@ module.exports = function (RED) {
     }
 
 
-    RED.nodes.registerType("iec104-gateway", IEC104Gateway);
+    RED.nodes.registerType("iec104-slave", IEC104Slave);
 };
