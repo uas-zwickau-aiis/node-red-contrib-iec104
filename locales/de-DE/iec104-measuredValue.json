@@ -3,9 +3,14 @@
     "label": "Messwert",
     "paletteLabel": "Messwert",
     "settings": {
-      "ioa": "Adresse",
+      "general": {
+        "label": "Allgemeine Objektinformationen",
+        "label-ioa": "Adresse",
+        "label-ioa-box": "Aus msg.ioa übernehmen"
+      },
+      
       "qds": {
-        "label": "Qualitätsmerkmale",
+        "label": "Qualitätsinformationen",
         "opts" : {
           "label-bl": "Blockiert (BL)",
           "label-iv": "Ungültig (IV)",
@@ -22,7 +27,13 @@
       "time": "Zeitquelle",
       "time-msg": "Aus msg.ts übernehmen",
       "time-now": "Aktuelle Zeit",
-      "type": "Typ"
+      "type": "Typ",
+      "type-scaled": "Skaliert",
+      "type-float": "Gleitkomma"
+    },
+    "error": {
+      "ioa": "Ungültige Objektadresse",
+      "value": "Ungültiger Wert"
     }
   }
 }

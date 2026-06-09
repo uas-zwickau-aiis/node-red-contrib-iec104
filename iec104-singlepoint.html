@@ -1,60 +1,46 @@
+<script src="resources/node-red-contrib-iec104/iec104-editor.js"></script>
+
 <script type="text/javascript">
-  function buildIoaFromOctets(b0, b1, b2) {
-    return (b0 << 16) | (b1 << 8) | b2;
-  } 
-  function parseByte(selector) {
-    return parseInt($(selector).val(), 10) || 0;
-  }
-  function byteValidator(v) {
-    return RED.validators.number()(v) && Number(v) >= 0 && Number(v) <= 255;
-  }
+RED.nodes.registerType("iec104-singlepoint", {
+    category: "IEC 104",
+    color: "#dce5f5",
 
-  function updateIoaPreview() {
-    const b0 = parseByte("#node-input-ioa0");
-    const b1 = parseByte("#node-input-ioa1");
-    const b2 = parseByte("#node-input-ioa2");
-
-    const ioa = buildIoaFromOctets(b0, b1, b2);
-    const hex = `0x${ioa.toString(16).toUpperCase().padStart(6, "0")}`;
-
-    $("#node-ioa-preview").text(
-      `IOA: ${ioa} | Hex: ${hex}`
-    );
-  }
-  RED.nodes.registerType('iec104-singlepoint', {
-    category: 'IEC 104',
-    color: '#dce5f5',
     defaults: {
-      name: { value: "" },
+        name: { value: "" },
 
-      ioa0: { value: 0, validate: byteValidator },
-      ioa1: { value: 0, validate: byteValidator },
-      ioa2: { value: 0, validate: byteValidator },
+        ioaFromMsg: { value: false },
+        ioa0: { value: 0, validate: window.iec104Editor.byteValidator },
+        ioa1: { value: 0, validate: window.iec104Editor.byteValidator },
+        ioa2: { value: 0, validate: window.iec104Editor.byteValidator },
 
-      spType: { value: "M_SP_NA_1" },
-      tsSource: { value: "now" },
+        spType: { value: "M_SP_NA_1" },
+        tsSource: { value: "now" },
 
-      qInvalidMode: { value: "msg" },
-      qSubstitutedMode: { value: "msg" },
-      qBlockedMode: { value: "msg" },
-      qNotTopicalMode: { value: "msg" }
+        qInvalidMode: { value: "msg" },
+        qSubstitutedMode: { value: "msg" },
+        qBlockedMode: { value: "msg" },
+        qNotTopicalMode: { value: "msg" }
     },
+
     inputs: 1,
     outputs: 1,
     icon: "serial.svg",
-    paletteLabel: function() {
-      return this._("iec104.paletteLabel");
-    },
-    label: function() {
-      return this.name || this._("iec104.label") + ` [${this.ioa0}, ${this.ioa1}, ${this.ioa2}]`;
-    },
-    oneditprepare: function () {
-      $("#node-input-ioa0, #node-input-ioa1, #node-input-ioa2")
-      .on("input", updateIoaPreview);
 
-      updateIoaPreview();
+    paletteLabel: function () {
+        return this._("iec104.paletteLabel");
+    },
+
+    label: function () {
+        return window.iec104Editor.labelWithIoa(
+            this,
+            this._("iec104.label")
+        );
+    },
+
+    oneditprepare: function () {
+        window.iec104Editor.initIoaEditor();
     }
-  });
+});
 </script>
 
 <script type="text/html" data-template-name="iec104-singlepoint">
@@ -63,12 +49,23 @@
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
 
-  <div class="ioa-input">
+   <div class="ioa-input">
     <div class="form-row">
-      <label><span data-i18n="iec104.settings.ioa"></span></label>
+      <label><span data-i18n="iec104.settings.general.label-ioa"></span></label>
       <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
       <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
       <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
+    </div>
+    <div class="form-row">
+      <label>&nbsp;</label>
+      <input type="checkbox"
+            id="node-input-ioaFromMsg"
+            style="display:inline-block; width:auto; vertical-align:top;">
+            
+      <label for="node-input-ioaFromMsg"
+            style="width:70%;">
+            <span data-i18n="iec104.settings.general.label-ioa-box"></span>
+      </label>
     </div>
     <div class="form-row">
       <div id="node-ioa-preview" class="form-tips" style="width:auto;">
@@ -80,9 +77,9 @@
   <div class="form-row">
     <label for="node-input-spType"><span data-i18n="iec104.settings.type"></label>
     <select id="node-input-spType">
-      <option value="M_SP_NA_1">M_SP_NA_1 (ohne Zeit)</option>
-      <option value="M_SP_TA_1">M_SP_TA_1 (CP24Time2a)</option>
-      <option value="M_SP_TB_1">M_SP_TB_1 (CP56Time2a)</option>
+      <option value="M_SP_NA_1">M_SP_NA_1</option>
+      <option value="M_SP_TA_1">M_SP_TA_1 (CP24)</option>
+      <option value="M_SP_TB_1">M_SP_TB_1 (CP56)</option>
     </select>
   </div>
 

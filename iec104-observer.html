@@ -4,7 +4,7 @@ RED.nodes.registerType('iec104-observer',{
   color: '#dce5f5',
   defaults: {
     name: { value: "" },
-    connection: { type: "iec104-gateway", required: true }
+    connection: { type: "iec104-slave", required: true }
   },
   inputs: 0,
   outputs: 2,
@@ -39,7 +39,7 @@ RED.nodes.registerType('iec104-observer',{
   </div>
 
   <div class="form-row">
-    <label for="node-input-connection">Gateway</label>
+    <label for="node-input-connection">IEC 60870-5-104 Slave</label>
     <input type="text" id="node-input-connection">
   </div>
 

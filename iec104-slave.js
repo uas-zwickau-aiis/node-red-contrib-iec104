@@ -8,7 +8,7 @@ const {isValidPoint} = require("./lib/core/validators")
 module.exports = function (RED) {
     registerRoutes(RED);
 
-    function IEC104Gateway(config) {
+    function IEC104Slave(config) {
         RED.nodes.createNode(this, config);
         const node = this;
 
@@ -106,5 +106,5 @@ module.exports = function (RED) {
     }
 
 
-    RED.nodes.registerType("iec104-gateway", IEC104Gateway);
+    RED.nodes.registerType("iec104-slave", IEC104Slave);
 };

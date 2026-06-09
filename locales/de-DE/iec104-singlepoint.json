@@ -3,9 +3,14 @@
     "label": "Einzelmeldung",
     "paletteLabel": "Einzelmeldung",
     "settings": {
-      "ioa": "Adresse",
+      "general": {
+        "label": "Allgemeine Objektinformationen",
+        "label-ioa": "Adresse",
+        "label-ioa-box": "Aus msg.ioa übernehmen"
+      },
+      
       "qds": {
-        "label": "Qualitätsmerkmale",
+        "label": "Qualitätsinformationen",
         "opts" : {
           "label-bl": "Blockiert (BL)",
           "label-iv": "Ungültig (IV)",
@@ -21,6 +26,10 @@
       "time-msg": "Aus msg.ts übernehmen",
       "time-now": "Aktuelle Zeit",
       "type": "Typ"
+    },
+    "error": {
+      "ioa": "Ungültige Objektadresse",
+      "value": "Ungültiger Wert"
     }
   }
 }

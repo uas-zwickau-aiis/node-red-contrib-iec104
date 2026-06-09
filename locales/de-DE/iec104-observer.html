@@ -1,13 +1,13 @@
 <script type="text/html" data-help-name="iec104-observer">
 
   <p>
-    Diese Node überwacht ein IEC 60870-5-104 Gateway und gibt empfangene Daten
+    Diese Node überwacht einen IEC 60870-5-104 Slave und gibt empfangene Daten
     und Statusereignisse an seine Ausgänge weiter.
   </p>
 
   <h3>Funktionsweise</h3>
   <p>
-    Die Node hört auf Events des Gateways und reagiert auf eingehende Daten- und Statusmeldungen
+    Die Node hört auf Events des verknüpften Slave und reagiert auf eingehende Daten- und Statusmeldungen
     <code>iec104:data</code> und <code>iec104:status</code>.
     Diese werden an unterschiedliche Ausgänge gesendet.
   </p>
@@ -28,15 +28,15 @@
   <h3>Einstellungen</h3>
   <dl>
 
-    <dt>Gateway</dt>
+    <dt>IEC 60870-5-104</dt>
     <dd>
-      Verknüpftes Gateway, von dem Daten und Status empfangen werden
+      Verknüpfter Slave, von dem Daten und Status empfangen werden
     </dd>
   </dl>
 
   <h3>Beispiel</h3>
   <pre>
-    Gateway sendet:
+    Slave sendet:
     Event: iec104:data
     msg.payload = { value: 42 }
 

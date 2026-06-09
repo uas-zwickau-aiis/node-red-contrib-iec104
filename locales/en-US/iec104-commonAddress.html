@@ -1,5 +1,5 @@
 <script type="text/html" data-help-name="iec104-station">
-  <p>This node defines a station address. It adds this address to incoming messages and forwards them to an IEC 60870-5-104 gateway.</p>
+  <p>This node defines a station address. It adds this address to incoming messages and forwards them to an IEC 60870-5-104 slave.</p>
 
   <h3>Configuration</h3>
   <dl>
@@ -11,8 +11,8 @@
         <li><b>Lo</b>: Low byte (0-255)</li>
       </ul>
     </dd>
-    <dt>Gateway</dt>
-    <dd>Linked gateway to which the message is forwarded</dd>
+  <dt> IEC 60870-5-104 slave</dt>
+    <dd>Linked slave to which the message is forwarded</dd>
   </dl>
 
   <h3>Example</h3>
