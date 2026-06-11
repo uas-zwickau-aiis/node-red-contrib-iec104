@@ -1,6 +1,6 @@
 module.exports = function(RED) {
 
-    function IEC104Station(config) {
+    function IEC104SlaveAddress(config) {
         RED.nodes.createNode(this, config);
         this.ca = config.ca;
 
@@ -19,5 +19,5 @@ module.exports = function(RED) {
             client.emit("iec104:input", msg);
         });
     }
-  RED.nodes.registerType("iec104-station", IEC104Station);
+  RED.nodes.registerType("iec104-slaveaddress", IEC104SlaveAddress);
 };
