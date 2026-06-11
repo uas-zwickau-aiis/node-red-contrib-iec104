@@ -1,6 +1,6 @@
 module.exports = function(RED) {
 
-  function IEC104Observer(config) {
+  function IEC104SlaveObserver(config) {
     RED.nodes.createNode(this, config);
     const node = this;
 
@@ -28,5 +28,5 @@ module.exports = function(RED) {
     });
   }
 
-  RED.nodes.registerType("iec104-observer", IEC104Observer);
+  RED.nodes.registerType("iec104-slaveobserver", IEC104SlaveObserver);
 };

@@ -1,5 +1,19 @@
 # Changelog
 
+
+## [0.1.1]
+
+### Fixed
+
+* Normalized node filenames to lowercase to prevent loading issues on case-sensitive file systems
+
+### Migration Notes
+
+#### Node Re-placement Required
+
+Due to the filename changes, existing node instances may no longer be recognized by Node-RED. If affected, remove the old nodes from your flows and add the updated versions again.
+
+
 ## [0.1.0]
 
 ### Added
