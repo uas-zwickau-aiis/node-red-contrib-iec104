@@ -4,7 +4,7 @@
     "paletteLabel": "Zählwert",
     "settings": {
       "general": {
-        "label": "Allgemeine Objektinformationen",
+        "label": "Allgemeine Objekteinstellungen",
         "label-ioa": "Adresse",
         "label-ioa-box": "Aus msg.ioa übernehmen"
       },
