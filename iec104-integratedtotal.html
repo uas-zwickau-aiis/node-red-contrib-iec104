@@ -38,17 +38,28 @@ RED.nodes.registerType("iec104-integratedtotal", {
 
     oneditprepare: function () {
         window.iec104Editor.initIoaEditor();
-    }
+        window.iec104Editor.initTimestampEditor("M_IT_NA_1");
+    },
 });
 </script>
 
 <script type="text/html" data-template-name="iec104-integratedtotal">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+    <label for="node-input-name">Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
 
-   <div class="ioa-input">
+   <hr>
+  <u><h4><span data-i18n="iec104.settings.general.label"></span></h4></u>
+  <div class="form-row">
+    <label for="node-input-objType"><span data-i18n="iec104.settings.general.label-type"></span></label>
+    <select id="node-input-objType">
+      <option value="M_IT_NA_1">M_IT_NA_1</option>
+      <option value="M_IT_TA_1">M_IT_TA_1 (CP24)</option>
+      <option value="M_IT_TB_1">M_IT_TB_1 (CP56)</option>
+    </select>
+  </div>
+  <div class="ioa-input">
     <div class="form-row">
       <label><span data-i18n="iec104.settings.general.label-ioa"></span></label>
       <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
@@ -72,34 +83,26 @@ RED.nodes.registerType("iec104-integratedtotal", {
       </div>
     </div>
   </div>
-  
-  <div class="form-row">
-    <label for="node-input-itType"><span data-i18n="iec104.settings.type"></label>
-    <select id="node-input-itType">
-      <option value="M_IT_NA_1">M_IT_NA_1</option>
-      <option value="M_IT_TA_1">M_IT_TA_1 (CP24)</option>
-      <option value="M_IT_TB_1">M_IT_TB_1 (CP56)</option>
-    </select>
-  </div>
 
+  <hr>
+  <u><h4><span data-i18n="iec104.settings.status.label"></span></h4></u>
   <div class="form-row">
-    <label for="node-input-tsSource"><span data-i18n="iec104.settings.time"></label>
+    <label for="node-input-tsSource"><span data-i18n="iec104.settings.status.time"></span></label>
     <select id="node-input-tsSource">
-      <option value="now"><span data-i18n="iec104.settings.time-now"></option>
-      <option value="msg"><span data-i18n="iec104.settings.time-msg"></option>
+      <option value="now"><span data-i18n="iec104.settings.status.time-now"></span></option>
+      <option value="msg"><span data-i18n="iec104.settings.status.time-msg"></span></option>
     </select>
   </div>
 
   <hr>
 
- <div class="form-row">
-    <label><span data-i18n="iec104.settings.qds.label"></span></label>
-  </div>
+  <hr>
+  <u><h4><span data-i18n="iec104.settings.qds.label"></span></h4></u>
   <div class="qds-settings">
     <div class="form-row">
-      <label for="node-input-qInvalidMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-iv"></label>
+      <label for="node-input-qInvalidMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-iv"></span></label>
       <select id="node-input-qInvalidMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-iv"></option>
+        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-iv"></span></option>
         <option value="false">false</option>
         <option value="true">true</option>
       </select>

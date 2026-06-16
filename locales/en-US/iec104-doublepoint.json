@@ -6,10 +6,11 @@
       "general": {
         "label": "General Settings",
         "label-ioa": "Address",
-        "label-ioa-box": "Adopt from msg.ioa"
+        "label-ioa-box": "Adopt from msg.ioa",
+        "label-type": "Type"
       },
       "qds": {
-        "label": "Quality Descriptors",
+        "label": "Quality Information",
         "opts" : {
           "label-bl": "Blocked (BL)",
           "label-iv": "Invalid (IV)",
@@ -21,10 +22,12 @@
           "select-sb": "Adopt from msg.qds.sb"
         }
       },
-      "type": "Type",
-      "time": "Time source",
-      "time-msg": "Adopt from msg.ts",
-      "time-now": "Current time"
+      "status": {
+        "label": "Status and Event Information",
+        "time": "Time source",
+        "time-msg": "Adopt from msg.ts",
+        "time-now": "Current time"
+      }
     },
     "error": {
       "ioa": "Invalid IOA",
@@ -32,4 +35,3 @@
     }
   }
 }
-
