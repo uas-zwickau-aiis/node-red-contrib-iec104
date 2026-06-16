@@ -1,9 +1,9 @@
 <script src="resources/node-red-contrib-iec104/iec104-editor.js"></script>
 
 <script type="text/javascript">
-RED.nodes.registerType("iec104-integratedtotal", {
+RED.nodes.registerType("iec104-singlecommand", {
     category: "IEC 104",
-    color: "#dce5f5",
+    color: "#F5DFDC",
 
     defaults: {
         name: { value: "" },
@@ -12,13 +12,6 @@ RED.nodes.registerType("iec104-integratedtotal", {
         ioa0: { value: 0, validate: window.iec104Editor.byteValidator },
         ioa1: { value: 0, validate: window.iec104Editor.byteValidator },
         ioa2: { value: 0, validate: window.iec104Editor.byteValidator },
-
-        itType: { value: "M_IT_NA_1" },
-        tsSource: { value: "now" },
-
-        qInvalidMode: { value: "msg" },
-        qAdjustedMode: { value: "msg" },
-        qCarryMode: { value: "msg" }
     },
 
     inputs: 1,
@@ -38,25 +31,23 @@ RED.nodes.registerType("iec104-integratedtotal", {
 
     oneditprepare: function () {
         window.iec104Editor.initIoaEditor();
-        window.iec104Editor.initTimestampEditor("M_IT_NA_1");
-    },
+    }
 });
 </script>
 
-<script type="text/html" data-template-name="iec104-integratedtotal">
+<script type="text/html" data-template-name="iec104-singlecommand">
   <div class="form-row">
-    <label for="node-input-name">Name</label>
+    <label for="node-input-name"></i>Name</label>
     <input type="text" id="node-input-name" placeholder="Name">
   </div>
-
-   <hr>
+ 
+  <hr>
   <u><h4><span data-i18n="iec104.settings.general.label"></span></h4></u>
-  <div class="form-row">
-    <label for="node-input-objType"><span data-i18n="iec104.settings.general.label-type"></span></label>
+   <div class="form-row">
+    <label for="node-input-objType"><span data-i18n="iec104.settings.general.label-type"></label>
     <select id="node-input-objType">
-      <option value="M_IT_NA_1">M_IT_NA_1</option>
-      <option value="M_IT_TA_1">M_IT_TA_1 (CP24)</option>
-      <option value="M_IT_TB_1">M_IT_TB_1 (CP56)</option>
+      <option value="M_SP_NA_1">C_SC_NA_1</option>
+      <option value="M_SP_TB_1">C_SC_TA_1 (CP56)</option>
     </select>
   </div>
   <div class="ioa-input">
@@ -86,26 +77,16 @@ RED.nodes.registerType("iec104-integratedtotal", {
 
   <hr>
   <u><h4><span data-i18n="iec104.settings.status.label"></span></h4></u>
+
+  <hr>
+  <u><h4><span data-i18n="iec104.settings.exec.label"></span></h4></u>
   <div class="form-row">
-    <label for="node-input-tsSource"><span data-i18n="iec104.settings.status.time"></span></label>
+    <label for="node-input-tsSource"><span data-i18n="iec104.settings.exec.time"></label>
     <select id="node-input-tsSource">
-      <option value="now"><span data-i18n="iec104.settings.status.time-now"></span></option>
-      <option value="msg"><span data-i18n="iec104.settings.status.time-msg"></span></option>
+      <option value="now"><span data-i18n="iec104.settings.exec.time-now"></option>
+      <option value="msg"><span data-i18n="iec104.settings.exec.time-msg"></option>
     </select>
   </div>
 
   <hr>
-
-  <hr>
-  <u><h4><span data-i18n="iec104.settings.qds.label"></span></h4></u>
-  <div class="qds-settings">
-    <div class="form-row">
-      <label for="node-input-qInvalidMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-iv"></span></label>
-      <select id="node-input-qInvalidMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-iv"></span></option>
-        <option value="false">false</option>
-        <option value="true">true</option>
-      </select>
-    </div>
-  </div>
 </script>

@@ -31,6 +31,14 @@ module.exports = function (RED) {
                 emitData(data);
             },
             onStateChange: (s, msg) => node.statusPub.publish(s, msg),
+            onStatus: (s, msg) => node.statusPub.publish(s, msg),
+            onSessionSummary: summary => {
+                node.emit("iec104:status", {
+                    topic: "iec104/session-summary",
+                    payload: summary,
+                    ts: Date.now()
+                });
+            },
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
                     .from(node.processImage.values())
@@ -104,7 +112,6 @@ module.exports = function (RED) {
             });
         }
     }
-
 
     RED.nodes.registerType("iec104-slave", IEC104Slave);
 };
