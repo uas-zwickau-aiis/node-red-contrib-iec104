@@ -1,4 +1,4 @@
-const Session = require("./lib/protocol/session");
+const Session = require("./lib/protocol/slaveSession");
 const StatusPublisher = require("./lib/core/statusPublisher");
 const TcpServer = require("./lib/tcp/server");
 const IEC104 = require("./lib/core/constants");

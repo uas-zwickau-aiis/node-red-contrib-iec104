@@ -18,6 +18,27 @@ RED.nodes.registerType('iec104-slave',{
     const nodeId = this.id;
     let es = null;
 
+    const tabs = RED.tabs.create({
+      id: "node-config-iec104-tabs",
+      onchange: function(tab) {
+        $("#node-config-iec104-tabs-content").children().hide();
+        $("#" + tab.id).show();
+      }
+    });
+
+    tabs.addTab({
+      id: "node-config-tab-settings",
+      label: "Settings"
+    });
+
+    tabs.addTab({
+      id: "node-config-tab-diagnostics",
+      label: "Diagnostics"
+    });
+
+    $("#node-config-iec104-tabs-content").children().hide();
+    $("#node-config-tab-settings").show();
+
     const colors = {
       IDLE: "#666",
       CONNECTED: "#d98c00",
@@ -165,82 +186,185 @@ RED.nodes.registerType('iec104-slave',{
 <script type="text/html" data-template-name="iec104-slave">
 
   <div class="form-row">
-    <label for="node-config-input-name">Name</label>
-    <input type="text" id="node-config-input-name">
+    <ul id="node-config-iec104-tabs" style="min-width:400px; margin-bottom:20px;"></ul>
   </div>
 
-  <div class="form-row">
-    <label for="node-config-input-port">Port</label>
-    <input type="number" id="node-config-input-port">
+  <div id="node-config-iec104-tabs-content" style="min-height:300px;">
+
+    <div id="node-config-tab-settings">
+
+      <div class="form-row">
+        <label for="node-config-input-name">Name</label>
+        <input type="text" id="node-config-input-name">
+      </div>
+
+      <div class="form-row">
+        <label for="node-config-input-port">Port</label>
+        <input type="number" id="node-config-input-port">
+      </div>
+
+      <div class="form-row">
+        <label for="node-config-input-t1">T1</label>
+        <input type="number" id="node-config-input-t1" style="width:80px;">
+        <span style="margin-left:6px;">Sekunden</span>
+      </div>
+
+      <div class="form-row">
+        <label for="node-config-input-t3">T3</label>
+        <input type="number" id="node-config-input-t3" style="width:80px;">
+        <span style="margin-left:6px;">Sekunden</span>
+      </div>
+
+      <div class="form-row">
+        <label>k/w</label>
+        <input type="number" id="node-config-input-k_win" placeholder="k" style="width:80px; margin-right:5px;">
+        <input type="number" id="node-config-input-w_win" placeholder="w" style="width:80px;">
+      </div>
+
+    </div>
+
+    <div id="node-config-tab-diagnostics">
+      <u><h4>Verbindung</h4></u>
+      <div class="form-row"><label>Status</label><span id="node-config-status" style="font-weight:bold;">UNKNOWN</span></div>
+      <div class="form-row"><label>Reason</label><span id="node-config-reason" style="color:#666;">-</span></div>
+      <div class="form-row"><label>Verbunden seit</label><span id="node-config-connected-since">-</span></div>
+      <div class="form-row"><label>Zuletzt empfangen</label><span id="node-config-last-rx">-</span></div>
+      <div class="form-row"><label>Zuletzt gesendet</label><span id="node-config-last-tx">-</span></div>
+      <div class="form-row"><label>Letzter Frame</label><span id="node-config-last-frame">-</span></div>
+
+      <hr>
+      <h4>APCI / Sequenzverwaltung</h4>
+
+      <table style="width:80%; border-collapse:collapse;">
+        <tbody>
+          <tr>
+            <td style="padding:4px 0;">Sendefolgenummer N(S)</td>
+            <td id="node-config-apci-sendseq" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Empfangsfolgenummer N(R)</td>
+            <td id="node-config-apci-recvseq" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Bestätigt bis</td>
+            <td id="node-config-apci-ackseq" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Unbestätigte I-Frames</td>
+            <td id="node-config-apci-window" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">ACK-Fenster </td>
+            <td id="node-config-apci-ackpending" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Sendefenster frei</td>
+            <td id="node-config-cansend" style="text-align:right;">-</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr>
+      <h4>Frame-Zähler</h4>
+
+      <table style="width:80%; border-collapse:collapse;">
+          <thead>
+              <tr>
+                  <th style="text-align:left;"></th>
+                  <th style="text-align:right;">Gesendet</th>
+                  <th style="text-align:right;">Empfangen</th>
+              </tr>
+          </thead>
+          <tbody>
+              <tr>
+                  <td>I-Frames</td>
+                  <td id="node-config-frame-itx" style="text-align:right;">-</td>
+                  <td id="node-config-frame-irx" style="text-align:right;">-</td>
+              </tr>
+
+              <tr>
+                  <td>S-Frames</td>
+                  <td id="node-config-frame-stx" style="text-align:right;">-</td>
+                  <td id="node-config-frame-srx" style="text-align:right;">-</td>
+              </tr>
+
+              <tr>
+                  <td>U-Frames</td>
+                  <td id="node-config-frame-utx" style="text-align:right;">-</td>
+                  <td id="node-config-frame-urx" style="text-align:right;">-</td>
+              </tr>
+          </tbody>
+      </table>
+
+      <hr>
+      <h4>Generalabfrage (GI)</h4>
+
+      <table style="width:80%; border-collapse:collapse;">
+        <tbody>
+
+          <tr>
+            <td style="padding:4px 0;">Anzahl Abfragen</td>
+            <td id="node-config-gi-count" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Aktiv</td>
+            <td id="node-config-gi-active" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Aktive Stationsadressen</td>
+            <td id="node-config-gi-cas" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">Spontanmeldungen gesendet</td>
+            <td id="node-config-spont-count" style="text-align:right;">-</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <hr>
+      <h4>Überwachung / Timer</h4>
+
+      <table style="width:80%; border-collapse:collapse;">
+        <tbody>
+
+          <tr>
+            <td style="padding:4px 0;">Warte auf TESTFR_CON</td>
+            <td id="node-config-await-testcon" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">T1-Timeouts</td>
+            <td id="node-config-t1-timeouts" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">T3-Timeouts</td>
+            <td id="node-config-t3-timeouts" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">TESTFR_ACT gesendet</td>
+            <td id="node-config-testfr-act-sent" style="text-align:right;">-</td>
+          </tr>
+
+          <tr>
+            <td style="padding:4px 0;">TESTFR_CON empfangen</td>
+            <td id="node-config-testfr-con-received" style="text-align:right;">-</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
   </div>
-
-  <div class="form-row">
-    <label for="node-config-input-t1">T1</label>
-    <input type="number" id="node-config-input-t1" style="width:80px;">
-    <span style="margin-left:6px;">Sekunden</span>
-  </div>
-
-  <div class="form-row">
-    <label for="node-config-input-t2">T2</label>
-    <input type="number" id="node-config-input-t2" style="width:80px;">
-    <span style="margin-left:6px;">Sekunden</span>
-  </div>
-
-  <div class="form-row">
-    <label for="node-config-input-t3">T3</label>
-    <input type="number" id="node-config-input-t3" style="width:80px;">
-    <span style="margin-left:6px;">Sekunden</span>
-  </div>
-
-  <div class="form-row">
-    <label>k/w</label>
-    <input type="number" id="node-config-input-k_win" placeholder="k" style="width:80px; margin-right:5px;">
-    <input type="number" id="node-config-input-w_win" placeholder="w" style="width:80px;">
-  </div>
-
-  <hr>
-
-  <div class="form-row"><label>Status</label><span id="node-config-status" style="font-weight:bold;">UNKNOWN</span></div>
-  <div class="form-row"><label>Reason</label><span id="node-config-reason" style="color:#666;">-</span></div>
-
-  <hr>
-
-  <div class="form-row"><label>SendSeq</label><span id="node-config-apci-sendseq">-</span></div>
-  <div class="form-row"><label>RecvSeq</label><span id="node-config-apci-recvseq">-</span></div>
-  <div class="form-row"><label>AckSeq</label><span id="node-config-apci-ackseq">-</span></div>
-  <div class="form-row"><label>Send Window</label><span id="node-config-apci-window">-</span></div>
-  <div class="form-row"><label>Ack Pending</label><span id="node-config-apci-ackpending">-</span></div>
-  <div class="form-row"><label>Can Send</label><span id="node-config-cansend">-</span></div>
-
-  <hr>
-
-  <div class="form-row"><label>I TX</label><span id="node-config-frame-itx">-</span></div>
-  <div class="form-row"><label>I RX</label><span id="node-config-frame-irx">-</span></div>
-  <div class="form-row"><label>S TX</label><span id="node-config-frame-stx">-</span></div>
-  <div class="form-row"><label>S RX</label><span id="node-config-frame-srx">-</span></div>
-  <div class="form-row"><label>U TX</label><span id="node-config-frame-utx">-</span></div>
-  <div class="form-row"><label>U RX</label><span id="node-config-frame-urx">-</span></div>
-
-  <hr>
-
-  <div class="form-row"><label>GI Count</label><span id="node-config-gi-count">-</span></div>
-  <div class="form-row"><label>GI Active</label><span id="node-config-gi-active">-</span></div>
-  <div class="form-row"><label>GI CAs</label><span id="node-config-gi-cas">-</span></div>
-  <div class="form-row"><label>Spontaneous</label><span id="node-config-spont-count">-</span></div>
-
-  <hr>
-
-  <div class="form-row"><label>Await TESTCON</label><span id="node-config-await-testcon">-</span></div>
-  <div class="form-row"><label>T1 Timeouts</label><span id="node-config-t1-timeouts">-</span></div>
-  <div class="form-row"><label>T3 Timeouts</label><span id="node-config-t3-timeouts">-</span></div>
-  <div class="form-row"><label>TESTFR ACT TX</label><span id="node-config-testfr-act-sent">-</span></div>
-  <div class="form-row"><label>TESTFR CON RX</label><span id="node-config-testfr-con-received">-</span></div>
-
-  <hr>
-
-  <div class="form-row"><label>Connected Since</label><span id="node-config-connected-since">-</span></div>
-  <div class="form-row"><label>Last RX</label><span id="node-config-last-rx">-</span></div>
-  <div class="form-row"><label>Last TX</label><span id="node-config-last-tx">-</span></div>
-  <div class="form-row"><label>Last Frame</label><span id="node-config-last-frame">-</span></div>
 
 </script>
