@@ -30,8 +30,15 @@ module.exports = function (RED) {
                 node.tcp.send(data);
                 emitData(data);
             },
-            onStateChange: (s, msg) => node.statusPub.publish(s, msg),
-            onStatus: (s, msg) => node.statusPub.publish(s, msg),
+
+            onStateChange: (s, msg) => {
+                node.statusPub.publishState(s, msg);
+            },
+
+            onStats: () => {
+                node.statusPub.publishStats();
+            },
+
             onSessionSummary: summary => {
                 node.emit("iec104:status", {
                     topic: "iec104/session-summary",
@@ -39,6 +46,7 @@ module.exports = function (RED) {
                     ts: Date.now()
                 });
             },
+
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
                     .from(node.processImage.values())
@@ -49,9 +57,11 @@ module.exports = function (RED) {
                     await sendPoint(p);
                 }
             },
+
             onConnectionLost: reason => {
-                node.session.stop(reason)
+                node.session.stop(reason);
             },
+
             t1: node.t1,
             t3: node.t3,
             k: node.k,
@@ -75,7 +85,7 @@ module.exports = function (RED) {
             },
 
             onError: err => {
-                node.statusPub.publish("IDLE", err?.message || "tcp error");
+                node.statusPub.publishState("IDLE", err?.message || "tcp error");
             }
         });
 
