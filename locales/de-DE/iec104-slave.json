@@ -1,0 +1,25 @@
+{
+  "iec104": {
+    "diag": {
+      "label": {
+        "h-conn": "Verbindung",
+        "h-apci": "APCI / Sequenzverwaltung",
+        "status": "Status",
+        "reason": "Grund",
+        "conn-since": "Verbunden seit",
+        "last-rcv": "Zuletzt empfangen",
+        "last-send": "Zuletzt gesendet",
+        "last-frame": "Letztes Telegramm"
+      }
+    }
+  },
+  "tcp": {
+    "socket": {
+      "init": "Warte auf Verbindungen",
+      "end": "Der Client hat die Verbindung beendet.",
+      "close": "Die Verbindung wurde geschlossen.",
+      "timeout": "Zeitüberschreitung der Verbindung.",
+      "error": "Ein Socketfehler ist aufgetreten."
+    }
+  }
+}

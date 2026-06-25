@@ -16,6 +16,8 @@ RED.nodes.registerType('iec104-slave',{
 
   oneditprepare: function () {
     const nodeId = this.id;
+    // Preserve the node-specific translation function for use in renderStatus().
+    const _ = this._.bind(this);
     let es = null;
 
     const tabs = RED.tabs.create({
@@ -59,11 +61,13 @@ RED.nodes.registerType('iec104-slave',{
 
     function renderStatus(data) {
       const state = data?.state || "UNKNOWN";
-      const reason = data?.reason || "";
+      const raw = data?.reason || "";
+      const translated = _(raw);
+
       const color = colors[state] || colors.UNKNOWN;
 
       $("#node-config-status").text(state).css("color", color);
-      $("#node-config-reason").text(reason);
+      $("#node-config-reason").text(translated === raw ? raw : translated);
 
       const session = data?.session;
       const a = session?.apci;
@@ -224,13 +228,13 @@ RED.nodes.registerType('iec104-slave',{
     </div>
 
     <div id="node-config-tab-diagnostics">
-      <u><h4>Verbindung</h4></u>
-      <div class="form-row"><label>Status</label><span id="node-config-status" style="font-weight:bold;">UNKNOWN</span></div>
-      <div class="form-row"><label>Reason</label><span id="node-config-reason" style="color:#666;">-</span></div>
-      <div class="form-row"><label>Verbunden seit</label><span id="node-config-connected-since">-</span></div>
-      <div class="form-row"><label>Zuletzt empfangen</label><span id="node-config-last-rx">-</span></div>
-      <div class="form-row"><label>Zuletzt gesendet</label><span id="node-config-last-tx">-</span></div>
-      <div class="form-row"><label>Letzter Frame</label><span id="node-config-last-frame">-</span></div>
+      <u><h4><label><span data-i18n="iec104.diag.label.h-conn"></span></label></h4></u>
+      <div class="form-row"><label><span data-i18n="iec104.diag.label.status"></span></label><span id="node-config-status" style="font-weight:bold;">UNKNOWN</span></div>
+      <div class="form-row"><label><span data-i18n="iec104.diag.label.reason"></span></label><span id="node-config-reason" style="color:#666;">-</span></div>
+      <div class="form-row"><label><span data-i18n="iec104.diag.label.conn-since"></span></label><span id="node-config-connected-since">-</span></div>
+      <div class="form-row"><label><span data-i18n="iec104.diag.label.last-rcv"></span></label><span id="node-config-last-rx">-</span></div>
+      <div class="form-row"><label><span data-i18n="iec104.diag.label.last-send"></span></label><span id="node-config-last-tx">-</span></div>
+      <div class="form-row"><label><span data-i18n="iec104.diag.label.last-frame"></span></label><span id="node-config-last-frame">-</span></div>
 
       <hr>
       <h4>APCI / Sequenzverwaltung</h4>

@@ -21,7 +21,7 @@ module.exports = function (RED) {
         node.processImage = new Map();
 
         node.currentState = "IDLE";
-        node.currentReason = "Warte auf Verbindungen";
+        node.currentReason = "tcp.socket.init";
         node.currentTs = Date.now();
 
         node.statusPub = new StatusPublisher(node);
@@ -81,12 +81,9 @@ module.exports = function (RED) {
             },
 
             onDisconnect: reason => {
-                node.session.stop(reason);
-            },
-
-            onError: err => {
-                node.statusPub.publishState("IDLE", err?.message || "tcp error");
+                node.session.stop(`tcp.${reason}`);
             }
+
         });
 
         node.tcp.start();
