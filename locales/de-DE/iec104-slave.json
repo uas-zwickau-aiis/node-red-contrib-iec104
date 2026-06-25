@@ -5,7 +5,7 @@
         "h-conn": "Verbindung",
         "h-apci": "APCI / Sequenzverwaltung",
         "status": "Status",
-        "reason": "Grund",
+        "reason": "Auslöser",
         "conn-since": "Verbunden seit",
         "last-rcv": "Zuletzt empfangen",
         "last-send": "Zuletzt gesendet",
