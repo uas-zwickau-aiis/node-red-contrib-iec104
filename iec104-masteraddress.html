@@ -1,0 +1,127 @@
+<script src="resources/node-red-contrib-iec104/iec104-editor.js"></script>
+
+<script type="text/javascript">
+RED.nodes.registerType('iec104-masteraddress',{
+    category: 'IEC 104',
+    color: '#e3c468',
+
+    defaults: {
+        name: { value: '' },
+
+        ca_hi: { value: 0, required: true, validate: window.iec104Editor.byteValidator },
+        ca_lo: { value: 0, required: true, validate: window.iec104Editor.byteValidator },
+
+        ca: { value: 1 },
+
+        connection: {
+            type: "iec104-master",
+            required: true
+        }
+    },
+
+    inputs: 1,
+    outputs: 0,
+
+    icon: "bridge.svg",
+
+    paletteLabel: function() {
+        return "IEC104 Master Address";
+    },
+
+    label: function () {
+
+        if (this.name) {
+            return this.name;
+        }
+
+        const masterNode = RED.nodes.node(this.connection);
+        const masterName = masterNode?.name || "IEC104 Master";
+
+        return `${masterName} [${this.ca_hi}, ${this.ca_lo}]`;
+    },
+
+    oneditprepare: function () {
+
+        function updateCAPreview() {
+
+            let hi = parseInt($("#node-input-ca_hi").val(), 10);
+            let lo = parseInt($("#node-input-ca_lo").val(), 10);
+
+            hi = isNaN(hi) ? 0 : hi;
+            lo = isNaN(lo) ? 0 : lo;
+
+            const ca = (hi << 8) + lo;
+            const hex = "0x" + ca.toString(16).toUpperCase().padStart(4, "0");
+
+            $("#node-ca-preview").text(
+                `Dezimal (Hex): ${ca} (${hex})`
+            );
+        }
+
+        $("#node-input-ca_hi, #node-input-ca_lo")
+            .on("input change", updateCAPreview);
+
+        updateCAPreview();
+    },
+
+    oneditsave: function() {
+
+        const hi = Number($("#node-input-ca_hi").val()) || 0;
+        const lo = Number($("#node-input-ca_lo").val()) || 0;
+
+        this.ca = (hi << 8) + lo;
+    }
+});
+</script>
+
+<script type="text/html" data-template-name="iec104-masteraddress">
+
+    <div class="form-row">
+        <label for="node-input-name">Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+
+    <div class="form-row">
+        <label>CA</label>
+
+        <input
+            type="number"
+            id="node-input-ca_hi"
+            min="0"
+            max="255"
+            placeholder="Hi"
+            style="width:60px; margin-right:5px;">
+
+        <input
+            type="number"
+            id="node-input-ca_lo"
+            min="0"
+            max="255"
+            placeholder="Lo"
+            style="width:60px;">
+    </div>
+
+    <div class="form-row">
+        <label></label>
+
+        <div
+            id="node-ca-preview"
+            class="form-tips"
+            style="width:auto;">
+
+            Dezimal (Hex): 1 (0x0001)
+
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-connection">
+            IEC 60870-5-104 Master
+        </label>
+
+        <input
+            type="text"
+            id="node-input-connection">
+    </div>
+
+</script>

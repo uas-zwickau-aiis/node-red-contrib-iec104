@@ -1,6 +1,27 @@
 # Changelog
 
 
+## [0.2.0]
+### Added
+* Initial IEC 60870-5-104 Master foundation (not yet functional)
+* Initial Single Command node (not yet functional)
+* Slave diagnostics and session statistics
+* Implemented T2 timer handling in the slave
+* Session summary on connection loss
+* Internationalization (i18n) for slave connection status
+* Unit tests for timers and APCI
+
+### Changed
+* Introduced a message queue and separated connection state handling to improve communication stability
+* Updated input fields for Single Point, Double Point and Integrated Total nodes
+
+### Fixed
+* Improved handling of K-window related communication issues
+
+### Migration Notes
+
+No migration steps are required. The IEC104 Master and Single Command node are provided as initial scaffolding and are not yet operational.
+
 ## [0.1.1]
 
 ### Fixed

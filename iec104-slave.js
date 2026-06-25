@@ -1,4 +1,4 @@
-const Session = require("./lib/protocol/session");
+const Session = require("./lib/protocol/slaveSession");
 const StatusPublisher = require("./lib/core/statusPublisher");
 const TcpServer = require("./lib/tcp/server");
 const IEC104 = require("./lib/core/constants");
@@ -14,6 +14,7 @@ module.exports = function (RED) {
 
         node.port = Number(config.port);
         node.t1 = Number(config.t1) * 1000;
+        node.t2 = Number(config.t2) * 1000;
         node.t3 = Number(config.t3) * 1000;
         node.k = Number(config.k_win);
         node.w = Number(config.w_win);
@@ -21,7 +22,7 @@ module.exports = function (RED) {
         node.processImage = new Map();
 
         node.currentState = "IDLE";
-        node.currentReason = "Warte auf Verbindungen";
+        node.currentReason = "tcp.socket.init";
         node.currentTs = Date.now();
 
         node.statusPub = new StatusPublisher(node);
@@ -30,7 +31,23 @@ module.exports = function (RED) {
                 node.tcp.send(data);
                 emitData(data);
             },
-            onStateChange: (s, msg) => node.statusPub.publish(s, msg),
+
+            onStateChange: (s, msg) => {
+                node.statusPub.publishState(s, msg);
+            },
+
+            onStats: () => {
+                node.statusPub.publishStats();
+            },
+
+            onSessionSummary: summary => {
+                node.emit("iec104:status", {
+                    topic: "iec104/session-summary",
+                    payload: summary,
+                    ts: Date.now()
+                });
+            },
+
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
                     .from(node.processImage.values())
@@ -41,10 +58,13 @@ module.exports = function (RED) {
                     await sendPoint(p);
                 }
             },
+
             onConnectionLost: reason => {
-                node.session.stop(reason)
+                node.session.stop(reason);
             },
+
             t1: node.t1,
+            t1: node.t2,
             t3: node.t3,
             k: node.k,
             w: node.w
@@ -63,12 +83,9 @@ module.exports = function (RED) {
             },
 
             onDisconnect: reason => {
-                node.session.stop(reason);
-            },
-
-            onError: err => {
-                node.statusPub.publish("IDLE", err?.message || "tcp error");
+                node.session.stop(`tcp.${reason}`);
             }
+
         });
 
         node.tcp.start();
@@ -104,7 +121,6 @@ module.exports = function (RED) {
             });
         }
     }
-
 
     RED.nodes.registerType("iec104-slave", IEC104Slave);
 };

@@ -61,7 +61,33 @@
     );
   }
 
+  function initTimestampEditor(disabledType) {
+    function updateState() {
+      let objType = $("#node-input-objType").val();
+
+      if (!objType) {
+        objType = disabledType;
+        $("#node-input-objType").val(objType);
+      }
+
+      const disable = objType === disabledType;
+
+      $("#node-input-tsSource").prop("disabled", disable);
+
+      if (disable) {
+        $("#node-input-tsSource").val("now");
+      }
+    }
+
+  $("#node-input-objType")
+    .off(".iec104Timestamp")
+    .on("change.iec104Timestamp", updateState);
+
+  updateState();
+  }
+
   window.iec104Editor.byteValidator = byteValidator;
   window.iec104Editor.initIoaEditor = initIoaEditor;
   window.iec104Editor.labelWithIoa = labelWithIoa;
+  window.iec104Editor.initTimestampEditor = initTimestampEditor;
 })();
