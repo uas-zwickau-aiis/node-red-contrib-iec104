@@ -1,0 +1,37 @@
+{
+  "debug": true,
+  "connections": [
+    {
+      "name": "NodeRED",
+      "ip": "127.0.0.1",
+      "port": 2404,
+      "stations": [
+        {
+          "ca": 1,
+          "points": [
+            { "ioa": 1, "type": "M_ME_NC_1" },
+            { "ioa": 2, "type": "M_ME_NC_1" },
+            { "ioa": 3, "type": "M_ME_NC_1" },
+            { "ioa": 4, "type": "M_ME_NC_1" },
+            { "ioa": 5, "type": "M_ME_NC_1" },
+            { "ioa": 6, "type": "M_ME_NC_1" },
+            { "ioa": 7, "type": "M_ME_NC_1" },
+            { "ioa": 8, "type": "M_ME_NC_1" },
+            { "ioa": 9, "type": "M_ME_NC_1" },
+            { "ioa": 10, "type": "M_ME_NC_1" },
+            { "ioa": 256, "type": "M_ME_NC_1" },
+            { "ioa": 257, "type": "M_ME_NC_1" },
+            { "ioa": 258, "type": "M_ME_NC_1" },
+            { "ioa": 259, "type": "M_ME_NC_1" },
+            { "ioa": 260, "type": "M_ME_NC_1" },
+            { "ioa": 261, "type": "M_ME_NC_1" },
+            { "ioa": 262, "type": "M_ME_NC_1" },
+            { "ioa": 263, "type": "M_ME_NC_1" },
+            { "ioa": 264, "type": "M_ME_NC_1" },
+            { "ioa": 265, "type": "M_ME_NC_1" }
+          ]
+        }
+      ]
+    }
+  ]
+}

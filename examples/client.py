@@ -1,98 +1,194 @@
 import c104
 import time
-import json
 import threading
-import paho.mqtt.client as mqtt
+import json
+import sys
+import signal
 
-# ---------------- MQTT ----------------
 
-MQTT_BROKER = "192.168.4.51"
-MQTT_PORT = 1883
-MQTT_TOPIC_BASE = "iec104/sp"
+class IECManager:
+    def __init__(self, config):
+        self.config = config
+        self.client = c104.Client()
+        self.connections = {}
+        self.running = False
+        self.lock = threading.Lock()
 
-mqtt_client = mqtt.Client(client_id="iec104-scada")
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
-mqtt_client.loop_start()
+        if config.get("debug", False):
+            c104.set_debug_mode(c104.Debug.Connection | c104.Debug.Point)
 
-print("MQTT verbunden")
+    def add_connection(self, name, ip, port):
+        with self.lock:
+            if name in self.connections:
+                raise ValueError(f"Connection '{name}' existiert bereits")
 
-# ---------------- IEC-104 ----------------
+            conn = self.client.add_connection(
+                ip=ip,
+                port=int(port),
+                init=c104.Init.INTERROGATION
+            )
 
-print("Starte IEC-104 SCADA Client")
+            def state_change(connection: c104.Connection, state: c104.ConnectionState) -> None:
+                print(f"[{name}] STATE: {state}")
 
-c104.set_debug_mode(c104.Debug.Connection | c104.Debug.Point)
-client = c104.Client()
+                if state == c104.ConnectionState.OPEN_MUTED:
+                    def watchdog():
+                        time.sleep(10)
+                        if connection.state == c104.ConnectionState.OPEN_MUTED:
+                            print(f"[{name}] STARTDT Timeout → reconnect")
+                            connection.disconnect()
 
-conn = client.add_connection(
-    ip="127.0.0.1",
-    port=2404,
-    init=c104.Init.INTERROGATION
-)
+                    threading.Thread(target=watchdog, daemon=True).start()
 
-station = conn.add_station(common_address=1)
-conn.connect()
+                if state == c104.ConnectionState.CLOSED and self.running:
+                    print(f"[{name}] reconnect")
+                    connection.connect()
 
-def on_connection_state_change(
-    connection: c104.Connection,
-    state: c104.ConnectionState
-) -> None:
-    print("IEC-104 STATE:", state)
+            conn.on_state_change(state_change)
 
-conn.on_state_change(on_connection_state_change)
+            self.connections[name] = {
+                "connection": conn,
+                "stations": {}
+            }
 
-# ---------- SP (RTU → SCADA) ----------
+    def add_station(self, conn_name, ca):
+        with self.lock:
+            ca = int(ca)
+            conn_data = self.connections[conn_name]
 
-sp = station.add_point(
-    io_address=12,
-    type=c104.Type.M_SP_NA_1
-)
-def on_sp(
-    point: c104.Point,
-    previous_info: c104.Information,
-    message: c104.IncomingMessage
-) -> c104.ResponseState:
+            if ca in conn_data["stations"]:
+                raise ValueError(f"Station CA {ca} existiert in '{conn_name}' bereits")
 
-    payload = {
-        "asdu": point.station.common_address,
-        "ioa": point.io_address,
-        "value": bool(point.value),
-        "cot": int(message.cot),
-        "timestamp": time.time()
-    }
+            station = conn_data["connection"].add_station(common_address=ca)
 
-   # topic = f"{MQTT_TOPIC_BASE}/{point.io_address}"
-   # mqtt_client.publish(topic, json.dumps(payload), qos=0, retain=False)
-    print("SP → MQTT:", payload)
+            conn_data["stations"][ca] = {
+                "station": station,
+                "points": {}
+            }
 
-    return c104.ResponseState.SUCCESS
+    def add_point(self, conn_name, ca, ioa, type_name):
+        with self.lock:
+            ca = int(ca)
+            ioa = int(ioa)
 
-sp.on_receive(on_sp)
+            if not hasattr(c104.Type, type_name):
+                raise ValueError(f"Ungültiger IEC-104 Typ: {type_name}")
 
-# ---------- SC (SCADA → RTU) ----------
+            station_data = self.connections[conn_name]["stations"][ca]
+            station = station_data["station"]
 
-sc = station.add_point(
-    io_address=2,
-    type=c104.Type.C_SC_NA_1
-)
+            if ioa in station_data["points"]:
+                raise ValueError(
+                    f"IOA {ioa} existiert in Connection '{conn_name}', CA {ca} bereits"
+                )
 
-client.start()
-print("IEC-104 Client läuft")
+            point = station.add_point(
+                io_address=ioa,
+                type=getattr(c104.Type, type_name)
+            )
 
-# ---------- 5-Sekunden-Trigger in separatem Thread ----------
+            def on_receive(
+                point: c104.Point,
+                previous_info: c104.Information,
+                message: c104.IncomingMessage
+            ) -> c104.ResponseState:
 
-def sc_trigger():
-    value = False
+                payload = {
+                    "connection": conn_name,
+                    "asdu": point.station.common_address,
+                    "ioa": point.io_address,
+                    "type": type_name,
+                    "value": point.value,
+                    "cot": int(message.cot),
+                    "timestamp": time.time()
+                }
+
+                print("RX:", payload)
+
+                return c104.ResponseState.SUCCESS
+
+            point.on_receive(on_receive)
+            station_data["points"][ioa] = point
+
+    def load_from_config(self):
+        for conn_cfg in self.config.get("connections", []):
+            name = conn_cfg["name"]
+
+            print(f"Konfiguriere Connection '{name}'")
+
+            self.add_connection(
+                name=name,
+                ip=conn_cfg["ip"],
+                port=conn_cfg.get("port", 2404)
+            )
+
+            for station_cfg in conn_cfg.get("stations", []):
+                ca = station_cfg["ca"]
+
+                print(f"  Station CA {ca}")
+                self.add_station(name, ca)
+
+                for point_cfg in station_cfg.get("points", []):
+                    print(f"    Point IOA {point_cfg['ioa']} Typ {point_cfg['type']}")
+
+                    self.add_point(
+                        conn_name=name,
+                        ca=ca,
+                        ioa=point_cfg["ioa"],
+                        type_name=point_cfg["type"]
+                    )
+
+    def start(self):
+        if self.running:
+            return
+
+        print("Starte IEC-104 Client")
+
+        self.client.start()
+        self.running = True
+
+        for name, conn_data in self.connections.items():
+            print(f"Verbinde '{name}'")
+            conn_data["connection"].connect()
+
+    def stop(self):
+        print("Stoppe IEC-104 Client")
+        self.running = False
+
+        for conn_data in self.connections.values():
+            conn_data["connection"].disconnect()
+
+        self.client.stop()
+
+
+def load_config(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python iec104_client.py config.json")
+        sys.exit(1)
+
+    config = load_config(sys.argv[1])
+    manager = IECManager(config)
+
+    def handle_shutdown(signum, frame):
+        manager.stop()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, handle_shutdown)
+    signal.signal(signal.SIGTERM, handle_shutdown)
+
+    manager.load_from_config()
+    manager.start()
+
+    print("IEC-104 Client läuft. Beenden mit STRG+C.")
+
     while True:
-        time.sleep(5)
-        value = not value
-        sc.value = value
-        sc.transmit(c104.Cot.ACTIVATION)
-        print(f"SC gesendet: IOA=2, VALUE={value}")
+        time.sleep(1)
 
-#threading.Thread(target=sc_trigger, daemon=True).start()
 
-# ---------- Main-Loop ----------
-
-while True:
-    time.sleep(0.1)
-
+if __name__ == "__main__":
+    main()
