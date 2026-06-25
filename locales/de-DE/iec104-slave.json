@@ -1,9 +1,13 @@
 {
   "iec104": {
     "diag": {
+      "tab-name": "Überwachung",
       "label": {
         "h-conn": "Verbindung",
         "h-apci": "APCI / Sequenzverwaltung",
+        "h-counters": "Telegrammstatistik",
+        "h-gi": "Generalabfrage (GI)",
+        "h-timers": "Generalabfrage (GI)",
         "status": "Status",
         "reason": "Auslöser",
         "conn-since": "Verbunden seit",
@@ -11,15 +15,18 @@
         "last-send": "Zuletzt gesendet",
         "last-frame": "Letztes Telegramm"
       }
+    },
+    "settings": {
+      "tab-name": "Einstellungen"
     }
   },
   "tcp": {
     "socket": {
       "init": "Warte auf Verbindungen",
-      "end": "Der Client hat die Verbindung beendet.",
-      "close": "Die Verbindung wurde geschlossen.",
-      "timeout": "Zeitüberschreitung der Verbindung.",
-      "error": "Ein Socketfehler ist aufgetreten."
+      "end": "Der Client hat die Verbindung beendet",
+      "close": "Die Verbindung wurde geschlossen",
+      "timeout": "Zeitüberschreitung der Verbindung",
+      "error": "Ein Socketfehler ist aufgetreten"
     }
   }
 }

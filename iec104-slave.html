@@ -31,12 +31,12 @@ RED.nodes.registerType('iec104-slave',{
 
     tabs.addTab({
       id: "node-config-tab-settings",
-      label: "Settings"
+      label: this._("iec104.settings.tab-name")
     });
 
     tabs.addTab({
       id: "node-config-tab-diagnostics",
-      label: "Diagnostics"
+      label: this._("iec104.diag.tab-name")
     });
 
     $("#node-config-iec104-tabs-content").children().hide();
@@ -189,6 +189,54 @@ RED.nodes.registerType('iec104-slave',{
 </script>
 
 <script type="text/html" data-template-name="iec104-slave">
+  <style>
+    .iec104-diag-table {
+      width: 80%;
+      border-collapse: collapse;
+    }
+
+    .iec104-diag-table td {
+      padding: 4px 0;
+      vertical-align: top;
+    }
+
+    .iec104-diag-table td:first-child {
+      width: 240px;
+      padding-right: 24px;
+    }
+
+    .iec104-diag-table td:last-child {
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .iec104-diag-table.iec104-diag-values-right td:last-child {
+      text-align: right;
+    }
+
+    .iec104-diag-frame-table th,
+    .iec104-diag-frame-table td {
+        padding: 4px 0;
+    }
+
+    .iec104-diag-frame-table th:first-child,
+    .iec104-diag-frame-table td:first-child {
+        text-align: left;
+    }
+
+    .iec104-diag-frame-table th:nth-child(2),
+    .iec104-diag-frame-table td:nth-child(2) {
+        width: 70px;
+        padding-right: 24px;   /* Abstand zu "Empfangen" */
+        text-align: right;
+    }
+
+    .iec104-diag-frame-table th:nth-child(3),
+    .iec104-diag-frame-table td:nth-child(3) {
+        width: 70px;
+        text-align: right;
+    }
+  </style>
 
   <div class="form-row">
     <ul id="node-config-iec104-tabs" style="min-width:400px; margin-bottom:20px;"></ul>
@@ -236,18 +284,41 @@ RED.nodes.registerType('iec104-slave',{
     </div>
     <!-- Diagnostics tab -->
     <div id="node-config-tab-diagnostics">
-      <u><h4><label><span data-i18n="iec104.diag.label.h-conn"></span></label></h4></u>
-      <div class="form-row"><label><span data-i18n="iec104.diag.label.status"></span></label><span id="node-config-status" style="font-weight:bold;">UNKNOWN</span></div>
-      <div class="form-row"><label><span data-i18n="iec104.diag.label.reason"></span></label><span id="node-config-reason" style="color:#666;">-</span></div>
-      <div class="form-row"><label><span data-i18n="iec104.diag.label.conn-since"></span></label><span id="node-config-connected-since">-</span></div>
-      <div class="form-row"><label><span data-i18n="iec104.diag.label.last-rcv"></span></label><span id="node-config-last-rx">-</span></div>
-      <div class="form-row"><label><span data-i18n="iec104.diag.label.last-send"></span></label><span id="node-config-last-tx">-</span></div>
-      <div class="form-row"><label><span data-i18n="iec104.diag.label.last-frame"></span></label><span id="node-config-last-frame">-</span></div>
+      <u><h4><span data-i18n="iec104.diag.label.h-conn"></span></h4></u>
+
+      <table class="iec104-diag-table">
+        <tbody>
+          <tr>
+            <td><span data-i18n="iec104.diag.label.status"></span></td>
+            <td id="node-config-status" style="font-weight:bold;">UNKNOWN</td>
+          </tr>
+          <tr>
+            <td><span data-i18n="iec104.diag.label.reason"></span></td>
+            <td id="node-config-reason" style="color:#666;">-</td>
+          </tr>
+          <tr>
+            <td><span data-i18n="iec104.diag.label.conn-since"></span></td>
+            <td id="node-config-connected-since">-</td>
+          </tr>
+          <tr>
+            <td><span data-i18n="iec104.diag.label.last-rcv"></span></td>
+            <td id="node-config-last-rx">-</td>
+          </tr>
+          <tr>
+            <td><span data-i18n="iec104.diag.label.last-send"></span></td>
+            <td id="node-config-last-tx">-</td>
+          </tr>
+          <tr>
+            <td><span data-i18n="iec104.diag.label.last-frame"></span></td>
+            <td id="node-config-last-frame">-</td>
+          </tr>
+        </tbody>
+      </table>
 
       <hr>
-      <h4>APCI / Sequenzverwaltung</h4>
+      <u><h4><span data-i18n="iec104.diag.label.h-apci"></span></h4></u>
 
-      <table style="width:80%; border-collapse:collapse;">
+      <table class="iec104-diag-table iec104-diag-values-right">
         <tbody>
           <tr>
             <td style="padding:4px 0;">Sendefolgenummer N(S)</td>
@@ -282,41 +353,41 @@ RED.nodes.registerType('iec104-slave',{
       </table>
 
       <hr>
-      <h4>Frame-Zähler</h4>
+      <u><h4><span data-i18n="iec104.diag.label.h-counters"></span></h4></u>
 
-      <table style="width:80%; border-collapse:collapse;">
+      <table class="iec104-diag-table iec104-diag-values-right iec104-diag-frame-table">
           <thead>
               <tr>
-                  <th style="text-align:left;"></th>
-                  <th style="text-align:right;">Gesendet</th>
-                  <th style="text-align:right;">Empfangen</th>
+                  <th></th>
+                  <th>Gesendet</th>
+                  <th>Empfangen</th>
               </tr>
           </thead>
           <tbody>
               <tr>
                   <td>I-Frames</td>
-                  <td id="node-config-frame-itx" style="text-align:right;">-</td>
-                  <td id="node-config-frame-irx" style="text-align:right;">-</td>
+                  <td id="node-config-frame-itx">-</td>
+                  <td id="node-config-frame-irx">-</td>
               </tr>
 
               <tr>
                   <td>S-Frames</td>
-                  <td id="node-config-frame-stx" style="text-align:right;">-</td>
-                  <td id="node-config-frame-srx" style="text-align:right;">-</td>
+                  <td id="node-config-frame-stx">-</td>
+                  <td id="node-config-frame-srx">-</td>
               </tr>
 
               <tr>
                   <td>U-Frames</td>
-                  <td id="node-config-frame-utx" style="text-align:right;">-</td>
-                  <td id="node-config-frame-urx" style="text-align:right;">-</td>
+                  <td id="node-config-frame-utx">-</td>
+                  <td id="node-config-frame-urx">-</td>
               </tr>
           </tbody>
       </table>
 
       <hr>
-      <h4>Generalabfrage (GI)</h4>
+      <u><h4><span data-i18n="iec104.diag.label.h-gi"></span></h4></u>
 
-      <table style="width:80%; border-collapse:collapse;">
+      <table class="iec104-diag-table iec104-diag-values-right">
         <tbody>
 
           <tr>
@@ -343,9 +414,9 @@ RED.nodes.registerType('iec104-slave',{
       </table>
 
       <hr>
-      <h4>Überwachung / Timer</h4>
+      <u><h4><span data-i18n="iec104.diag.label.h-timers"></span></h4></u>
 
-      <table style="width:80%; border-collapse:collapse;">
+      <table class="iec104-diag-table iec104-diag-values-right">
         <tbody>
 
           <tr>
