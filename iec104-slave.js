@@ -64,7 +64,7 @@ module.exports = function (RED) {
             },
 
             t1: node.t1,
-            t1: node.t2,
+            t2: node.t2,
             t3: node.t3,
             k: node.k,
             w: node.w
