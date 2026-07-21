@@ -61,8 +61,8 @@ RED.nodes.registerType('iec104-master',{
         $("#node-config-apci-window").text(`${a.unconfirmed}/${a.k}`);
         $("#node-config-apci-ackpending").text(`${a.recvSinceLastAck}/${a.w}`);
         $("#node-config-cansend")
-          .text(yesNo(a.canSend))
-          .css("color", a.canSend ? "green" : "red");
+          .text(yesNo(a.hasSendWindow))
+          .css("color", a.hasSendWindow ? "green" : "red");
       } else {
         $("#node-config-apci-sendseq").text("-");
         $("#node-config-apci-recvseq").text("-");

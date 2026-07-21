@@ -40,7 +40,7 @@ module.exports = function (RED) {
                 node.statusPub.publishStats();
             },
 
-            onSessionSummary: summary => {
+            onSessionStop: summary => {
                 node.emit("iec104:status", {
                     topic: "iec104/session-summary",
                     payload: summary,
@@ -59,13 +59,13 @@ module.exports = function (RED) {
                 }
             },
 
-            onConnectionLost: reason => {
-                node.session.stop(reason);
+            onCommand: async asdu => {
+                console.log(asdu)
             },
 
-            t1: node.t1,
-            t2: node.t2,
-            t3: node.t3,
+            t1: Number(config.t1) * 1000,
+            t2: Number(config.t2) * 1000,
+            t3: Number(config.t3) * 1000,
             k: node.k,
             w: node.w
         });

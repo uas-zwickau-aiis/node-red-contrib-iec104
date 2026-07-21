@@ -3,7 +3,7 @@
 
   "server": {
     "ip": "0.0.0.0",
-    "port": 2404,
+    "port": 2406,
     "tick_rate_ms": 100,
     "select_timeout_ms": 10000,
     "max_connections": 10

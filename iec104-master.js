@@ -3,6 +3,7 @@ const StatusPublisher = require("./lib/core/statusPublisher");
 const TcpClient = require("./lib/tcp/client");
 const IEC104 = require("./lib/core/constants");
 const registerRoutes = require("./lib/admin/routes");
+const { isValidPoint } = require("./lib/core/validators");
 
 module.exports = function (RED) {
     registerRoutes(RED);
@@ -36,14 +37,14 @@ module.exports = function (RED) {
             },
 
             onStateChange: (s, msg) => {
-                node.statusPub.publish(s, msg);
+                node.statusPub.publishState(s, msg);
 
                 if (s === "DATA_TRANSFER" && node.autoGI) {
                     node.session.sendInterrogation(node.giCA);
                 }
             },
 
-            onStatus: (s, msg) => node.statusPub.publish(s, msg),
+            onStatus: (s, msg) => node.statusPub.publishStats(),
 
             onSessionSummary: summary => {
                 node.emit("iec104:status", {
@@ -54,6 +55,7 @@ module.exports = function (RED) {
             },
 
             onASDU: asdu => {
+                
                 node.emit("iec104:asdu", {
                     topic: "iec104/asdu",
                     payload: asdu,
@@ -65,7 +67,7 @@ module.exports = function (RED) {
                 if (point && point.ca !== undefined && point.ioa !== undefined) {
                     node.processImage.set(`${point.ca}:${point.ioa}`, point);
                 }
-
+                console.log(point);
                 node.emit("iec104:point", {
                     topic: "iec104/point",
                     payload: point,
@@ -126,7 +128,7 @@ module.exports = function (RED) {
             },
 
             onError: err => {
-                node.statusPub.publish("IDLE", err?.message || "tcp error");
+                node.statusPub.publishState("IDLE", err?.message || "tcp error");
             }
         });
 
@@ -151,7 +153,12 @@ module.exports = function (RED) {
                 return;
             }
 
-            node.warn("Unsupported IEC104 client input");
+            if (!isValidPoint(payload)) {
+                node.error("Invalid IEC104 point");
+                return;
+            }
+
+            node.session.sendPoint(payload, IEC104.COT.ACT);
         });
 
         node.on("close", function (done) {

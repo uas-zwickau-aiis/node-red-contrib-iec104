@@ -81,17 +81,13 @@ RED.nodes.registerType('iec104-slave',{
         $("#node-config-apci-recvseq").text(a.recvSeq);
         $("#node-config-apci-ackseq").text(a.ackSeq);
         $("#node-config-apci-window").text(`${a.unconfirmed}/${a.k}`);
-        $("#node-config-apci-ackpending").text(`${a.recvSinceLastAck}/${a.w}`);
-        $("#node-config-cansend")
-          .text(yesNo(a.canSend))
-          .css("color", a.canSend ? "green" : "red");
+        $("#node-config-apci-ackpending").text(`${a.recvSinceLastAck}/${a.w}`);;
       } else {
         $("#node-config-apci-sendseq").text("-");
         $("#node-config-apci-recvseq").text("-");
         $("#node-config-apci-ackseq").text("-");
         $("#node-config-apci-window").text("-");
         $("#node-config-apci-ackpending").text("-");
-        $("#node-config-cansend").text("-").css("color", "#666");
       }
 
       if (stats) {
@@ -102,15 +98,10 @@ RED.nodes.registerType('iec104-slave',{
         $("#node-config-frame-utx").text(stats.uTx ?? "-");
         $("#node-config-frame-urx").text(stats.uRx ?? "-");
         $("#node-config-gi-count").text(stats.giCount ?? "-");
-        $("#node-config-spont-count").text(stats.spontaneousSent ?? "-");
-        $("#node-config-t1-timeouts").text(stats.t1Timeouts ?? "-");
-        $("#node-config-t3-timeouts").text(stats.t3Timeouts ?? "-");
         $("#node-config-last-rx").text(fmtTs(stats.lastRxAt));
         $("#node-config-last-tx").text(fmtTs(stats.lastTxAt));
         $("#node-config-last-frame").text(stats.lastFrameType || "-");
         $("#node-config-connected-since").text(fmtTs(stats.connectionStartedAt));
-        $("#node-config-testfr-act-sent").text(stats.testFrActSent ?? "-");
-        $("#node-config-testfr-con-received").text(stats.testFrConReceived ?? "-");
       } else {
         $("#node-config-frame-itx").text("-");
         $("#node-config-frame-irx").text("-");
@@ -119,15 +110,10 @@ RED.nodes.registerType('iec104-slave',{
         $("#node-config-frame-utx").text("-");
         $("#node-config-frame-urx").text("-");
         $("#node-config-gi-count").text("-");
-        $("#node-config-spont-count").text("-");
-        $("#node-config-t1-timeouts").text("-");
-        $("#node-config-t3-timeouts").text("-");
         $("#node-config-last-rx").text("-");
         $("#node-config-last-tx").text("-");
         $("#node-config-last-frame").text("-");
         $("#node-config-connected-since").text("-");
-        $("#node-config-testfr-act-sent").text("-");
-        $("#node-config-testfr-con-received").text("-");
       }
 
       if (timers) {
@@ -312,6 +298,10 @@ RED.nodes.registerType('iec104-slave',{
             <td><span data-i18n="iec104.diag.label.last-frame"></span></td>
             <td id="node-config-last-frame">-</td>
           </tr>
+          <tr>
+            <td style="padding:4px 0;">Verbindungstest aktiv</td>
+            <td id="node-config-await-testcon">-</td>
+          </tr>
         </tbody>
       </table>
 
@@ -343,11 +333,6 @@ RED.nodes.registerType('iec104-slave',{
           <tr>
             <td style="padding:4px 0;">Unquittiert empfangen</td>
             <td id="node-config-apci-ackpending" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">Sendefenster frei</td>
-            <td id="node-config-cansend" style="text-align:right;">-</td>
           </tr>
         </tbody>
       </table>
@@ -392,56 +377,17 @@ RED.nodes.registerType('iec104-slave',{
 
           <tr>
             <td style="padding:4px 0;">Anzahl Abfragen</td>
-            <td id="node-config-gi-count" style="text-align:right;">-</td>
+            <td id="node-config-gi-count">-</td>
           </tr>
 
           <tr>
             <td style="padding:4px 0;">Aktiv</td>
-            <td id="node-config-gi-active" style="text-align:right;">-</td>
+            <td id="node-config-gi-active">-</td>
           </tr>
 
           <tr>
             <td style="padding:4px 0;">Aktive Stationsadressen</td>
-            <td id="node-config-gi-cas" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">Spontanmeldungen gesendet</td>
-            <td id="node-config-spont-count" style="text-align:right;">-</td>
-          </tr>
-
-        </tbody>
-      </table>
-
-      <hr>
-      <u><h4><span data-i18n="iec104.diag.label.h-timers"></span></h4></u>
-
-      <table class="iec104-diag-table iec104-diag-values-right">
-        <tbody>
-
-          <tr>
-            <td style="padding:4px 0;">Warte auf TESTFR_CON</td>
-            <td id="node-config-await-testcon" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">T1-Timeouts</td>
-            <td id="node-config-t1-timeouts" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">T3-Timeouts</td>
-            <td id="node-config-t3-timeouts" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">TESTFR_ACT gesendet</td>
-            <td id="node-config-testfr-act-sent" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">TESTFR_CON empfangen</td>
-            <td id="node-config-testfr-con-received" style="text-align:right;">-</td>
+            <td id="node-config-gi-cas">-</td>
           </tr>
 
         </tbody>
