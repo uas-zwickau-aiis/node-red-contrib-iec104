@@ -1,146 +1,278 @@
 <script src="resources/node-red-contrib-iec104/iec104-editor.js"></script>
 
 <script type="text/javascript">
-RED.nodes.registerType("iec104-measuredvalue", {
-    category: "IEC 104",
-    color: "#dce5f5",
+  RED.nodes.registerType("iec104-measuredvalue", {
+      category: "IEC 104",
+      color: "#dce5f5",
 
-    defaults: {
-        name: { value: "" },
+      defaults: {
+          name: { value: "" },
 
-        ioaFromMsg: { value: false },
-        ioa0: { value: 0, validate: window.iec104Editor.byteValidator },
-        ioa1: { value: 0, validate: window.iec104Editor.byteValidator },
-        ioa2: { value: 0, validate: window.iec104Editor.byteValidator },
+          ioaFromMsg: { value: false },
+          ioa0: {
+              value: 0,
+              validate: window.iec104Editor.byteValidator
+          },
+          ioa1: {
+              value: 0,
+              validate: window.iec104Editor.byteValidator
+          },
+          ioa2: {
+              value: 0,
+              validate: window.iec104Editor.byteValidator
+          },
 
-        meType: { value: "M_ME_NC_1" },
-        tsSource: { value: "now" },
+          objType: { value: "M_ME_NC_1" },
+          tsSource: { value: "now" },
 
-        qInvalidMode: { value: "msg" },
-        qSubstitutedMode: { value: "msg" },
-        qBlockedMode: { value: "msg" },
-        qNotTopicalMode: { value: "msg" },
-        qOverflowMode: { value: "msg" }
-    },
+          qInvalidMode: { value: "msg" },
+          qSubstitutedMode: { value: "msg" },
+          qBlockedMode: { value: "msg" },
+          qNotTopicalMode: { value: "msg" },
+          qOverflowMode: { value: "msg" }
+      },
 
-    inputs: 1,
-    outputs: 1,
-    icon: "serial.svg",
+      inputs: 1,
+      outputs: 1,
+      icon: "serial.svg",
 
-    paletteLabel: function () {
-        return this._("iec104.paletteLabel");
-    },
+      paletteLabel: function () {
+          return this._("iec104.paletteLabel");
+      },
 
-    label: function () {
-        return window.iec104Editor.labelWithIoa(
-            this,
-            this._("iec104.label")
-        );
-    },
+      label: function () {
+          return window.iec104Editor.labelWithIoa(
+              this,
+              this._("iec104.label")
+          );
+      },
 
-    oneditprepare: function () {
-        window.iec104Editor.initIoaEditor();
-    }
-});
+      oneditprepare: function () {
+          window.iec104Editor.initIoaEditor();
+          window.iec104Editor.initTimestampEditor("M_ME_NC_1");
+      }
+  });
 </script>
 
 <script type="text/html" data-template-name="iec104-measuredvalue">
-
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
-    <input type="text" id="node-input-name">
+    <label for="node-input-name">Name</label>
+    <input
+      type="text"
+      id="node-input-name"
+      placeholder="Name">
   </div>
 
-   <div class="ioa-input">
+  <hr>
+
+  <u>
+    <h4>
+      <span data-i18n="iec104.settings.general.label"></span>
+    </h4>
+  </u>
+
+  <div class="form-row">
+    <label for="node-input-objType">
+      <span data-i18n="iec104.settings.general.label-type"></span>
+    </label>
+
+    <select id="node-input-objType">
+      <option value="M_ME_NB_1">
+        M_ME_NB_1
+        (<span data-i18n="iec104.settings.general.type-scaled"></span>)
+      </option>
+
+      <option value="M_ME_NC_1">
+        M_ME_NC_1
+        (<span data-i18n="iec104.settings.general.type-float"></span>)
+      </option>
+
+      <option value="M_ME_TB_1">
+        M_ME_TB_1
+        (<span data-i18n="iec104.settings.general.type-scaled"></span>, CP24)
+      </option>
+
+      <option value="M_ME_TC_1">
+        M_ME_TC_1
+        (<span data-i18n="iec104.settings.general.type-float"></span>, CP24)
+      </option>
+
+      <option value="M_ME_TE_1">
+        M_ME_TE_1
+        (<span data-i18n="iec104.settings.general.type-scaled"></span>, CP56)
+      </option>
+
+      <option value="M_ME_TF_1">
+        M_ME_TF_1
+        (<span data-i18n="iec104.settings.general.type-float"></span>, CP56)
+      </option>
+    </select>
+  </div>
+
+  <div class="ioa-input">
     <div class="form-row">
-      <label><span data-i18n="iec104.settings.general.label-ioa"></span></label>
-      <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
-      <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
-      <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
+      <label>
+        <span data-i18n="iec104.settings.general.label-ioa"></span>
+      </label>
+
+      <input
+        type="number"
+        id="node-input-ioa0"
+        min="0"
+        max="255"
+        placeholder="b0"
+        style="width:60px; margin-right:5px;">
+
+      <input
+        type="number"
+        id="node-input-ioa1"
+        min="0"
+        max="255"
+        placeholder="b1"
+        style="width:60px; margin-right:5px;">
+
+      <input
+        type="number"
+        id="node-input-ioa2"
+        min="0"
+        max="255"
+        placeholder="b2"
+        style="width:60px;">
     </div>
+
     <div class="form-row">
       <label>&nbsp;</label>
-      <input type="checkbox"
-            id="node-input-ioaFromMsg"
-            style="display:inline-block; width:auto; vertical-align:top;">
-            
-      <label for="node-input-ioaFromMsg"
-            style="width:70%;">
-            <span data-i18n="iec104.settings.general.label-ioa-box"></span>
+
+      <input
+        type="checkbox"
+        id="node-input-ioaFromMsg"
+        style="display:inline-block; width:auto; vertical-align:top;">
+
+      <label
+        for="node-input-ioaFromMsg"
+        style="width:70%;">
+        <span data-i18n="iec104.settings.general.label-ioa-box"></span>
       </label>
     </div>
+
     <div class="form-row">
-      <div id="node-ioa-preview" class="form-tips" style="width:auto;">
+      <div
+        id="node-ioa-preview"
+        class="form-tips"
+        style="width:auto;">
         IOA: 0 | Hex: 0x000000
       </div>
     </div>
   </div>
 
-  <div class="form-row">
-    <label for="node-input-meType"><span data-i18n="iec104.settings.type"></label>
-    <select id="node-input-meType">
-      <option value="M_ME_NB_1">M_ME_NB_1 (<span data-i18n="iec104.settings.type-scaled"></span>)</option>
-      <option value="M_ME_NC_1">M_ME_NC_1 (<span data-i18n="iec104.settings.type-float"></span>)</option>
-      <option value="M_ME_TE_1">M_ME_TB_1 (<span data-i18n="iec104.settings.type-scaled"></span>, CP24)</option>
-      <option value="M_ME_TE_1">M_ME_TC_1 (<span data-i18n="iec104.settings.type-float"></span>, CP24)</option>
-      <option value="M_ME_TE_1">M_ME_TE_1 (<span data-i18n="iec104.settings.type-scaled"></span>, CP56)</option>
-      <option value="M_ME_TF_1">M_ME_TF_1 (<span data-i18n="iec104.settings.type-float"></span>, CP56)</option>
-    </select>
-  </div>
+  <hr>
+
+  <u>
+    <h4>
+      <span data-i18n="iec104.settings.status.label"></span>
+    </h4>
+  </u>
 
   <div class="form-row row-ts">
-    <label for="node-input-tsSource"><span data-i18n="iec104.settings.time"></label>
+    <label for="node-input-tsSource">
+      <span data-i18n="iec104.settings.status.time"></span>
+    </label>
+
     <select id="node-input-tsSource">
-      <option value="now"><span data-i18n="iec104.settings.time-now"></option>
-      <option value="msg"><span data-i18n="iec104.settings.time-msg"></option>
+      <option value="now">
+        <span data-i18n="iec104.settings.status.time-now"></span>
+      </option>
+
+      <option value="msg">
+        <span data-i18n="iec104.settings.status.time-msg"></span>
+      </option>
     </select>
   </div>
 
   <hr>
 
-  <div class="form-row">
-    <label><span data-i18n="iec104.settings.qds.label"></span></label>
-  </div>
+  <u>
+    <h4>
+      <span data-i18n="iec104.settings.qds.label"></span>
+    </h4>
+  </u>
+
   <div class="qds-settings">
     <div class="form-row">
-      <label for="node-input-qInvalidMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-iv"></label>
+      <label
+        for="node-input-qInvalidMode"
+        style="width:120px; white-space:nowrap;">
+        <span data-i18n="iec104.settings.qds.opts.label-iv"></span>
+      </label>
+
       <select id="node-input-qInvalidMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-iv"></option>
+        <option value="msg">
+          <span data-i18n="iec104.settings.qds.opts.select-iv"></span>
+        </option>
         <option value="false">false</option>
         <option value="true">true</option>
       </select>
     </div>
 
     <div class="form-row">
-      <label for="node-input-qSubstitutedMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-sb"></label>
+      <label
+        for="node-input-qSubstitutedMode"
+        style="width:120px; white-space:nowrap;">
+        <span data-i18n="iec104.settings.qds.opts.label-sb"></span>
+      </label>
+
       <select id="node-input-qSubstitutedMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-sb"></option>
+        <option value="msg">
+          <span data-i18n="iec104.settings.qds.opts.select-sb"></span>
+        </option>
         <option value="false">false</option>
         <option value="true">true</option>
       </select>
     </div>
 
     <div class="form-row">
-      <label for="node-input-qBlockedMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-bl"></label>
+      <label
+        for="node-input-qBlockedMode"
+        style="width:120px; white-space:nowrap;">
+        <span data-i18n="iec104.settings.qds.opts.label-bl"></span>
+      </label>
+
       <select id="node-input-qBlockedMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-bl"></option>
+        <option value="msg">
+          <span data-i18n="iec104.settings.qds.opts.select-bl"></span>
+        </option>
         <option value="false">false</option>
         <option value="true">true</option>
       </select>
     </div>
 
-   <div class="form-row">
-      <label for="node-input-qNotTopicalMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-nt"></label>
+    <div class="form-row">
+      <label
+        for="node-input-qNotTopicalMode"
+        style="width:120px; white-space:nowrap;">
+        <span data-i18n="iec104.settings.qds.opts.label-nt"></span>
+      </label>
+
       <select id="node-input-qNotTopicalMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-nt"></option>
+        <option value="msg">
+          <span data-i18n="iec104.settings.qds.opts.select-nt"></span>
+        </option>
         <option value="false">false</option>
         <option value="true">true</option>
       </select>
     </div>
+
     <div class="form-row">
-      <label for="node-input-qOverflowMode" style="width:120px; white-space:nowrap;"><span data-i18n="iec104.settings.qds.opts.label-ov"></label>
+      <label
+        for="node-input-qOverflowMode"
+        style="width:120px; white-space:nowrap;">
+        <span data-i18n="iec104.settings.qds.opts.label-ov"></span>
+      </label>
+
       <select id="node-input-qOverflowMode">
-        <option value="msg"><span data-i18n="iec104.settings.qds.opts.select-ov"></option>
+        <option value="msg">
+          <span data-i18n="iec104.settings.qds.opts.select-ov"></span>
+        </option>
         <option value="false">false</option>
         <option value="true">true</option>
       </select>
