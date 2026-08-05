@@ -15,6 +15,7 @@ module.exports = function (RED) {
         node.host = config.host;
         node.port = Number(config.port);
         node.t1 = Number(config.t1) * 1000;
+        node.t2 = Number(config.t2) * 1000;
         node.t3 = Number(config.t3) * 1000;
         node.k = Number(config.k_win);
         node.w = Number(config.w_win);
@@ -36,17 +37,19 @@ module.exports = function (RED) {
                 emitData(data);
             },
 
-            onStateChange: (s, msg) => {
-                node.statusPub.publishState(s, msg);
+            onStateChange: (state, reason) => {
+                node.statusPub.publishState(state, reason);
 
-                if (s === "DATA_TRANSFER" && node.autoGI) {
+                if (state === IEC104.STATE.DATA_TRANSFER && node.autoGI) {
                     node.session.sendInterrogation(node.giCA);
                 }
             },
 
-            onStatus: (s, msg) => node.statusPub.publishStats(),
+            onStats: () => {
+                node.statusPub.publishStats();
+            },
 
-            onSessionSummary: summary => {
+            onSessionStop: summary => {
                 node.emit("iec104:status", {
                     topic: "iec104/session-summary",
                     payload: summary,
@@ -55,7 +58,6 @@ module.exports = function (RED) {
             },
 
             onASDU: asdu => {
-                
                 node.emit("iec104:asdu", {
                     topic: "iec104/asdu",
                     payload: asdu,
@@ -64,10 +66,17 @@ module.exports = function (RED) {
             },
 
             onPoint: point => {
-                if (point && point.ca !== undefined && point.ioa !== undefined) {
-                    node.processImage.set(`${point.ca}:${point.ioa}`, point);
+                if (
+                    point &&
+                    point.ca !== undefined &&
+                    point.ioa !== undefined
+                ) {
+                    node.processImage.set(
+                        `${point.ca}:${point.ioa}`,
+                        point
+                    );
                 }
-                console.log(point);
+
                 node.emit("iec104:point", {
                     topic: "iec104/point",
                     payload: point,
@@ -78,9 +87,7 @@ module.exports = function (RED) {
             onGIStart: ca => {
                 node.emit("iec104:status", {
                     topic: "iec104/gi-start",
-                    payload: {
-                        ca
-                    },
+                    payload: { ca },
                     ts: Date.now()
                 });
             },
@@ -88,7 +95,10 @@ module.exports = function (RED) {
             onGIEnd: ca => {
                 const snapshot = Array
                     .from(node.processImage.values())
-                    .filter(p => ca === IEC104.CA.BROADCAST || p.ca === ca)
+                    .filter(point =>
+                        ca === IEC104.CA.BROADCAST ||
+                        point.ca === ca
+                    )
                     .sort((a, b) => a.ioa - b.ioa);
 
                 node.emit("iec104:gi-complete", {
@@ -101,11 +111,8 @@ module.exports = function (RED) {
                 });
             },
 
-            onConnectionLost: reason => {
-                node.session.stop(reason);
-            },
-
             t1: node.t1,
+            t2: node.t2,
             t3: node.t3,
             k: node.k,
             w: node.w
