@@ -6,7 +6,10 @@
       "general": {
         "label": "Allgemeine Objekteinstellungen",
         "label-ioa": "Adresse",
-        "label-ioa-box": "Aus msg.ioa übernehmen"
+        "label-ioa-box": "Aus msg.ioa übernehmen",
+        "label-type": "Typ",
+        "type-scaled": "Skaliert",
+        "type-float": "Gleitkomma"
       },
       
       "qds": {
@@ -24,12 +27,12 @@
           "select-sb": "Aus msg.qds.sb übernehmen"
         }
       },
-      "time": "Zeitquelle",
-      "time-msg": "Aus msg.ts übernehmen",
-      "time-now": "Aktuelle Zeit",
-      "type": "Typ",
-      "type-scaled": "Skaliert",
-      "type-float": "Gleitkomma"
+      "status": {
+        "label": "Status- und Eventinformationen",
+        "time": "Zeitquelle",
+        "time-msg": "Aus msg.ts übernehmen",
+        "time-now": "Aktuelle Zeit"
+      }
     },
     "error": {
       "ioa": "Ungültige Objektadresse",
