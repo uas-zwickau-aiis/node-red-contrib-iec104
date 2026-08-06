@@ -1,0 +1,73 @@
+{
+  "debug": false,
+
+  "server": {
+    "ip": "0.0.0.0",
+    "port": 2406,
+    "tick_rate_ms": 100,
+    "select_timeout_ms": 10000,
+    "max_connections": 10
+  },
+
+  "stations": [
+    {
+      "ca": 1,
+      "points": [
+        {
+          "ioa": 100,
+          "type": "M_SP_NA_1",
+          "value": false,
+          "report_ms": 0
+        },
+        {
+          "ioa": 101,
+          "type": "M_ME_NC_1",
+          "value": 21.5,
+          "report_ms": 5000
+        },
+        {
+          "ioa": 102,
+          "type": "M_ME_NB_1",
+          "value": 100,
+          "report_ms": 10000
+        },
+        {
+          "ioa": 200,
+          "type": "C_SC_NA_1",
+          "value": false,
+          "command_mode": "DIRECT",
+          "related_ioa": 100,
+          "related_io_autoreturn": true
+        },
+        {
+          "ioa": 201,
+          "type": "C_SE_NC_1",
+          "value": 0.0,
+          "command_mode": "SELECT_AND_EXECUTE",
+          "related_ioa": 101,
+          "related_io_autoreturn": true
+        }
+      ]
+    },
+
+    {
+      "ca": 2,
+      "points": [
+        {
+          "ioa": 1000,
+          "type": "M_DP_NA_1",
+          "value": "OFF",
+          "report_ms": 0
+        },
+        {
+          "ioa": 1001,
+          "type": "C_DC_NA_1",
+          "value": "OFF",
+          "command_mode": "DIRECT",
+          "related_ioa": 1000,
+          "related_io_autoreturn": true
+        }
+      ]
+    }
+  ]
+}

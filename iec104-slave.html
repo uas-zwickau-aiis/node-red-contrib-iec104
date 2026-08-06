@@ -24,8 +24,21 @@ RED.nodes.registerType('iec104-slave',{
     const tabs = RED.tabs.create({
       id: "node-config-iec104-tabs",
       onchange: function(tab) {
-        $("#node-config-iec104-tabs-content").children().hide();
-        $("#" + tab.id).show();
+        const $settingsTab = $("#node-config-tab-settings");
+        const $diagnosticsTab = $("#node-config-tab-diagnostics");
+        const $infoBox = $("#node-config-iec104-info");
+
+        $settingsTab.hide();
+        $diagnosticsTab.hide();
+        $infoBox.find(".iec104-help-text").empty();
+
+        if (tab.id === "node-config-tab-settings") {
+          $settingsTab.css("display", "flex");
+          $infoBox.show();
+        } else {
+          $diagnosticsTab.show();
+          $infoBox.hide();
+        }
       }
     });
 
@@ -40,7 +53,7 @@ RED.nodes.registerType('iec104-slave',{
     });
 
     $("#node-config-iec104-tabs-content").children().hide();
-    $("#node-config-tab-settings").show();
+    $("#node-config-tab-settings").css("display", "flex");
 
     const colors = {
       IDLE: "#666",
@@ -82,16 +95,12 @@ RED.nodes.registerType('iec104-slave',{
         $("#node-config-apci-ackseq").text(a.ackSeq);
         $("#node-config-apci-window").text(`${a.unconfirmed}/${a.k}`);
         $("#node-config-apci-ackpending").text(`${a.recvSinceLastAck}/${a.w}`);
-        $("#node-config-cansend")
-          .text(yesNo(a.canSend))
-          .css("color", a.canSend ? "green" : "red");
       } else {
         $("#node-config-apci-sendseq").text("-");
         $("#node-config-apci-recvseq").text("-");
         $("#node-config-apci-ackseq").text("-");
         $("#node-config-apci-window").text("-");
         $("#node-config-apci-ackpending").text("-");
-        $("#node-config-cansend").text("-").css("color", "#666");
       }
 
       if (stats) {
@@ -102,15 +111,10 @@ RED.nodes.registerType('iec104-slave',{
         $("#node-config-frame-utx").text(stats.uTx ?? "-");
         $("#node-config-frame-urx").text(stats.uRx ?? "-");
         $("#node-config-gi-count").text(stats.giCount ?? "-");
-        $("#node-config-spont-count").text(stats.spontaneousSent ?? "-");
-        $("#node-config-t1-timeouts").text(stats.t1Timeouts ?? "-");
-        $("#node-config-t3-timeouts").text(stats.t3Timeouts ?? "-");
         $("#node-config-last-rx").text(fmtTs(stats.lastRxAt));
         $("#node-config-last-tx").text(fmtTs(stats.lastTxAt));
         $("#node-config-last-frame").text(stats.lastFrameType || "-");
         $("#node-config-connected-since").text(fmtTs(stats.connectionStartedAt));
-        $("#node-config-testfr-act-sent").text(stats.testFrActSent ?? "-");
-        $("#node-config-testfr-con-received").text(stats.testFrConReceived ?? "-");
       } else {
         $("#node-config-frame-itx").text("-");
         $("#node-config-frame-irx").text("-");
@@ -119,15 +123,10 @@ RED.nodes.registerType('iec104-slave',{
         $("#node-config-frame-utx").text("-");
         $("#node-config-frame-urx").text("-");
         $("#node-config-gi-count").text("-");
-        $("#node-config-spont-count").text("-");
-        $("#node-config-t1-timeouts").text("-");
-        $("#node-config-t3-timeouts").text("-");
         $("#node-config-last-rx").text("-");
         $("#node-config-last-tx").text("-");
         $("#node-config-last-frame").text("-");
         $("#node-config-connected-since").text("-");
-        $("#node-config-testfr-act-sent").text("-");
-        $("#node-config-testfr-con-received").text("-");
       }
 
       if (timers) {
@@ -169,10 +168,76 @@ RED.nodes.registerType('iec104-slave',{
       });
     };
 
+    const $infoBox = $("#node-config-iec104-info");
+    const $editorLayout = $(".iec104-editor-layout");
+    const resizeNamespace = ".iec104Slave-" + nodeId;
+
+    function resizeEditorLayout() {
+      const $tray = $editorLayout.closest(".red-ui-tray");
+      if (!$tray.length || !$editorLayout.length) return;
+
+      const $footer = $tray.find(".red-ui-tray-footer").first();
+      const layoutTop = $editorLayout.offset().top;
+      let availableBottom = $tray.offset().top + $tray.innerHeight();
+
+      if ($footer.length && $footer.is(":visible")) {
+        availableBottom = $footer.offset().top;
+      }
+
+      $editorLayout.height(Math.max(280, availableBottom - layoutTop - 8));
+    }
+
+    function showParameterInfo(element) {
+      const text = $(element).attr("data-info") || "";
+      const $helpText = $infoBox.find(".iec104-help-text");
+
+      const availableWidth = Math.max(
+        0,
+        Math.floor($infoBox.innerWidth() - 12)
+      );
+
+      $helpText
+        .empty()
+        .css({
+          display: "block",
+          width: availableWidth + "px",
+          maxWidth: availableWidth + "px",
+          minWidth: "0",
+          whiteSpace: "normal",
+          overflowWrap: "anywhere",
+          wordBreak: "break-word"
+        })
+        .text(text);
+    }
+
+    function clearParameterInfo() {
+      $infoBox.find(".iec104-help-text").empty();
+          }
+
+    $(window)
+      .off("resize" + resizeNamespace)
+      .on("resize" + resizeNamespace, resizeEditorLayout);
+
+    setTimeout(resizeEditorLayout, 0);
+    setTimeout(resizeEditorLayout, 150);
+
+    $(".iec104-help-label")
+      .on("mouseenter focus", function () {
+        showParameterInfo(this);
+      })
+      .on("mouseleave blur", function () {
+        clearParameterInfo();
+      });
+
+    this._iec104ResizeNamespace = resizeNamespace;
     this._iec104EventSource = es;
   },
 
   oneditcancel: function () {
+    if (this._iec104ResizeNamespace) {
+      $(window).off("resize" + this._iec104ResizeNamespace);
+      this._iec104ResizeNamespace = null;
+    }
     if (this._iec104EventSource) {
       this._iec104EventSource.close();
       this._iec104EventSource = null;
@@ -180,6 +245,10 @@ RED.nodes.registerType('iec104-slave',{
   },
 
   oneditsave: function () {
+    if (this._iec104ResizeNamespace) {
+      $(window).off("resize" + this._iec104ResizeNamespace);
+      this._iec104ResizeNamespace = null;
+    }
     if (this._iec104EventSource) {
       this._iec104EventSource.close();
       this._iec104EventSource = null;
@@ -236,26 +305,124 @@ RED.nodes.registerType('iec104-slave',{
         width: 70px;
         text-align: right;
     }
+
+
+    .iec104-help-label {
+      cursor: help;
+      user-select: none;
+    }
+
+    .iec104-help-label:focus {
+      outline: 1px dotted currentColor;
+      outline-offset: 2px;
+    }
+
+    .iec104-editor-layout {
+      display: flex;
+      flex-direction: column;
+      min-height: 280px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .iec104-tabs-header {
+      flex: 0 0 auto;
+    }
+
+    #node-config-iec104-tabs-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #node-config-tab-settings {
+      height: 100%;
+      min-height: 0;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .iec104-settings-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 8px;
+      box-sizing: border-box;
+    }
+
+    #node-config-tab-diagnostics {
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 8px;
+      box-sizing: border-box;
+    }
+
+    .iec104-info-box {
+      display: block;
+      flex: 0 0 80px;
+      width: 100%;
+      min-width: 0 !important;
+      max-width: none !important;
+      overflow-x: hidden !important;
+      max-width: 100%;
+      height: 80px;
+      min-height: 80px;
+      max-height: 80px;
+      margin-top: 8px;
+      padding: 7px 6px 4px;
+      border-top: 1px solid #000;
+      background: transparent;
+      color: inherit;
+      font-size: 13px;
+      line-height: 1.35;
+      overflow: hidden;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    .iec104-help-text {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: block;
+      min-width: 0 !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+      box-sizing: border-box;
+    }
   </style>
 
-  <div class="form-row">
+  <div class="iec104-editor-layout">
+  <div class="form-row iec104-tabs-header">
     <ul id="node-config-iec104-tabs" style="min-width:400px; margin-bottom:20px;"></ul>
   </div>
 
-  <div id="node-config-iec104-tabs-content" style="min-height:300px;">
+  <div id="node-config-iec104-tabs-content">
     <!-- Settings tab -->
     <div id="node-config-tab-settings">
+      <div class="iec104-settings-scroll">
 
       <div class="form-row">
         <label for="node-config-input-name">Name</label>
-        <input type="text" id="node-config-input-name">
+        <input type="text" id="node-config-input-name" placeholder="Name">
       </div>
 
+      <hr>
+      <u><h4>TCP</h4></u>
 
       <div class="form-row">
         <label for="node-config-input-port">Port</label>
-        <input type="number" id="node-config-input-port">
+        <input type="number" id="node-config-input-port" placeholder="2404">
       </div>
+
+      <hr>
+      <u><h4>Timer</h4></u>
 
       <div class="form-row">
         <label for="node-config-input-t1">T1</label>
@@ -264,7 +431,7 @@ RED.nodes.registerType('iec104-slave',{
       </div>
 
       <div class="form-row">
-        <label for="node-config-input-t1">T2</label>
+        <label for="node-config-input-t2">T2</label>
         <input type="number" id="node-config-input-t2" style="width:80px;">
         <span style="margin-left:6px;">Sekunden</span>
       </div>
@@ -275,12 +442,40 @@ RED.nodes.registerType('iec104-slave',{
         <span style="margin-left:6px;">Sekunden</span>
       </div>
 
+      <hr>
+      <u><h4>Fensterparameter</h4></u>
+
       <div class="form-row">
-        <label>k/w</label>
-        <input type="number" id="node-config-input-k_win" placeholder="k" style="width:80px; margin-right:5px;">
-        <input type="number" id="node-config-input-w_win" placeholder="w" style="width:80px;">
+        <label for="node-config-input-k_win"
+               class="iec104-help-label"
+               tabindex="0"
+               data-info="Der Parameter K bestimmt die maximal auftretende Differenz zwischen empfangenen und versendeten Telegrammen, die ohne Quittierung der Gegenstelle auftreten darf.&#10;Wenn der Wert erreicht wird, so werden keine weiteren Telegramme versendet und es wird auf eine Quittierung gewartet.">k</label>
+        <input type="number"
+               id="node-config-input-k_win"
+               placeholder="k"
+               min="1"
+               style="width:80px;">
       </div>
 
+      <div class="form-row">
+        <label for="node-config-input-w_win"
+               class="iec104-help-label"
+               tabindex="0"
+               data-info="Der Empfänger sendet spätestens nach einer Anzahl von W empfangenen Telegrammen eine Quittierung.">w</label>
+        <input type="number"
+               id="node-config-input-w_win"
+               placeholder="w"
+               min="1"
+               style="width:80px;">
+      </div>
+
+      </div>
+      <div id="node-config-iec104-info"
+           class="iec104-info-box"
+           role="status"
+           aria-live="polite">
+        <span class="iec104-help-text"></span>
+      </div>
     </div>
     <!-- Diagnostics tab -->
     <div id="node-config-tab-diagnostics">
@@ -311,6 +506,10 @@ RED.nodes.registerType('iec104-slave',{
           <tr>
             <td><span data-i18n="iec104.diag.label.last-frame"></span></td>
             <td id="node-config-last-frame">-</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;">Verbindungstest aktiv</td>
+            <td id="node-config-await-testcon">-</td>
           </tr>
         </tbody>
       </table>
@@ -343,11 +542,6 @@ RED.nodes.registerType('iec104-slave',{
           <tr>
             <td style="padding:4px 0;">Unquittiert empfangen</td>
             <td id="node-config-apci-ackpending" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">Sendefenster frei</td>
-            <td id="node-config-cansend" style="text-align:right;">-</td>
           </tr>
         </tbody>
       </table>
@@ -392,62 +586,24 @@ RED.nodes.registerType('iec104-slave',{
 
           <tr>
             <td style="padding:4px 0;">Anzahl Abfragen</td>
-            <td id="node-config-gi-count" style="text-align:right;">-</td>
+            <td id="node-config-gi-count">-</td>
           </tr>
 
           <tr>
             <td style="padding:4px 0;">Aktiv</td>
-            <td id="node-config-gi-active" style="text-align:right;">-</td>
+            <td id="node-config-gi-active">-</td>
           </tr>
 
           <tr>
             <td style="padding:4px 0;">Aktive Stationsadressen</td>
-            <td id="node-config-gi-cas" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">Spontanmeldungen gesendet</td>
-            <td id="node-config-spont-count" style="text-align:right;">-</td>
-          </tr>
-
-        </tbody>
-      </table>
-
-      <hr>
-      <u><h4><span data-i18n="iec104.diag.label.h-timers"></span></h4></u>
-
-      <table class="iec104-diag-table iec104-diag-values-right">
-        <tbody>
-
-          <tr>
-            <td style="padding:4px 0;">Warte auf TESTFR_CON</td>
-            <td id="node-config-await-testcon" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">T1-Timeouts</td>
-            <td id="node-config-t1-timeouts" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">T3-Timeouts</td>
-            <td id="node-config-t3-timeouts" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">TESTFR_ACT gesendet</td>
-            <td id="node-config-testfr-act-sent" style="text-align:right;">-</td>
-          </tr>
-
-          <tr>
-            <td style="padding:4px 0;">TESTFR_CON empfangen</td>
-            <td id="node-config-testfr-con-received" style="text-align:right;">-</td>
+            <td id="node-config-gi-cas">-</td>
           </tr>
 
         </tbody>
       </table>
     </div>
 
+  </div>
   </div>
 
 </script>

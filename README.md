@@ -2,19 +2,26 @@
 
 Node-RED nodes for **IEC 60870-5-104** (IEC 104) communication.
 
-This package currently implements an IEC 104 **Slave** (Controlled Station) that allows process data from Node-RED flows to be exposed to external IEC 104 masters such as SCADA systems, gateways, test tools, or network control centers.
+This package provides IEC 104 **Slave** (Controlled Station) and **Master** (Controlling Station) functionality for Node-RED.
 
-Support for IEC 104 **Master** (Controlling Station) functionality is planned for future releases.
+The slave allows process data from Node-RED flows to be exposed to external IEC 104 masters such as SCADA systems, gateways, test tools, or network control centers.
+
+The master allows Node-RED to connect to external IEC 104 slaves, receive process data, and send supported control commands.
 
 ## Changelog
+
 Before updating, review the [changelog](CHANGELOG.md) to check for breaking changes.
 
 ## Features
 
+* **IEC 60870-5-104 Slave and Master support**
 * **Expose process values to external SCADA and control systems**
-* **Integrated IEC 60870-5-104 slave with automatic session handling**
+* **Connect to external IEC 104 controlled stations**
+* **Automatic session and connection handling**
 * **General Interrogation and spontaneous reporting**
 * **Support for binary states, double states, measured values and counters**
+* **Single Command support**
+* **Session diagnostics and statistics**
 * **Multi-language user interface (EN / DE)**
 
 ## Installation
@@ -30,53 +37,92 @@ Then restart Node-RED.
 
 ## Quick Start
 
-1. Drag a **Common Address** node and configure the global **IEC 60870-5-104 Slave** and the *Address* field.
-2. Add one or more data point (**Single Point**, **Double Point**, **Measured Value**, **Integrated Total**) and wire their outputs into the Common Address Node.
-3. Feed process values into the data point nodes via `msg.payload`.
-4. Connect an IEC 104 master (SCADA, control system, or test client) to the configured TCP port.
+### IEC 104 Slave
+
+1. Drag a **Common Address** node into the flow and configure the global **IEC 60870-5-104 Slave** and the common address.
+2. Add one or more data point nodes such as **Single Point**, **Double Point**, **Measured Value**, or **Integrated Total**.
+3. Connect the data point nodes to the Common Address node.
+4. Feed process values into the data point nodes via `msg.payload`.
+5. Connect an external IEC 104 master, such as a SCADA system, control system, or test client, to the configured TCP port.
+
+### IEC 104 Master
+
+1. Drag a **Common Address** node into the flow and configure the global **IEC 60870-5-104 Master** and the common address of the remote station.
+2. Configure the host, port, protocol timers, and connection settings of the Master.
+3. Add an **Observer** node to receive process values, protocol events, connection state changes, and communication errors.
+4. Add one or more command nodes, such as **Single Command**, and connect them to the Master Common Address node.
+5. Feed command values into the command nodes via `msg.payload`.
+6. Deploy the flow to connect to the configured IEC 104 slave.
 
 ## Nodes
 
-### IEC 60870-5-104 Slave (Global config node)
+## Slave Nodes
 
-Creates an IEC 104 Slave (Controlled Station) and listens for incoming master connections. The node maintains a process image of all configured information objects and automatically responds to General Interrogation requests.
+### IEC 60870-5-104 Slave
 
-| Config | Description     |
-| ------ | --------------- |
-| Port   | TCP listen port |
-| T1     | Maximum time to wait for acknowledgment of sent data |
-| T2     | NOT YET IMPLEMENTED |
-| T3     | Maximum idle time before sending a connection test (TESTFR) |
+Creates an IEC 104 Slave (Controlled Station) and listens for incoming master connections.
 
+The node maintains the IEC 104 session, handles protocol timers and connection state, and manages a process image of all configured information objects. It automatically responds to General Interrogation requests and supports spontaneous transmission of process values.
+
+The Slave is configured through a global configuration node. Its settings include the TCP listen port and the relevant IEC 104 protocol timers.
+
+### Slave Data Point Nodes
+
+The following data point nodes can be used to expose process values through the IEC 104 Slave:
+
+| Node | Description |
+| ---- | ----------- |
+| `iec104-singlepoint` | Single Point Information (`M_SP_*`) |
+| `iec104-doublepoint` | Double Point Information (`M_DP_*`) |
+| `iec104-measuredvalue` | Measured Values (`M_ME_*`) |
+| `iec104-integratedTotal` | Integrated Totals (`M_IT_*`) |
+
+## Master Nodes
+
+### IEC 60870-5-104 Master
+
+Creates an IEC 104 Master (Controlling Station) and connects to an external IEC 104 Slave.
+
+The node manages the TCP connection, IEC 104 session state, sequence counters, acknowledgments, protocol timers, and connection recovery.
+
+The Master is configured through a global configuration node. Its settings include the remote host, TCP port, IEC 104 protocol timers, and connection-related options.
+
+### Master Command Nodes
+
+The following command nodes can be used to send control commands to a connected IEC 104 Slave:
+
+| Node | Description |
+| ---- | ----------- |
+| `iec104-singlecommand` | Single Command (`C_SC_*`) |
+
+Additional command types are planned for future releases.
+
+## Shared Nodes
 
 ### Common Address
 
-Associates information objects with an IEC 104 Common Address (CA). The node forwards incoming data points to the configured IEC 60870-5-104 Slave and automatically adds the configured Common Address.
-This node acts as the connection between information objects and the IEC 104 Slave.
+Associates information objects or commands with an IEC 60870-5-104 Common Address (CA).
 
+The node acts as the interface between IEC 104 nodes and the configured global connection.
+
+- When used with an **IEC 104 Slave**, it groups information objects under a Common Address and forwards process values to the slave.
+- When used with an **IEC 104 Master**, it associates outgoing commands with the Common Address of the remote station and forwards them to the master.
 
 ### Observer
 
-Subscribes to events generated by an IEC 60870-5-104 Slave.
-- Output 1 emits protocol and data events received from the associated IEC 104 Slave
-- Output 2 emits status and error events, including connection state changes and communication errors.
+Subscribes to events generated by an IEC 60870-5-104 connection.
 
-This node is primarily intended for diagnostics, monitoring, and debugging IEC 104 communication.
+Depending on whether it is associated with a Slave or a Master, the Observer provides:
 
-### Data Point Nodes
+- **Output 1:** Protocol events and transmitted or received IEC 104 data.
+- **Output 2:** Connection state changes, session statistics, and communication errors.
 
-| Node | Description |
-|--------|--------|
-| iec104-singlepoint | Single Point Information (`M_SP_*`) |
-| iec104-doublepoint | Double Point Information (`M_DP_*`) |
-| iec104-measuredvalue | Measured Values (`M_ME_*`) |
-| iec104-integratedTotal | Integrated Totals (`M_IT_*`) |
+The Observer is intended for diagnostics, monitoring, and debugging IEC 104 communication.
+
 
 ## Roadmap
 
 Planned functionality includes:
-
-* IEC 104 Master (Controlling Station)
 * Command handling (`C_SC`, `C_DC`, `C_SE`, ...)
 * Multiple station support
 * Enhanced diagnostics and monitoring

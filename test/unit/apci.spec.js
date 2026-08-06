@@ -135,15 +135,15 @@ describe("APCI", () => {
     it("can send while k is not reached", () => {
       const apci = new APCI({ k: 2 });
 
-      assert.strictEqual(apci.canSend(), true);
+      assert.strictEqual(apci.hasSendWindow(), true);
 
       apci.buildIFrame(Buffer.alloc(0));
 
-      assert.strictEqual(apci.canSend(), true);
+      assert.strictEqual(apci.hasSendWindow(), true);
 
       apci.buildIFrame(Buffer.alloc(0));
 
-      assert.strictEqual(apci.canSend(), false);
+      assert.strictEqual(apci.hasSendWindow(), false);
     });
 
     it("requires S-frame after w received frames", () => {

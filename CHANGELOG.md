@@ -1,4 +1,25 @@
 # Changelog
+## [0.3.0]
+
+### Added
+
+* Functional IEC 60870-5-104 Master implementation
+* Functional Single Command node
+* Python test server for development and integration testing
+
+### Changed
+
+* Refactored `MasterSession` to extend `BaseSession`, simplifying the session architecture and reducing duplicated code
+* Updated the Global Slave node editor layout
+* Updated the Measured Value node design to match the appearance of other point nodes
+
+### Fixed
+
+* Various stability improvements and internal fixes for the IEC104 Master implementation
+
+### Migration Notes
+
+No migration steps are required.
 
 
 ## [0.2.0]

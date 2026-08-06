@@ -12,6 +12,9 @@ RED.nodes.registerType("iec104-singlecommand", {
         ioa0: { value: 0, validate: window.iec104Editor.byteValidator },
         ioa1: { value: 0, validate: window.iec104Editor.byteValidator },
         ioa2: { value: 0, validate: window.iec104Editor.byteValidator },
+
+        objType: { value: "C_SC_NA_1" },
+        tsSource: { value: "now" },
     },
 
     inputs: 1,
@@ -46,8 +49,8 @@ RED.nodes.registerType("iec104-singlecommand", {
    <div class="form-row">
     <label for="node-input-objType"><span data-i18n="iec104.settings.general.label-type"></label>
     <select id="node-input-objType">
-      <option value="M_SP_NA_1">C_SC_NA_1</option>
-      <option value="M_SP_TB_1">C_SC_TA_1 (CP56)</option>
+      <option value="C_SC_NA_1">C_SC_NA_1</option>
+      <option value="C_SC_TA_1">C_SC_TA_1 (CP56)</option>
     </select>
   </div>
   <div class="ioa-input">

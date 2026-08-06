@@ -15,7 +15,7 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     const node = this;
 
-    const meType = String(config.meType || "M_ME_NC_1");
+    const objType = String(config.objType || "M_ME_NC_1");
     const tsSource = String(config.tsSource || "now");
 
     const qualityModes = {
@@ -44,13 +44,13 @@ module.exports = function (RED) {
       }
 
       const payload = {
-        type: meType,
+        type: objType,
         ioa,
         value,
         qds: buildQuality(msg, qualityModes, ["iv", "sb", "bl", "nt", "ov"])
       };
 
-      applyTimestamp(payload, TYPES[meType], TIME, tsSource, msg);
+      applyTimestamp(payload, TYPES[objType], TIME, tsSource, msg);
 
       msg.payload = payload;
       send(msg);

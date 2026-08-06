@@ -3,6 +3,7 @@ const StatusPublisher = require("./lib/core/statusPublisher");
 const TcpClient = require("./lib/tcp/client");
 const IEC104 = require("./lib/core/constants");
 const registerRoutes = require("./lib/admin/routes");
+const { isValidPoint } = require("./lib/core/validators");
 
 module.exports = function (RED) {
     registerRoutes(RED);
@@ -14,6 +15,7 @@ module.exports = function (RED) {
         node.host = config.host;
         node.port = Number(config.port);
         node.t1 = Number(config.t1) * 1000;
+        node.t2 = Number(config.t2) * 1000;
         node.t3 = Number(config.t3) * 1000;
         node.k = Number(config.k_win);
         node.w = Number(config.w_win);
@@ -35,17 +37,19 @@ module.exports = function (RED) {
                 emitData(data);
             },
 
-            onStateChange: (s, msg) => {
-                node.statusPub.publish(s, msg);
+            onStateChange: (state, reason) => {
+                node.statusPub.publishState(state, reason);
 
-                if (s === "DATA_TRANSFER" && node.autoGI) {
+                if (state === IEC104.STATE.DATA_TRANSFER && node.autoGI) {
                     node.session.sendInterrogation(node.giCA);
                 }
             },
 
-            onStatus: (s, msg) => node.statusPub.publish(s, msg),
+            onStats: () => {
+                node.statusPub.publishStats();
+            },
 
-            onSessionSummary: summary => {
+            onSessionStop: summary => {
                 node.emit("iec104:status", {
                     topic: "iec104/session-summary",
                     payload: summary,
@@ -62,8 +66,15 @@ module.exports = function (RED) {
             },
 
             onPoint: point => {
-                if (point && point.ca !== undefined && point.ioa !== undefined) {
-                    node.processImage.set(`${point.ca}:${point.ioa}`, point);
+                if (
+                    point &&
+                    point.ca !== undefined &&
+                    point.ioa !== undefined
+                ) {
+                    node.processImage.set(
+                        `${point.ca}:${point.ioa}`,
+                        point
+                    );
                 }
 
                 node.emit("iec104:point", {
@@ -76,9 +87,7 @@ module.exports = function (RED) {
             onGIStart: ca => {
                 node.emit("iec104:status", {
                     topic: "iec104/gi-start",
-                    payload: {
-                        ca
-                    },
+                    payload: { ca },
                     ts: Date.now()
                 });
             },
@@ -86,7 +95,10 @@ module.exports = function (RED) {
             onGIEnd: ca => {
                 const snapshot = Array
                     .from(node.processImage.values())
-                    .filter(p => ca === IEC104.CA.BROADCAST || p.ca === ca)
+                    .filter(point =>
+                        ca === IEC104.CA.BROADCAST ||
+                        point.ca === ca
+                    )
                     .sort((a, b) => a.ioa - b.ioa);
 
                 node.emit("iec104:gi-complete", {
@@ -99,11 +111,8 @@ module.exports = function (RED) {
                 });
             },
 
-            onConnectionLost: reason => {
-                node.session.stop(reason);
-            },
-
             t1: node.t1,
+            t2: node.t2,
             t3: node.t3,
             k: node.k,
             w: node.w
@@ -126,7 +135,7 @@ module.exports = function (RED) {
             },
 
             onError: err => {
-                node.statusPub.publish("IDLE", err?.message || "tcp error");
+                node.statusPub.publishState("IDLE", err?.message || "tcp error");
             }
         });
 
@@ -151,7 +160,12 @@ module.exports = function (RED) {
                 return;
             }
 
-            node.warn("Unsupported IEC104 client input");
+            if (!isValidPoint(payload)) {
+                node.error("Invalid IEC104 point");
+                return;
+            }
+
+            node.session.sendPoint(payload, IEC104.COT.ACT);
         });
 
         node.on("close", function (done) {
