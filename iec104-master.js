@@ -14,7 +14,7 @@ module.exports = function (RED) {
 
         node.host = config.host;
         node.port = Number(config.port);
-        node.t0 = Number(config.t0 || 30000);
+        node.t0 = Number(config.t0) * 1000;
         node.t1 = Number(config.t1) * 1000;
         node.t2 = Number(config.t2) * 1000;
         node.t3 = Number(config.t3) * 1000;
@@ -23,7 +23,7 @@ module.exports = function (RED) {
 
         node.autoGI = config.autoGI === true || config.autoGI === "true";
         node.giCA = Number(config.gi_ca || IEC104.CA.BROADCAST);
-        node.reconnectDelay = Number(config.reconnectDelay || 5000);
+        node.reconnectDelay = Number(config.reconnectDelay) * 1000;
         node.maxRetries = Number(config.maxRetries ?? 10);
 
         node.processImage = new Map();

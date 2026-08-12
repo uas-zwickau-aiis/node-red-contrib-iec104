@@ -7,11 +7,14 @@ RED.nodes.registerType('iec104-master',{
     port: {value: 2404, required: true, validate: RED.validators.number()},
     autoGI: {value: true},
     gi_ca: {value: 65535, required: true, validate: RED.validators.number()},
+    t0: { value: 30, required: true, validate: RED.validators.number()},
     t1: { value: 15, required: true, validate: RED.validators.number()},
     t2: { value: 10, required: true, validate: RED.validators.number()},
     t3: { value: 20, required: true, validate: RED.validators.number()},
     k_win: { value: 12, required: true, validate: RED.validators.number()},
-    w_win: { value: 8, required: true, validate: RED.validators.number()}
+    w_win: { value: 8, required: true, validate: RED.validators.number()},
+    reconnectDelay: { value: 5, required: true, validate: RED.validators.number()},
+    maxRetries: { value: 10, required: true, validate: RED.validators.number()}
   },
   label: function() {
     return this.name || "IEC 60870-5-104 Master";
@@ -397,6 +400,18 @@ RED.nodes.registerType('iec104-master',{
             <input type="number" id="node-config-input-port" placeholder="2404">
           </div>
 
+          <div class="form-row">
+            <label for="node-config-input-reconnectDelay">Wartezeit</label>
+            <input type="number" id="node-config-input-reconnectDelay" min="0" style="width:80px;">
+            <span style="margin-left:6px;">Sekunden</span>
+          </div>
+
+          <div class="form-row">
+            <label for="node-config-input-maxRetries">Versuche</label>
+            <input type="number" id="node-config-input-maxRetries" min="-1" style="width:80px;">
+            <span style="margin-left:6px;">-1 = unbegrenzt</span>
+          </div>
+
           <hr>
           <u><h4>General Interrogation</h4></u>
 
@@ -415,19 +430,29 @@ RED.nodes.registerType('iec104-master',{
           <u><h4>Timer</h4></u>
 
           <div class="form-row">
-            <label for="node-config-input-t1">T1</label>
+            <label for="node-config-input-t0" class="iec104-help-label" tabindex="0"
+                   data-info="T0 ist die Überwachungszeit für den Aufbau der Netzwerkverbindung zum Server.">T0</label>
+            <input type="number" id="node-config-input-t0" style="width:80px;">
+            <span style="margin-left:6px;">Sekunden</span>
+          </div>
+
+          <div class="form-row">
+            <label for="node-config-input-t1" class="iec104-help-label" tabindex="0"
+                   data-info="Der Parameter T1 bestimmt die Zeitüberwachung für gesendete APDU oder Test-APDU. Der Wert sollte größer als Parameter T2 eingestellt werden.">T1</label>
             <input type="number" id="node-config-input-t1" style="width:80px;">
             <span style="margin-left:6px;">Sekunden</span>
           </div>
 
           <div class="form-row">
-            <label for="node-config-input-t2">T2</label>
+            <label for="node-config-input-t2" class="iec104-help-label" tabindex="0"
+                   data-info="Der Parameter T2 bestimmt die Zeit, nach der Datentelegramme spätestens quittiert werden, falls keine unmittelbaren Folgetelegramme übertragen werden und die Differenz von Parameter K noch nicht erreicht ist. Der Wert sollte kleiner als T1 eingestellt werden.">T2</label>
             <input type="number" id="node-config-input-t2" style="width:80px;">
             <span style="margin-left:6px;">Sekunden</span>
           </div>
 
           <div class="form-row">
-            <label for="node-config-input-t3">T3</label>
+            <label for="node-config-input-t3" class="iec104-help-label" tabindex="0"
+                   data-info="Der Parameter T3 bestimmt die Zeit, nach der und in welchem Intervall bei Verbindungsaktivität Testtelegramme zur Verbindungsüberprüfung gesendet werden.">T3</label>
             <input type="number" id="node-config-input-t3" style="width:80px;">
             <span style="margin-left:6px;">Sekunden</span>
           </div>
@@ -437,13 +462,13 @@ RED.nodes.registerType('iec104-master',{
 
           <div class="form-row">
             <label for="node-config-input-k_win" class="iec104-help-label" tabindex="0"
-                   data-info="Der Parameter K bestimmt die maximal auftretende Differenz zwischen empfangenen und versendeten Telegrammen, die ohne Quittierung der Gegenstelle auftreten darf.&#10;Wenn der Wert erreicht wird, so werden keine weiteren Telegramme versendet und es wird auf eine Quittierung gewartet.">k</label>
+                   data-info="Der Parameter K bestimmt die maximal auftretende Differenz zwischen empfangenen und versendeten Telegrammen, die ohne Quittierung der Gegenstelle auftreten darf.&#10;Wenn der Wert erreicht wird, so werden keine weiteren Telegramme versendet und es wird auf eine Quittierung gewartet.">K</label>
             <input type="number" id="node-config-input-k_win" placeholder="k" min="1" style="width:80px;">
           </div>
 
           <div class="form-row">
             <label for="node-config-input-w_win" class="iec104-help-label" tabindex="0"
-                   data-info="Der Empfänger sendet spätestens nach einer Anzahl von W empfangenen Telegrammen eine Quittierung.">w</label>
+                   data-info="Der Empfänger sendet spätestens nach einer Anzahl von W empfangenen Telegrammen eine Quittierung.">W</label>
             <input type="number" id="node-config-input-w_win" placeholder="w" min="1" style="width:80px;">
           </div>
         </div>
