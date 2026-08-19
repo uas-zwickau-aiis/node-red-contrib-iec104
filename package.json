@@ -31,6 +31,7 @@
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
+      "iec104-doublecommand": "iec104-doublecommand.js",
       "iec104-doublepoint": "iec104-doublepoint.js",
       "iec104-integratedtotal": "iec104-integratedtotal.js",
       "iec104-master": "iec104-master.js",
@@ -48,5 +49,8 @@
     "fast-check": "^4.6.0",
     "mocha": "^11.7.5",
     "sinon": "^21.1.2"
+  },
+  "dependencies": {
+    "hdr-histogram-js": "^3.0.1"
   }
 }

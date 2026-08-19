@@ -1,0 +1,218 @@
+Linux 6.12.101+deb13-amd64 (iec-sut-small) 	18.08.2026 	_x86_64_	(2 CPU)
+
+13:15:29      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:30     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:29      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:30     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:30      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:31     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:30      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:31     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:31      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:32     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:31      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:32     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:32      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:33     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:32      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:33     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:33      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:34     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:33      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:34     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:34      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:35     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:34      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:35     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:35      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:36     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:35      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:36     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:36      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:37     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:36      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:37     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:37      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:38     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:37      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:38     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:38      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:39     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:38      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:39     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:39      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:40     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:39      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:40     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:40      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:41     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:40      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:41     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:41      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:42     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:41      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:42     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:42      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:43     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:42      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:43     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:43      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:44     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:43      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:44     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:44      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:45     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:44      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:45     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:45      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:46     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:45      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:46     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:46      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:47     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:46      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:47     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:47      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:48     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:47      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:48     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:48      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:49     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:48      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:49     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:49      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:50     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:49      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:50     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:50      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:51     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:50      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:51     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:51      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:52     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:51      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:52     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:52      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:53     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:52      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:53     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:53      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:54     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:53      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:54     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:54      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:55     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:54      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:55     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:55      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:56     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:55      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:56     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:56      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:57     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:56      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:57     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:57      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:58     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:57      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:58     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:58      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:15:59     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:58      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:15:59     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:15:59      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:16:00     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:15:59      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:16:00     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:16:00      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:16:01     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:16:00      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:16:01     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:16:01      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:16:02     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:16:01      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:16:02     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:16:02      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:16:03     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:16:02      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:16:03     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+13:16:03      UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+13:16:04     1001      1948    0,00    0,00    0,00    0,00    0,00     0  node-red
+
+13:16:03      UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+13:16:04     1001      1948      0,00      0,00 1788960  127312   6,30  node-red
+
+
+Durchschn.:   UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+Durchschn.:  1001      1948    0,00    0,00    0,00    0,00    0,00     -  node-red
+
+Durchschn.:   UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+Durchschn.:  1001      1948      0,00      0,00 1788960  127312   6,30  node-red
