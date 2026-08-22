@@ -1,13 +1,11 @@
 {
   "name": "node-red-contrib-iec104",
-  "version": "0.2.0",
-  "description": "Node-RED nodes for IEC 60870-5-104 (IEC 104) communication – virtual controlled station with support for single-point, double-point, integrated totals, and measured values.",
+  "version": "0.2.2",
+  "description": "Node-RED nodes for IEC 60870-5-104 (IEC 104) communication",
   "keywords": [
     "node-red",
     "iec104",
     "IEC 60870-5-104",
-    "scada",
-    "rtu",
     "telecontrol"
   ],
   "author": "Arbeitskreis integrierte Informationssyteme <aiis@whz.de>",
@@ -26,7 +24,8 @@
   "scripts": {
     "test": "mocha \"test/**/*.spec.js\"",
     "test:unit": "mocha \"test/unit/**/*.spec.js\"",
-    "test:integration": "mocha \"test/integration/**/*.spec.js\""
+    "test:integration": "mocha \"test/integration/**/*.spec.js\"",
+    "coverage": "nyc --reporter=text --reporter=html npm test"
   },
   "node-red": {
     "version": ">=2.0.0",
@@ -48,6 +47,7 @@
     "chai": "^6.2.2",
     "fast-check": "^4.6.0",
     "mocha": "^11.7.5",
+    "nyc": "^18.0.0",
     "sinon": "^21.1.2"
   },
   "dependencies": {
