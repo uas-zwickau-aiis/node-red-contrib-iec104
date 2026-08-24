@@ -199,24 +199,25 @@ describe("IECTimers", () => {
     assert.strictEqual(onT3.calledOnce, true);
   });
 
-  it("restarts T3 when startT3 is called again", async () => {
-    const onT3 = sinon.spy();
+  it("does not start T3 twice", async () => {
+      const onT3 = sinon.spy();
 
-    const timers = new IECTimers({
-      t3: 20000,
-      onT3
-    });
+      const timers = new IECTimers({
+        t3: 20000,
+        onT3
+      });
 
-    timers.startT3();
+      timers.startT3();
 
-    await clock.tickAsync(10000);
-    timers.startT3();
+      await clock.tickAsync(10000);
 
-    await clock.tickAsync(19999);
-    assert.strictEqual(onT3.called, false);
+      timers.startT3(); // ignored
 
-    await clock.tickAsync(1);
-    assert.strictEqual(onT3.calledOnce, true);
+      await clock.tickAsync(9999);
+      assert.strictEqual(onT3.called, false);
+
+      await clock.tickAsync(1);
+      assert.strictEqual(onT3.calledOnce, true);
   });
 
   it("resets T3", async () => {

@@ -1,0 +1,95 @@
+<script src="resources/node-red-contrib-iec104/iec104-editor.js"></script>
+
+<script type="text/javascript">
+RED.nodes.registerType("iec104-doublecommand", {
+    category: "IEC 104",
+    color: "#e3c468",
+
+    defaults: {
+        name: { value: "" },
+
+        ioaFromMsg: { value: false },
+        ioa0: { value: 0, validate: window.iec104Editor.byteValidator },
+        ioa1: { value: 0, validate: window.iec104Editor.byteValidator },
+        ioa2: { value: 0, validate: window.iec104Editor.byteValidator },
+
+        objType: { value: "C_DC_NA_1" },
+        tsSource: { value: "now" },
+    },
+
+    inputs: 1,
+    outputs: 1,
+    icon: "serial.svg",
+
+    paletteLabel: function () {
+        return this._("iec104.paletteLabel");
+    },
+
+    label: function () {
+        return window.iec104Editor.labelWithIoa(
+            this,
+            this._("iec104.label")
+        );
+    },
+
+    oneditprepare: function () {
+        window.iec104Editor.initIoaEditor();
+    }
+});
+</script>
+
+<script type="text/html" data-template-name="iec104-doublecommand">
+  <div class="form-row">
+    <label for="node-input-name"></i>Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+ 
+  <hr>
+  <u><h4><span data-i18n="iec104.settings.general.label"></span></h4></u>
+   <div class="form-row">
+    <label for="node-input-objType"><span data-i18n="iec104.settings.general.label-type"></label>
+    <select id="node-input-objType">
+      <option value="C_DC_NA_1">C_DC_NA_1</option>
+      <option value="C_DC_TA_1">C_DC_TA_1 (CP56)</option>
+    </select>
+  </div>
+  <div class="ioa-input">
+    <div class="form-row">
+      <label><span data-i18n="iec104.settings.general.label-ioa"></span></label>
+      <input type="number" id="node-input-ioa0" min="0" max="255" placeholder="b0" style="width:60px; margin-right:5px;">
+      <input type="number" id="node-input-ioa1" min="0" max="255" placeholder="b1" style="width:60px; margin-right:5px;">
+      <input type="number" id="node-input-ioa2" min="0" max="255" placeholder="b2" style="width:60px;">
+    </div>
+    <div class="form-row">
+      <label>&nbsp;</label>
+      <input type="checkbox"
+            id="node-input-ioaFromMsg"
+            style="display:inline-block; width:auto; vertical-align:top;">
+            
+      <label for="node-input-ioaFromMsg"
+            style="width:70%;">
+            <span data-i18n="iec104.settings.general.label-ioa-box"></span>
+      </label>
+    </div>
+    <div class="form-row">
+      <div id="node-ioa-preview" class="form-tips" style="width:auto;">
+        IOA: 0 | Hex: 0x000000
+      </div>
+    </div>
+  </div>
+
+  <hr>
+  <u><h4><span data-i18n="iec104.settings.status.label"></span></h4></u>
+
+  <hr>
+  <u><h4><span data-i18n="iec104.settings.exec.label"></span></h4></u>
+  <div class="form-row">
+    <label for="node-input-tsSource"><span data-i18n="iec104.settings.exec.time"></label>
+    <select id="node-input-tsSource">
+      <option value="now"><span data-i18n="iec104.settings.exec.time-now"></option>
+      <option value="msg"><span data-i18n="iec104.settings.exec.time-msg"></option>
+    </select>
+  </div>
+
+  <hr>
+</script>

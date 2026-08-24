@@ -1,0 +1,24 @@
+{
+  "iec104": {
+    "label": "Doppelbefehl",
+    "paletteLabel": "Doppelbefehl",
+    "settings": {
+      "general": {
+        "label": "Allgemeine Objekteinstellungen",
+        "label-ioa": "Adresse",
+        "label-ioa-box": "Aus msg.ioa übernehmen",
+        "label-type": "Typ"
+      },
+      "exec": {
+        "label": "Ausführungsinformationen",
+        "time": "Zeitquelle",
+        "time-msg": "Aus msg.ts übernehmen",
+        "time-now": "Aktuelle Zeit"
+      },
+      "status": {
+        "label": "Status- und Eventinformationen"
+      }
+    }
+   
+  }
+}

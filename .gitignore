@@ -18,3 +18,8 @@ node_modules/
 # Local Documentation
 docs/
 TODO.md
+
+# nyc Coverage
+
+coverage/
+.nyc_output/
