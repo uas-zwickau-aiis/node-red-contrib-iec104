@@ -1,5 +1,32 @@
 # Changelog
-## [0.3.0]
+## [0.3.1] - 24.08.2026
+
+### Added
+
+* Double Command support
+* Benchmark tab for performance testing
+* Configurable TCP reconnect settings for the IEC 60870-5-104 Master
+* `nyc` package for improved test coverage
+
+### Changed
+
+* Refactored Master connection state handling by introducing the `STOPPING` state and removing the `STOPPED` state
+* Updated Master state transitions to improve automatic reconnection behavior
+* Refactored T3 timer start and reset handling to match the behavior of other IEC 104 timers
+
+### Fixed
+
+* Improved automatic Master reconnection after TCP connection loss
+* Prevented duplicate socket cleanup during Master reconnection
+* Fixed timestamp handling for measured value ASDUs
+* Improved overall Master connection stability
+* Updated `asduBuilder` to use `p.ts` instead of `p.timestamp`
+
+### Migration Notes
+
+No migration steps are required.
+
+## [0.3.0] - 06.08.2026
 
 ### Added
 
@@ -22,7 +49,7 @@
 No migration steps are required.
 
 
-## [0.2.0]
+## [0.2.0] - 25.06.2026
 ### Added
 * Initial IEC 60870-5-104 Master foundation (not yet functional)
 * Initial Single Command node (not yet functional)
@@ -43,7 +70,7 @@ No migration steps are required.
 
 No migration steps are required. The IEC104 Master and Single Command node are provided as initial scaffolding and are not yet operational.
 
-## [0.1.1]
+## [0.1.1] - 11.06.2026
 
 ### Fixed
 
@@ -56,7 +83,7 @@ No migration steps are required. The IEC104 Master and Single Command node are p
 Due to the filename changes, existing node instances may no longer be recognized by Node-RED. If affected, remove the old nodes from your flows and add the updated versions again.
 
 
-## [0.1.0]
+## [0.1.0] - 09.06.2026
 
 ### Added
 
