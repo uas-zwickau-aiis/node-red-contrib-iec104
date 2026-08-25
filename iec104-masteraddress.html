@@ -20,24 +20,19 @@ RED.nodes.registerType('iec104-masteraddress',{
     },
 
     inputs: 1,
-    outputs: 0,
-
     icon: "bridge.svg",
+    align: "right",
 
     paletteLabel: function() {
-        return "IEC104 Master Address";
+      return this._("iec104.paletteLabel");
     },
-
     label: function () {
+      if (this.name) return this.name;
 
-        if (this.name) {
-            return this.name;
-        }
+      const gwNode = RED.nodes.node(this.connection);
+      const gwName = gwNode?.name || this._("iec104.label");
 
-        const masterNode = RED.nodes.node(this.connection);
-        const masterName = masterNode?.name || "IEC104 Master";
-
-        return `${masterName} [${this.ca_hi}, ${this.ca_lo}]`;
+      return `${gwName} [${this.ca_hi}, ${this.ca_lo}]`;
     },
 
     oneditprepare: function () {

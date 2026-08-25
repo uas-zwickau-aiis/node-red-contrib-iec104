@@ -1,7 +1,7 @@
 {
   "iec104": {
     "label": "Einzelmeldung",
-    "paletteLabel": "Einzelmeldung",
+    "paletteLabel": "Einzelmeld.",
     "settings": {
       "general": {
         "label": "Allgemeine Objekteinstellungen",

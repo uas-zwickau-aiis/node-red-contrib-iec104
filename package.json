@@ -25,7 +25,7 @@
     "test": "mocha \"test/**/*.spec.js\"",
     "test:unit": "mocha \"test/unit/**/*.spec.js\"",
     "test:integration": "mocha \"test/integration/**/*.spec.js\"",
-    "coverage": "nyc --all --reporter=text --reporter=html npm test"
+    "coverage": "nyc --all --reporter=text --reporter=html npm run test:unit"
   },
   "node-red": {
     "version": ">=2.0.0",
@@ -35,6 +35,7 @@
       "iec104-integratedtotal": "iec104-integratedtotal.js",
       "iec104-master": "iec104-master.js",
       "iec104-masteraddress": "iec104-masteraddress.js",
+      "iec104-masterobserver": "iec104-masterobserver.js",
       "iec104-measuredvalue": "iec104-measuredvalue.js",
       "iec104-singlecommand": "iec104-singlecommand.js",
       "iec104-singlepoint": "iec104-singlepoint.js",

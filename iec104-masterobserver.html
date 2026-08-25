@@ -1,0 +1,79 @@
+<script type="text/javascript">
+RED.nodes.registerType('iec104-masterobserver',{
+  category: 'IEC 104',
+  color: '#e3c468',
+
+  defaults: {
+    name: {
+      value: ""
+    },
+
+    connection: {
+      type: "iec104-master",
+      required: true
+    }
+  },
+
+  inputs: 0,
+  outputs: 2,
+
+  outputLabels: [
+    "Data",
+    "Status"
+  ],
+
+  icon: "font-awesome/fa-eye",
+
+  paletteLabel: function() {
+    return this._("iec104.paletteLabel");
+  },
+
+  label: function () {
+    if (this.name) {
+      return this.name;
+    }
+
+    const masterNode =
+      RED.nodes.node(this.connection);
+
+    const baseLabel =
+      this._("iec104.label");
+
+    if (masterNode && masterNode.name) {
+      return `${baseLabel} [${masterNode.name}]`;
+    }
+
+    return `${baseLabel}`;
+  }
+});
+</script>
+
+
+<script
+  type="text/html"
+  data-template-name="iec104-masterobserver"
+>
+
+  <div class="form-row">
+    <label for="node-input-name">
+      Name
+    </label>
+
+    <input
+      type="text"
+      id="node-input-name"
+    >
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection">
+      IEC 60870-5-104 Master
+    </label>
+
+    <input
+      type="text"
+      id="node-input-connection"
+    >
+  </div>
+
+</script>
