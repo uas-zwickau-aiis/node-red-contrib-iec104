@@ -234,7 +234,7 @@ module.exports = function (RED) {
         // Data Event
         // ==========================================
 
-        function emitData(asdu, msg = null) {
+        function emitData(asdu, msg) {
             msg ??= {};
 
             msg.asdu = asdu;

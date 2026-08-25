@@ -2,7 +2,8 @@ const { TYPES } = require("./lib/asdu/types");
 const { TIME } = require("./lib/asdu/time");
 const {
   resolveIoa,
-  applyTimestamp
+  applyTimestamp,
+  normalizeDpi
 } = require("./lib/admin/node-helpers");
 
 module.exports = function (RED) {

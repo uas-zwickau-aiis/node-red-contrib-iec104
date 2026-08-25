@@ -160,7 +160,7 @@ module.exports = function (RED) {
             const payload = msg.payload || {};
 
             if (payload.command === "gi" || payload.type === "gi") {
-                const ca = Number(payload.ca || node.giCA || IEC104.CA.BROADCAST);
+                const ca = Number(payload.ca || node.giCA);
                 const ok = node.session.sendInterrogation(ca);
 
                 if (!ok) {
