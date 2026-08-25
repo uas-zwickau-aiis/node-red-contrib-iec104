@@ -25,7 +25,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: false,
           nt: false,
@@ -65,7 +65,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: true,
@@ -88,7 +88,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality.ov,
+        result.qds.ov,
         false
       );
     });
@@ -108,7 +108,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality.ov,
+        result.qds.ov,
         false
       );
     });
@@ -116,7 +116,7 @@ describe('Decoders', function () {
     it('roundtrips encoded single point', function () {
       const buf = encoders.singlePoint({
         value: true,
-        quality: {
+        qds: {
           iv: true,
           nt: false,
           sb: true,
@@ -133,7 +133,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: false,
@@ -147,7 +147,7 @@ describe('Decoders', function () {
     it('ignores unsupported OV flag during roundtrip', function () {
       const buf = encoders.singlePoint({
         value: false,
-        quality: {
+        qds: {
           ov: true
         }
       });
@@ -161,7 +161,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality.ov,
+        result.qds.ov,
         false
       );
     });
@@ -186,7 +186,7 @@ describe('Decoders', function () {
         );
 
         assert.strictEqual(
-          result.quality.ov,
+          result.qds.ov,
           false
         );
       }
@@ -204,7 +204,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality.ov,
+        result.qds.ov,
         false
       );
     });
@@ -221,7 +221,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: true,
@@ -244,7 +244,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality.ov,
+        result.qds.ov,
         false
       );
     });
@@ -267,7 +267,7 @@ describe('Decoders', function () {
     it('roundtrips encoded double point', function () {
       const buf = encoders.doublePoint({
         value: 3,
-        quality: {
+        qds: {
           iv: true,
           nt: false,
           sb: true,
@@ -286,7 +286,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: false,
@@ -300,7 +300,7 @@ describe('Decoders', function () {
     it('ignores unsupported OV flag during roundtrip', function () {
       const buf = encoders.doublePoint({
         value: 2,
-        quality: {
+        qds: {
           ov: true
         }
       });
@@ -314,7 +314,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality.ov,
+        result.qds.ov,
         false
       );
     });
@@ -425,7 +425,7 @@ describe('Decoders', function () {
         );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: true,
@@ -461,7 +461,7 @@ describe('Decoders', function () {
     it('roundtrips encoded measured scaled value', function () {
       const buf = encoders.measuredScaled({
         value: -1234,
-        quality: {
+        qds: {
           iv: true,
           nt: false,
           sb: true,
@@ -482,7 +482,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: false,
@@ -557,7 +557,7 @@ describe('Decoders', function () {
         );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: true,
@@ -591,7 +591,7 @@ describe('Decoders', function () {
     it('roundtrips encoded measured float value', function () {
       const buf = encoders.measuredFloat({
         value: 12.5,
-        quality: {
+        qds: {
           iv: true,
           nt: false,
           sb: true,
@@ -612,7 +612,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           iv: true,
           nt: false,
@@ -720,7 +720,7 @@ describe('Decoders', function () {
     it('decodes BCR flags and sequence', function () {
       const buf = encoders.integratedTotals({
         value: 42,
-        quality: {
+        qds: {
           iv: true,
           adjusted: true,
           ov: true
@@ -745,7 +745,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           invalid: true,
           adjusted: true,
@@ -757,7 +757,7 @@ describe('Decoders', function () {
     it('decodes cleared BCR flags', function () {
       const buf = encoders.integratedTotals({
         value: 42,
-        quality: {
+        qds: {
           iv: false,
           adjusted: false,
           ov: false
@@ -772,7 +772,7 @@ describe('Decoders', function () {
         );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           invalid: false,
           adjusted: false,
@@ -818,7 +818,7 @@ describe('Decoders', function () {
     it('roundtrips encoded integrated total', function () {
       const buf = encoders.integratedTotals({
         value: -123456,
-        quality: {
+        qds: {
           iv: true,
           adjusted: false,
           ov: true
@@ -843,7 +843,7 @@ describe('Decoders', function () {
       );
 
       assert.deepStrictEqual(
-        result.quality,
+        result.qds,
         {
           invalid: true,
           adjusted: false,
@@ -869,7 +869,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality,
+        result.qds,
         null
       );
 
@@ -1015,7 +1015,7 @@ describe('Decoders', function () {
       );
 
       assert.strictEqual(
-        result.quality,
+        result.qds,
         null
       );
 
@@ -1065,7 +1065,7 @@ describe('Decoders', function () {
           value: true,
           qualifier: 17,
           select: true,
-          quality: null,
+          qds: null,
           size: 1
         }
       );

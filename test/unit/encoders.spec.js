@@ -46,7 +46,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('includes supported quality flags', function () {
       const buf = singlePoint({
         value: true,
-        quality: {
+        qds: {
           iv: true,
           nt: true,
           sb: true,
@@ -63,7 +63,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('roundtrips value and quality flags', function () {
       const buf = singlePoint({
         value: true,
-        quality: {
+        qds: {
           iv: true,
           nt: true,
           sb: false,
@@ -82,7 +82,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
       );
 
       assert.deepStrictEqual(
-        decoded.quality,
+        decoded.qds,
         {
           iv: true,
           nt: true,
@@ -96,7 +96,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('does not let OV modify the single point value', function () {
       const buf = singlePoint({
         value: false,
-        quality: {
+        qds: {
           ov: true
         }
       });
@@ -110,17 +110,17 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('does not encode OV in SIQ', function () {
       const buf = singlePoint({
         value: false,
-        quality: {
+        qds: {
           ov: true
         }
       });
 
-      const quality = parseQDS(
+      const qds = parseQDS(
         buf[0] & 0xF0
       );
 
       assert.strictEqual(
-        quality.ov,
+        qds.ov,
         false
       );
     });
@@ -165,7 +165,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('includes supported quality flags', function () {
       const buf = doublePoint({
         value: 2,
-        quality: {
+        qds: {
           iv: true,
           nt: true,
           sb: true,
@@ -182,7 +182,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('roundtrips value and quality flags', function () {
       const buf = doublePoint({
         value: 3,
-        quality: {
+        qds: {
           iv: true,
           nt: false,
           sb: true,
@@ -201,7 +201,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
       );
 
       assert.deepStrictEqual(
-        decoded.quality,
+        decoded.qds,
         {
           iv: true,
           nt: false,
@@ -215,7 +215,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('does not let OV modify the double point value', function () {
       const buf = doublePoint({
         value: 2,
-        quality: {
+        qds: {
           ov: true
         }
       });
@@ -229,17 +229,17 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('does not encode OV in DIQ', function () {
       const buf = doublePoint({
         value: 0,
-        quality: {
+        qds: {
           ov: true
         }
       });
 
-      const quality = parseQDS(
+      const qds = parseQDS(
         buf[0] & 0xF0
       );
 
       assert.strictEqual(
-        quality.ov,
+        qds.ov,
         false
       );
     });
@@ -293,7 +293,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('includes QDS', function () {
       const buf = measuredScaled({
         value: 1,
-        quality: {
+        qds: {
           ov: true
         }
       });
@@ -307,7 +307,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('roundtrips complete QDS', function () {
       const buf = measuredScaled({
         value: 1234,
-        quality: {
+        qds: {
           iv: true,
           nt: true,
           sb: false,
@@ -322,7 +322,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
       );
 
       assert.deepStrictEqual(
-        decoded.quality,
+        decoded.qds,
         {
           iv: true,
           nt: true,
@@ -415,7 +415,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('includes QDS', function () {
       const buf = measuredFloat({
         value: 1.5,
-        quality: {
+        qds: {
           iv: true
         }
       });
@@ -429,7 +429,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('roundtrips complete QDS', function () {
       const buf = measuredFloat({
         value: 12.5,
-        quality: {
+        qds: {
           iv: true,
           nt: false,
           sb: true,
@@ -444,7 +444,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
       );
 
       assert.deepStrictEqual(
-        decoded.quality,
+        decoded.qds,
         {
           iv: true,
           nt: false,
@@ -559,7 +559,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('encodes BCR flags and sequence', function () {
       const buf = integratedTotals({
         value: 1,
-        quality: {
+        qds: {
           iv: true,
           ov: true
         },
@@ -587,7 +587,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('roundtrips BCR flags and sequence', function () {
       const buf = integratedTotals({
         value: 42,
-        quality: {
+        qds: {
           iv: true,
           adjusted: true
         },
@@ -611,7 +611,7 @@ describe('Encoders (Value + QDS/BCR)', function () {
     it('masks BCR sequence to five bits', function () {
       const buf = integratedTotals({
         value: 1,
-        quality: {},
+        qds: {},
         sequence: 63
       });
 

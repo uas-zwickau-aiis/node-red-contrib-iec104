@@ -218,7 +218,7 @@ describe('ASDU Builder', function () {
         ca: 1,
         ioa: 1,
         value: true,
-        quality: {
+        qds: {
           iv: true,
           nt: true,
           sb: true,
@@ -238,7 +238,7 @@ describe('ASDU Builder', function () {
         ca: 1,
         ioa: 1,
         value: false,
-        quality: {
+        qds: {
           ov: true
         }
       });
@@ -269,7 +269,7 @@ describe('ASDU Builder', function () {
         ca: 1,
         ioa: 1,
         value: -1234,
-        quality: {}
+        qds: {}
       });
 
       assert.strictEqual(
@@ -284,7 +284,7 @@ describe('ASDU Builder', function () {
         ca: 1,
         ioa: 1,
         value: 12.5,
-        quality: {}
+        qds: {}
       });
 
       assert.strictEqual(
@@ -299,7 +299,7 @@ describe('ASDU Builder', function () {
         ca: 1,
         ioa: 1,
         value: 123456,
-        quality: {},
+        qds: {},
         sequence: 3
       });
 

@@ -59,7 +59,7 @@ describe('ASDU Parser', function () {
         ca: 0x1234,
         ioa: 1,
         value: true,
-        quality: {}
+        qds: {}
       }, COT.SPONT);
 
       const result = parseASDU(
@@ -90,7 +90,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 0x010203,
         value: true,
-        quality: {}
+        qds: {}
       });
 
       const result = parseASDU(
@@ -169,7 +169,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 0xFFFFFF,
         value: true,
-        quality: {}
+        qds: {}
       });
 
       const result = parseASDU(
@@ -259,12 +259,12 @@ describe('ASDU Parser', function () {
       );
 
       assert.strictEqual(
-        result.objects[0].quality.iv,
+        result.objects[0].qds.iv,
         true
       );
 
       assert.strictEqual(
-        result.objects[1].quality.iv,
+        result.objects[1].qds.iv,
         false
       );
     });
@@ -277,7 +277,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 10,
         value: 2,
-        quality: {}
+        qds: {}
       });
 
       const result = parseASDU(
@@ -296,7 +296,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 10,
         value: -1234,
-        quality: {}
+        qds: {}
       });
 
       const result = parseASDU(
@@ -315,7 +315,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 10,
         value: 12.5,
-        quality: {}
+        qds: {}
       });
 
       const result = parseASDU(
@@ -334,7 +334,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 10,
         value: 123456,
-        quality: {},
+        qds: {},
         sequence: 4
       });
 
@@ -400,7 +400,7 @@ describe('ASDU Parser', function () {
         ca: 12,
         ioa: 345,
         value: true,
-        quality: {
+        qds: {
           iv: true,
           sb: true
         }
@@ -446,12 +446,12 @@ describe('ASDU Parser', function () {
       );
 
       assert.strictEqual(
-        result.objects[0].quality.iv,
+        result.objects[0].qds.iv,
         true
       );
 
       assert.strictEqual(
-        result.objects[0].quality.sb,
+        result.objects[0].qds.sb,
         true
       );
     });
@@ -464,7 +464,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 1,
         value: true,
-        quality: {},
+        qds: {},
         ts
     };
 
@@ -498,7 +498,7 @@ describe('ASDU Parser', function () {
         ca: 1,
         ioa: 1,
         value: true,
-        quality: {},
+        qds: {},
         ts
     };
 
@@ -529,7 +529,7 @@ describe('ASDU Parser', function () {
             ca: 1,
             ioa: 1,
             value: true,
-            quality: {}
+            qds: {}
         };
 
         const buf = buildASDU(p);
