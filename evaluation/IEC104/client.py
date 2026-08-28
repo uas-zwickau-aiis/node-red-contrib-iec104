@@ -4,6 +4,7 @@ import threading
 import json
 import sys
 import signal
+from pathlib import Path
 
 
 class IECManager:
@@ -28,7 +29,10 @@ class IECManager:
                 init=c104.Init.INTERROGATION
             )
 
-            def state_change(connection: c104.Connection, state: c104.ConnectionState) -> None:
+            def state_change(
+                connection: c104.Connection,
+                state: c104.ConnectionState
+            ) -> None:
                 print(f"[{name}] STATE: {state}")
 
                 if state == c104.ConnectionState.OPEN_MUTED:
@@ -38,7 +42,10 @@ class IECManager:
                             print(f"[{name}] STARTDT Timeout → reconnect")
                             connection.disconnect()
 
-                    threading.Thread(target=watchdog, daemon=True).start()
+                    threading.Thread(
+                        target=watchdog,
+                        daemon=True
+                    ).start()
 
                 if state == c104.ConnectionState.CLOSED and self.running:
                     print(f"[{name}] reconnect")
@@ -57,9 +64,13 @@ class IECManager:
             conn_data = self.connections[conn_name]
 
             if ca in conn_data["stations"]:
-                raise ValueError(f"Station CA {ca} existiert in '{conn_name}' bereits")
+                raise ValueError(
+                    f"Station CA {ca} existiert in '{conn_name}' bereits"
+                )
 
-            station = conn_data["connection"].add_station(common_address=ca)
+            station = conn_data["connection"].add_station(
+                common_address=ca
+            )
 
             conn_data["stations"][ca] = {
                 "station": station,
@@ -72,14 +83,17 @@ class IECManager:
             ioa = int(ioa)
 
             if not hasattr(c104.Type, type_name):
-                raise ValueError(f"Ungültiger IEC-104 Typ: {type_name}")
+                raise ValueError(
+                    f"Ungültiger IEC-104 Typ: {type_name}"
+                )
 
             station_data = self.connections[conn_name]["stations"][ca]
             station = station_data["station"]
 
             if ioa in station_data["points"]:
                 raise ValueError(
-                    f"IOA {ioa} existiert in Connection '{conn_name}', CA {ca} bereits"
+                    f"IOA {ioa} existiert in Connection "
+                    f"'{conn_name}', CA {ca} bereits"
                 )
 
             point = station.add_point(
@@ -129,7 +143,10 @@ class IECManager:
                 self.add_station(name, ca)
 
                 for point_cfg in station_cfg.get("points", []):
-                    print(f"    Point IOA {point_cfg['ioa']} Typ {point_cfg['type']}")
+                    print(
+                        f"    Point IOA {point_cfg['ioa']} "
+                        f"Typ {point_cfg['type']}"
+                    )
 
                     self.add_point(
                         conn_name=name,
@@ -167,11 +184,16 @@ def load_config(path):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python iec104_client.py config.json")
+    script_path = Path(__file__).resolve()
+    config_path = script_path.with_suffix(".json")
+
+    if not config_path.exists():
+        print(f"Config nicht gefunden: {config_path}")
         sys.exit(1)
 
-    config = load_config(sys.argv[1])
+    print(f"Lade Config: {config_path}")
+
+    config = load_config(config_path)
     manager = IECManager(config)
 
     def handle_shutdown(signum, frame):

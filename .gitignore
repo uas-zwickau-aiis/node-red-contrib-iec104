@@ -20,6 +20,10 @@ docs/
 TODO.md
 
 # nyc Coverage
-
 coverage/
 .nyc_output/
+
+# Resource Monitor
+
+*.csv
+*_metadata.json

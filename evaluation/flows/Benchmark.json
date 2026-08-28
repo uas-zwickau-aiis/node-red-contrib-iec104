@@ -1,0 +1,201 @@
+[
+    {
+        "id": "b01623ad1a54cc8f",
+        "type": "tab",
+        "label": "Benchmark",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "878d230b7785ca2b",
+        "type": "group",
+        "z": "b01623ad1a54cc8f",
+        "name": "Leistungsbewertung",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "8603c9cb8abd75aa",
+            "87451a8fd90b189f",
+            "a1312dcda9c31284",
+            "422ea772ea63240e",
+            "de82fef139a2c19f",
+            "54910d698fbfef10",
+            "c8a5fe183ca9485c"
+        ],
+        "x": 134,
+        "y": 119,
+        "w": 872,
+        "h": 402
+    },
+    {
+        "id": "8603c9cb8abd75aa",
+        "type": "function",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "Lastgenerator",
+        "func": "// ==========================================\n// Konfiguration\n// ==========================================\n\nconst rate = 100;       // Nachrichten pro Sekunde\nconst value = 42;       // Payload der erzeugten Nachrichten\n\n// Generator-Takt\nconst tickMs = 10;\n\n\n// ==========================================\n// Eingang auswerten\n// ==========================================\n\n// START\nif (msg.payload === true) {\n\n    // Läuft bereits?\n    if (context.get(\"running\")) {\n        node.warn(\"Load Generator läuft bereits\");\n        return null;\n    }\n\n    context.set(\"running\", true);\n\n    const startTime = Date.now();\n    let sent = 0;\n\n\n    // ==========================================\n    // Generator\n    // ==========================================\n\n    function tick() {\n\n        // Wurde inzwischen gestoppt?\n        if (!context.get(\"running\")) {\n            node.status({\n                fill: \"red\",\n                shape: \"ring\",\n                text: `gestoppt (${sent} gesendet)`\n            });\n\n            return;\n        }\n\n        const now = Date.now();\n        const elapsedMs = now - startTime;\n\n        // Anzahl Nachrichten, die laut Sollfrequenz\n        // bis jetzt gesendet worden sein müssten\n        const targetSent = Math.floor(\n            elapsedMs * rate / 1000\n        );\n\n        // Fehlende Nachrichten nachholen\n        const batchSize = targetSent - sent;\n\n        if (batchSize > 0) {\n\n            const messages = new Array(batchSize);\n\n            for (let i = 0; i < batchSize; i++) {\n                messages[i] = {\n                    payload: value\n                };\n            }\n\n            node.send([messages]);\n\n            sent += batchSize;\n        }\n\n\n        // ==========================================\n        // Nächsten Tick absolut ausrichten\n        // ==========================================\n\n        const nextTickNumber =\n            Math.floor(elapsedMs / tickMs) + 1;\n\n        const nextTarget =\n            startTime + nextTickNumber * tickMs;\n\n        const delay =\n            Math.max(0, nextTarget - Date.now());\n\n        setTimeout(tick, delay);\n    }\n\n\n    // ==========================================\n    // Start\n    // ==========================================\n\n    node.status({\n        fill: \"green\",\n        shape: \"dot\",\n        text: `${rate} msg/s`\n    });\n\n    tick();\n\n    return null;\n}\n\n\n// ==========================================\n// STOP\n// ==========================================\n\nif (msg.payload === false) {\n\n    context.set(\"running\", false);\n\n    node.status({\n        fill: \"red\",\n        shape: \"ring\",\n        text: \"gestoppt\"\n    });\n\n    return null;\n}\n\n\n// Andere Eingaben ignorieren\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 200,
+        "wires": [
+            [
+                "a1312dcda9c31284"
+            ]
+        ]
+    },
+    {
+        "id": "87451a8fd90b189f",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 250,
+        "y": 160,
+        "wires": [
+            [
+                "8603c9cb8abd75aa"
+            ]
+        ]
+    },
+    {
+        "id": "a1312dcda9c31284",
+        "type": "iec104-measuredvalue",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "4",
+        "objType": "M_ME_TF_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 610,
+        "y": 240,
+        "wires": [
+            [
+                "422ea772ea63240e"
+            ]
+        ]
+    },
+    {
+        "id": "422ea772ea63240e",
+        "type": "iec104-slaveaddress",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 830,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "de82fef139a2c19f",
+        "type": "iec104-slaveobserver",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 290,
+        "y": 300,
+        "wires": [
+            [],
+            [
+                "54910d698fbfef10"
+            ]
+        ]
+    },
+    {
+        "id": "54910d698fbfef10",
+        "type": "debug",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "c8a5fe183ca9485c",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "g": "878d230b7785ca2b",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 230,
+        "y": 220,
+        "wires": [
+            [
+                "8603c9cb8abd75aa"
+            ]
+        ]
+    },
+    {
+        "id": "70c120414a25a285",
+        "type": "iec104-slave",
+        "name": "Slave DEMO",
+        "port": "2406",
+        "t1": 15,
+        "t2": "10",
+        "t3": 20,
+        "k_win": "12",
+        "w_win": 8,
+        "benchmark_outbound": true,
+        "benchmark_inbound_command": false,
+        "benchmark_measurement_duration": "60"
+    },
+    {
+        "id": "a7d59fc4e3cd83af",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-iec104": "0.3.1"
+        }
+    }
+]

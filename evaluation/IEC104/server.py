@@ -6,6 +6,7 @@ import json
 import sys
 import signal
 from typing import Any
+from pathlib import Path
 
 
 class IEC104ServerManager:
@@ -467,13 +468,16 @@ def load_config(path: str) -> dict:
 
 
 def main():
-    if len(sys.argv) != 2:
-        print(
-            "Usage: python iec104_server.py config.json"
-        )
+    script_path = Path(__file__).resolve()
+    config_path = script_path.with_suffix(".json")
+
+    if not config_path.exists():
+        print(f"Config nicht gefunden: {config_path}")
         sys.exit(1)
 
-    config = load_config(sys.argv[1])
+    print(f"Lade Config: {config_path}")
+
+    config = load_config(config_path)
     manager = IEC104ServerManager(config)
 
     shutdown_event = threading.Event()

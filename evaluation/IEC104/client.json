@@ -4,7 +4,7 @@
     {
       "name": "NodeRED",
       "ip": "127.0.0.1",
-      "port": 2404,
+      "port": 2406,
       "stations": [
         {
           "ca": 1,

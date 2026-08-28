@@ -1,261 +1,579 @@
-const Session = require("./lib/protocol/slaveSession");
-const StatusPublisher = require("./lib/core/statusPublisher");
-const TcpServer = require("./lib/tcp/server");
-const Benchmark = require("./lib/core/benchmark");
-const BENCHMARK = require("./lib/core/benchmarkDefinitions");
-const IEC104 = require("./lib/core/constants");
-const registerRoutes = require("./lib/admin/routes");
-const { isValidPoint } = require("./lib/core/validators");
+const Session =
+    require("./lib/protocol/slaveSession");
+
+const StatusPublisher =
+    require("./lib/core/statusPublisher");
+
+const TcpServer =
+    require("./lib/tcp/server");
+
+const Benchmark =
+    require("./lib/core/benchmark");
+
+const BENCHMARK =
+    require("./lib/core/benchmarkDefinitions");
+
+const IEC104 =
+    require("./lib/core/constants");
+
+const registerRoutes =
+    require("./lib/admin/routes");
+
+const {
+    isValidPoint
+} = require("./lib/core/validators");
 
 module.exports = function (RED) {
     registerRoutes(RED);
 
-    function IEC104Slave(config) {
-        RED.nodes.createNode(this, config);
-        const node = this;
+    function IEC104Slave(
+        config
+    ) {
+        RED.nodes.createNode(
+            this,
+            config
+        );
 
-        node.port = Number(config.port);
+        const node =
+            this;
 
-        node.t1 = Number(config.t1) * 1000;
-        node.t2 = Number(config.t2) * 1000;
-        node.t3 = Number(config.t3) * 1000;
+        node.port =
+            Number(
+                config.port
+            );
 
-        node.k = Number(config.k_win);
-        node.w = Number(config.w_win);
+        node.t1 =
+            Number(
+                config.t1
+            ) * 1000;
 
-        node.processImage = new Map();
+        node.t2 =
+            Number(
+                config.t2
+            ) * 1000;
 
-        node.currentState = "IDLE";
-        node.currentReason = "tcp.socket.init";
-        node.currentTs = Date.now();
+        node.t3 =
+            Number(
+                config.t3
+            ) * 1000;
+
+        node.k =
+            Number(
+                config.k_win
+            );
+
+        node.w =
+            Number(
+                config.w_win
+            );
+
+        node.processImage =
+            new Map();
+
+        node.currentState =
+            "IDLE";
+
+        node.currentReason =
+            "tcp.socket.init";
+
+        node.currentTs =
+            Date.now();
 
         // ==========================================
         // Benchmark
         // ==========================================
-
-        node.benchmark = new Benchmark({
-            maxFrames: Number(config.benchmark_max_frames),
-
-            lowestDiscernibleValue: 1,
-            highestTrackableValue: 10_000_000_000,
-            numberOfSignificantValueDigits: 3
-        });
+        node.benchmark =
+            new Benchmark({
+                measurementDurationMs:
+                    Number(
+                        config
+                            .benchmark_measurement_duration
+                    ) * 1000
+            });
 
         node.benchmark.setEnabled(
             BENCHMARK.OUTBOUND.id,
-            config.benchmark_outbound === true
+
+            config
+                .benchmark_outbound ===
+                true
         );
 
         node.benchmark.setEnabled(
-            BENCHMARK.INBOUND_COMMAND.id,
-            config.benchmark_inbound_command === true
+            BENCHMARK
+                .INBOUND_COMMAND.id,
+
+            config
+                .benchmark_inbound_command ===
+                true
         );
 
         // ==========================================
         // Status
         // ==========================================
 
-        node.statusPub = new StatusPublisher(node);
+        node.statusPub =
+            new StatusPublisher(
+                node
+            );
 
         // ==========================================
         // IEC-104 Session
         // ==========================================
 
-        node.session = new Session({
-            /*
-             * OUTBOUND
-             *
-             * Start:
-             * Node-RED Input
-             *
-             * Ende:
-             * Übergabe des vollständigen Frames an TCP
-             */
-            send: (data, benchStart = null, msg = null) => {
-                node.tcp.send(data);
+        node.session =
+            new Session({
+                /*
+                 * OUTBOUND
+                 *
+                 * Start:
+                 * Node-RED Input
+                 *
+                 * Ende:
+                 * Übergabe des vollständigen
+                 * Frames an TCP.
+                 */
+                send: (
+                    data,
+                    benchStart = null,
+                    msg = null
+                ) => {
+                    node.tcp.send(
+                        data
+                    );
 
-                const result = node.benchmark.result(
-                    BENCHMARK.OUTBOUND.id,
-                    benchStart
-                );
+                    if (
+                        benchStart !==
+                        null
+                    ) {
+                        node.benchmark
+                            .recordOutput(
+                                BENCHMARK
+                                    .OUTBOUND
+                                    .id,
+                                1,
+                                benchStart
+                            );
+                    }
 
-                handleBenchmarkResult(
-                    BENCHMARK.OUTBOUND.id,
-                    result
-                );
+                    node.benchmark
+                        .result(
+                            BENCHMARK
+                                .OUTBOUND
+                                .id,
+                            benchStart
+                        );
 
-                emitData(data, msg);
-            },
+                    emitData(
+                        data,
+                        msg
+                    );
+                },
 
-            /*
-             * INBOUND COMMAND
-             *
-             * Ende nach abgeschlossener
-             * Command-Verarbeitung.
-             */
-            onInboundComplete: benchStart => {
-                const result = node.benchmark.result(
-                    BENCHMARK.INBOUND_COMMAND.id,
-                    benchStart
-                );
+                /*
+                 * INBOUND COMMAND
+                 *
+                 * Der Latenzstartpunkt wird
+                 * bereits beim vollständigen
+                 * APDU-Eingang gesetzt.
+                 *
+                 * Der Throughput-Eingang wird
+                 * erst gezählt, nachdem die
+                 * ASDU tatsächlich als Command
+                 * erkannt wurde.
+                 */
+                onInboundStart:
+                    benchStart => {
+                        if (
+                            benchStart !==
+                            null
+                        ) {
+                            node.benchmark
+                                .recordInput(
+                                    BENCHMARK
+                                        .INBOUND_COMMAND
+                                        .id,
+                                    1,
+                                    benchStart
+                                );
+                        }
+                    },
 
-                handleBenchmarkResult(
-                    BENCHMARK.INBOUND_COMMAND.id,
-                    result
-                );
-            },
+                /*
+                 * Ende nach abgeschlossener
+                 * Command-Verarbeitung.
+                 */
+                onInboundComplete:
+                    benchStart => {
+                        if (
+                            benchStart !==
+                            null
+                        ) {
+                            node.benchmark
+                                .recordOutput(
+                                    BENCHMARK
+                                        .INBOUND_COMMAND
+                                        .id,
+                                    1,
+                                    benchStart
+                                );
+                        }
 
-            onStateChange: (state, message) => {
-                node.statusPub.publishState(
+                        node.benchmark
+                            .result(
+                                BENCHMARK
+                                    .INBOUND_COMMAND
+                                    .id,
+                                benchStart
+                            );
+                    },
+
+                onStateChange: (
                     state,
                     message
-                );
-            },
+                ) => {
+                    node.statusPub
+                        .publishState(
+                            state,
+                            message
+                        );
+                },
 
-            onStats: () => {
-                node.statusPub.publishStats();
-            },
+                onStats: () => {
+                    node.statusPub
+                        .publishStats();
+                },
 
-            onSessionStop: summary => {
-                node.emit("iec104:status", {
-                    topic: "iec104/session-summary",
-                    payload: summary,
-                    ts: Date.now()
-                });
-            },
+                onSessionStop:
+                    summary => {
+                        node.emit(
+                            "iec104:status",
+                            {
+                                topic:
+                                    "iec104/session-summary",
 
-            onGI: async (ca, sendPoint) => {
-                const snapshot = Array
-                    .from(node.processImage.values())
-                    .filter(p =>
-                        ca === IEC104.CA.BROADCAST ||
-                        p.ca === ca
-                    )
-                    .sort((a, b) => a.ioa - b.ioa);
+                                payload:
+                                    summary,
 
-                for (const p of snapshot) {
-                    await sendPoint(p);
-                }
-            },
+                                ts:
+                                    Date.now()
+                            }
+                        );
+                    },
 
-            onCommand: async asdu => {
-                console.log(asdu);
-            },
+                onGI: async (
+                    ca,
+                    sendPoint
+                ) => {
+                    const snapshot =
+                        Array
+                            .from(
+                                node
+                                    .processImage
+                                    .values()
+                            )
+                            .filter(
+                                p =>
+                                    ca ===
+                                        IEC104
+                                            .CA
+                                            .BROADCAST ||
+                                    p.ca ===
+                                        ca
+                            )
+                            .sort(
+                                (a, b) =>
+                                    a.ioa -
+                                    b.ioa
+                            );
 
-            t1: node.t1,
-            t2: node.t2,
-            t3: node.t3,
-            k: node.k,
-            w: node.w
-        });
+                    for (
+                        const p
+                        of snapshot
+                    ) {
+                        await sendPoint(
+                            p
+                        );
+                    }
+                },
+
+                onCommand:
+                    async asdu => {
+                        console.log(
+                            asdu
+                        );
+                    },
+
+                t1:
+                    node.t1,
+
+                t2:
+                    node.t2,
+
+                t3:
+                    node.t3,
+
+                k:
+                    node.k,
+
+                w:
+                    node.w
+            });
 
         // ==========================================
         // TCP Server
         // ==========================================
 
-        node.tcp = new TcpServer({
-            port: node.port,
+        node.tcp =
+            new TcpServer({
+                port:
+                    node.port,
 
-            /*
-             * INBOUND COMMAND START
-             *
-             * Der Startwert wird für jedes vollständige
-             * Frame erzeugt. Nur bei tatsächlich
-             * verarbeitetem Command wird er später
-             * aufgezeichnet.
-             */
-            onFrame: frame => {
-                const benchStart = node.benchmark.start(
-                    BENCHMARK.INBOUND_COMMAND.id
-                );
+                /*
+                 * Der Latenzstartpunkt wird bei
+                 * Eingang des vollständigen Frames
+                 * erzeugt.
+                 *
+                 * Erst SlaveSession entscheidet,
+                 * ob es sich tatsächlich um einen
+                 * zu messenden Command handelt.
+                 */
+                onFrame:
+                    frame => {
+                        const benchStart =
+                            node.benchmark
+                                .start(
+                                    BENCHMARK
+                                        .INBOUND_COMMAND
+                                        .id
+                                );
 
-                node.session
-                    .handleFrame(frame, benchStart)
-                    .catch(err => node.error(err));
-            },
+                        node.session
+                            .handleFrame(
+                                frame,
+                                benchStart
+                            )
+                            .catch(
+                                err =>
+                                    node.error(
+                                        err
+                                    )
+                            );
+                    },
 
-            onConnect: () => {
-                node.session.start();
-            },
+                onConnect: () => {
+                    node.session
+                        .start();
+                },
 
-            onDisconnect: reason => {
-                node.session.stop(`tcp.${reason}`);
-            }
-        });
+                onDisconnect:
+                    reason => {
+                        node.session
+                            .stop(
+                                `tcp.${reason}`
+                            );
+                    }
+            });
 
         node.tcp.start();
+
+        // ==========================================
+        // Benchmark timer
+        // ==========================================
+
+        /*
+         * Der Timer läuft dauerhaft im
+         * Sekundenintervall.
+         *
+         * IDLE / FINISHED:
+         * keine Messung.
+         *
+         * WARMUP:
+         * Durchsatz erfassen und Stabilität
+         * prüfen.
+         *
+         * MEASUREMENT:
+         * Messwerte erfassen und Messdauer
+         * überwachen.
+         */
+        node.benchmarkTimer =
+            setInterval(
+                () => {
+                    const result =
+                        node.benchmark
+                            .tick(
+                                Date.now(),
+                                {
+                                    outboundBacklog:
+                                        node.session
+                                            .getOutboundBacklogStatus()
+                                }
+                            );
+
+                    if (
+                        result.transition
+                    ) {
+                        node.emit(
+                            "iec104:status",
+                            {
+                                topic:
+                                    "benchmark/state",
+
+                                payload:
+                                    node.benchmark
+                                        .status(),
+
+                                ts:
+                                    Date.now()
+                            }
+                        );
+                    }
+
+                    if (
+                        !result.finished
+                    ) {
+                        return;
+                    }
+
+                    /*
+                    * Finales Ergebnis eines
+                    * Benchmark-Laufs.
+                    *
+                    * Enthält Warm-up- und
+                    * Messdaten.
+                    */
+                    node.emit(
+                        "iec104:status",
+                        {
+                            topic:
+                                "benchmark",
+
+                            payload:
+                                result.snapshot,
+
+                            ts:
+                                Date.now()
+                        }
+                    );
+                },
+                1000
+            );
 
         // ==========================================
         // Node-RED Input
         // ==========================================
 
-        node.on("iec104:input", function (msg) {
-            const benchStart = node.benchmark.start(
-                BENCHMARK.OUTBOUND.id
-            );
+        node.on(
+            "iec104:input",
 
-            const p = msg.payload;
+            function (msg) {
+                const p =
+                    msg.payload;
 
-            if (!isValidPoint(p)) {
-                node.error("Invalid IEC104 point");
-                return;
+                if (
+                    !isValidPoint(p)
+                ) {
+                    node.error(
+                        "Invalid IEC104 point"
+                    );
+
+                    return;
+                }
+
+                const benchStart =
+                    node.benchmark
+                        .start(
+                            BENCHMARK
+                                .OUTBOUND
+                                .id
+                        );
+
+                if (
+                    benchStart !==
+                    null
+                ) {
+                    node.benchmark
+                        .recordInput(
+                            BENCHMARK
+                                .OUTBOUND
+                                .id,
+                            1,
+                            benchStart
+                        );
+                }
+
+                node.processImage
+                    .set(
+                        `${p.ca}:${p.ioa}`,
+                        p
+                    );
+
+                node.session
+                    .sendPoint(
+                        p,
+                        IEC104.COT.SPONT,
+                        benchStart,
+                        msg
+                    );
             }
-
-            node.processImage.set(
-                `${p.ca}:${p.ioa}`,
-                p
-            );
-
-            node.session.sendPoint(
-                p,
-                IEC104.COT.SPONT,
-                benchStart,
-                msg
-            );
-        });
-
-        // ==========================================
-        // Benchmark Result Event
-        // ==========================================
-
-        function handleBenchmarkResult(metric, result) {
-            if (!result?.completed) {
-                return;
-            }
-
-            node.emit("iec104:status", {
-                topic: "benchmark",
-                payload: node.benchmark.metricSnapshot(metric),
-                ts: Date.now()
-            });
-        }
+        );
 
         // ==========================================
         // Data Event
         // ==========================================
 
-        function emitData(asdu, msg) {
+        function emitData(
+            asdu,
+            msg
+        ) {
             msg ??= {};
 
-            msg.asdu = asdu;
-            msg.ts = Date.now();
+            msg.asdu =
+                asdu;
 
-            node.emit("iec104:data", msg);
+            msg.ts =
+                Date.now();
+
+            node.emit(
+                "iec104:data",
+                msg
+            );
         }
 
         // ==========================================
         // Close
         // ==========================================
 
-        node.on("close", function (done) {
-            node.statusPub.closeAll();
+        node.on(
+            "close",
 
-            if (node.tcp) {
-                node.tcp.stop(done);
-            } else {
-                done();
+            function (done) {
+                if (
+                    node.benchmarkTimer
+                ) {
+                    clearInterval(
+                        node
+                            .benchmarkTimer
+                    );
+
+                    node.benchmarkTimer =
+                        null;
+                }
+
+                node.statusPub
+                    .closeAll();
+
+                if (
+                    node.tcp
+                ) {
+                    node.tcp.stop(
+                        done
+                    );
+                } else {
+                    done();
+                }
             }
-        });
+        );
     }
 
     RED.nodes.registerType(
