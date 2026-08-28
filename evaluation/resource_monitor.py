@@ -96,8 +96,6 @@ def main():
     print(f"Metadaten: {metadata_path}")
     print("Abbruch mit Ctrl+C")
 
-    # Erste cpu_percent()-Abfrage initialisiert die Messung.
-    # Der Rückgabewert wird bewusst verworfen.
     process.cpu_percent(interval=None)
     psutil.cpu_percent(interval=None)
 
@@ -136,17 +134,9 @@ def main():
 
                 writer.writerow({
                     "sample": sample,
-                    "timestamp": datetime.now().astimezone().isoformat(
-                        timespec="milliseconds"
-                    ),
+                    "timestamp": int(time.time() * 1000),
                     "elapsed_s": round(elapsed, 3),
-
-                    # CPU-Auslastung des Prozesses.
-                    # 100 % entspricht ungefähr der vollständigen
-                    # Auslastung eines logischen CPU-Kerns.
                     "process_cpu_percent": round(process_cpu, 2),
-
-                    # Resident Set Size (RSS) des Node-RED-Prozesses
                     "process_rss_mb": round(
                         process_memory.rss / (1024 ** 2), 2
                     ),
