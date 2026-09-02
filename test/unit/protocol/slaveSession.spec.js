@@ -78,6 +78,11 @@ describe('SlaveSession', function () {
     );
   });
 
+  afterEach(function () {
+    session?.timers?.stopAll();
+    sinon.restore();
+  });
+
   describe('initialization', function () {
     it('stores supplied callbacks', function () {
       assert.strictEqual(
@@ -130,7 +135,7 @@ describe('SlaveSession', function () {
         Buffer.from([code])
       );
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT3'
       );
@@ -848,12 +853,12 @@ describe('SlaveSession', function () {
         'unconfirmedCount'
       ).returns(1);
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT1'
       );
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'resetT3'
       );
@@ -877,7 +882,7 @@ describe('SlaveSession', function () {
         'unconfirmedCount'
       ).returns(2);
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT1'
       );

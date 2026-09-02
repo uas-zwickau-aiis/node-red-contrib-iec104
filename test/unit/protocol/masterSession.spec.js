@@ -68,6 +68,11 @@ describe('MasterSession', function () {
     );
   });
 
+  afterEach(function () {
+    session?.timers?.stopAll();
+    sinon.restore();
+  });
+
   describe('initialization', function () {
     it('initializes awaitingStartCon as false', function () {
       assert.strictEqual(
@@ -120,7 +125,7 @@ describe('MasterSession', function () {
         Buffer.from([1])
       );
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT1'
       );
@@ -422,7 +427,7 @@ describe('MasterSession', function () {
         'stopT1'
       );
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT3'
       );
@@ -738,12 +743,12 @@ describe('MasterSession', function () {
         'unconfirmedCount'
       ).returns(1);
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT1'
       );
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'resetT3'
       );
@@ -767,7 +772,7 @@ describe('MasterSession', function () {
         'unconfirmedCount'
       ).returns(2);
 
-      sinon.spy(
+      sinon.stub(
         session.timers,
         'startT1'
       );

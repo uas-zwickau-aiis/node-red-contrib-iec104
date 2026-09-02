@@ -25,12 +25,25 @@ describe('iec104-slave node', function () {
 
   let registerNode;
 
+  /*
+   * Alle in einem Test erzeugten Nodes sammeln,
+   * damit deren Lifecycle nach dem Test sauber
+   * beendet werden kann.
+   */
+  let createdNodes;
+
   beforeEach(function () {
+    createdNodes = [];
+
     sessionInstance = {
       start: sinon.spy(),
       stop: sinon.spy(),
       handleFrame: sinon.stub().resolves(),
-      sendPoint: sinon.spy()
+      sendPoint: sinon.spy(),
+      getOutboundBacklogStatus: sinon.stub().returns({
+        queueLength: 0,
+        unconfirmedCount: 0
+      })
     };
 
     SessionStub = sinon.stub().callsFake(function (options) {
@@ -63,7 +76,14 @@ describe('iec104-slave node', function () {
       setEnabled: sinon.spy(),
       start: sinon.stub(),
       result: sinon.stub(),
-      metricSnapshot: sinon.stub()
+      recordInput: sinon.stub(),
+      recordOutput: sinon.stub(),
+      metricSnapshot: sinon.stub(),
+      tick: sinon.stub().returns({
+        transition: false,
+        finished: false
+      }),
+      status: sinon.stub()
     };
 
     BenchmarkStub = sinon.stub().callsFake(function (options) {
@@ -103,6 +123,34 @@ describe('iec104-slave node', function () {
     registerNode(RED);
   });
 
+  /*
+   * Wichtig:
+   *
+   * Der IEC104Slave-Konstruktor erzeugt einen dauerhaften
+   * setInterval() für den Benchmark.
+   *
+   * Deshalb muss jede erzeugte Node nach dem Test wieder
+   * geschlossen werden. Der echte close-Handler des Nodes
+   * führt clearInterval(node.benchmarkTimer) aus.
+   */
+  afterEach(function () {
+    for (const node of createdNodes) {
+      const closeCall = node.on
+        .getCalls()
+        .find(call => call.args[0] === 'close');
+
+      if (!closeCall) {
+        continue;
+      }
+
+      const closeHandler = closeCall.args[1];
+
+      closeHandler(() => {});
+    }
+
+    createdNodes = [];
+  });
+
   function createNode(overrides = {}) {
     const config = {
       port: '2404',
@@ -114,14 +162,18 @@ describe('iec104-slave node', function () {
       k_win: '12',
       w_win: '8',
 
-      benchmark_max_frames: '1000',
+      benchmark_measurement_duration: '120',
       benchmark_outbound: false,
       benchmark_inbound_command: false,
 
       ...overrides
     };
 
-    return new NodeConstructor(config);
+    const node = new NodeConstructor(config);
+
+    createdNodes.push(node);
+
+    return node;
   }
 
   function getHandler(node, eventName) {
@@ -180,23 +232,14 @@ describe('iec104-slave node', function () {
 
     it('creates benchmark with configured options', function () {
       createNode({
-        benchmark_max_frames: '500'
+        benchmark_measurement_duration: '45'
       });
 
       const opts = BenchmarkStub.firstCall.args[0];
 
-      assert.strictEqual(opts.maxFrames, 500);
       assert.strictEqual(
-        opts.lowestDiscernibleValue,
-        1
-      );
-      assert.strictEqual(
-        opts.highestTrackableValue,
-        10_000_000_000
-      );
-      assert.strictEqual(
-        opts.numberOfSignificantValueDigits,
-        3
+        opts.measurementDurationMs,
+        45_000
       );
     });
 
@@ -496,15 +539,11 @@ describe('iec104-slave node', function () {
       );
     });
 
-    it('emits outbound benchmark result when completed', function () {
+    it('records completed outbound benchmark output', function () {
       const node = createNode();
 
       benchmarkInstance.result.returns({
         completed: true
-      });
-
-      benchmarkInstance.metricSnapshot.returns({
-        count: 100
       });
 
       sessionInstance.options.send(
@@ -513,47 +552,53 @@ describe('iec104-slave node', function () {
         null
       );
 
+      assert.strictEqual(
+        benchmarkInstance.recordOutput.calledOnceWith(
+          BENCHMARK.OUTBOUND.id,
+          1,
+          123
+        ),
+        true
+      );
+
+      assert.strictEqual(
+        benchmarkInstance.result.calledOnceWith(
+          BENCHMARK.OUTBOUND.id,
+          123
+        ),
+        true
+      );
+
       const benchmarkCall = node.emit
         .getCalls()
         .find(call =>
           call.args[1]?.topic === 'benchmark'
         );
 
-      assert.ok(benchmarkCall);
-
       assert.strictEqual(
-        benchmarkCall.args[0],
-        'iec104:status'
-      );
-
-      assert.deepStrictEqual(
-        benchmarkCall.args[1].payload,
-        {
-          count: 100
-        }
-      );
-
-      assert.strictEqual(
-        benchmarkInstance.metricSnapshot.calledOnceWith(
-          BENCHMARK.OUTBOUND.id
-        ),
-        true
+        benchmarkCall,
+        undefined
       );
     });
 
-    it('handles completed inbound command benchmark', function () {
+    it('records completed inbound command benchmark output', function () {
       const node = createNode();
 
       benchmarkInstance.result.returns({
         completed: true
       });
 
-      benchmarkInstance.metricSnapshot.returns({
-        count: 5
-      });
-
       sessionInstance.options.onInboundComplete(
         555
+      );
+
+      assert.strictEqual(
+        benchmarkInstance.recordOutput.calledOnceWith(
+          BENCHMARK.INBOUND_COMMAND.id,
+          1,
+          555
+        ),
+        true
       );
 
       assert.strictEqual(
@@ -570,13 +615,9 @@ describe('iec104-slave node', function () {
           call.args[1]?.topic === 'benchmark'
         );
 
-      assert.ok(benchmarkCall);
-
-      assert.deepStrictEqual(
-        benchmarkCall.args[1].payload,
-        {
-          count: 5
-        }
+      assert.strictEqual(
+        benchmarkCall,
+        undefined
       );
     });
 

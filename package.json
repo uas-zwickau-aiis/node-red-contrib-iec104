@@ -25,6 +25,7 @@
     "test": "mocha \"test/**/*.spec.js\"",
     "test:unit": "mocha \"test/unit/**/*.spec.js\"",
     "test:integration": "mocha \"test/integration/**/*.spec.js\"",
+    "test:report": "mocha \"test/unit/**/*.spec.js\" --reporter json --reporter-option output=test-report.json",
     "coverage": "nyc --all --reporter=text --reporter=html npm run test:unit"
   },
   "node-red": {
