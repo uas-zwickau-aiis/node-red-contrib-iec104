@@ -867,7 +867,6 @@ describe('BaseSession', function () {
       );
     });
   });
-
   describe('timer callbacks', function () {
     it('stops session on T1 timeout', function () {
       const session = createSession();
@@ -882,6 +881,31 @@ describe('BaseSession', function () {
       assert.strictEqual(
         stop.calledOnceWith(
           'T1 Timeout'
+        ),
+        true
+      );
+    });
+
+    it('stops session on T1 timeout while awaiting TESTFR_CON', function () {
+      const session = createSession();
+
+      session.awaitingTestCon = true;
+
+      const stop = sinon.stub(
+        session,
+        'stop'
+      );
+
+      session.handleT1Timeout();
+
+      assert.strictEqual(
+        session.awaitingTestCon,
+        false
+      );
+
+      assert.strictEqual(
+        stop.calledOnceWith(
+          'TESTFR Timeout'
         ),
         true
       );
@@ -923,27 +947,7 @@ describe('BaseSession', function () {
       );
     });
 
-    it('stops session on repeated T3 timeout', function () {
-      const session = createSession();
-
-      session.awaitingTestCon = true;
-
-      const stop = sinon.stub(
-        session,
-        'stop'
-      );
-
-      session.handleT3Timeout();
-
-      assert.strictEqual(
-        stop.calledOnceWith(
-          'T3 Timeout'
-        ),
-        true
-      );
-    });
-
-    it('sends TESTFR_ACT on first T3 timeout', function () {
+    it('sends TESTFR_ACT and starts T1 on T3 timeout', function () {
       const session = createSession();
 
       const sendFrame = sinon.stub(
@@ -972,6 +976,11 @@ describe('BaseSession', function () {
 
       assert.strictEqual(
         sendFrame.calledOnce,
+        true
+      );
+
+      assert.strictEqual(
+        timers.startT1.calledOnce,
         true
       );
     });
