@@ -36,8 +36,15 @@ module.exports = function (RED) {
 
         node.session = new Session({
             send: data => {
-                node.tcp.send(data);
+                const sent = node.tcp.send(data);
+
+                if (!sent) {
+                    node.error("TCP-Telegramm konnte nicht gesendet werden");
+                    return false;
+                }
+
                 emitData(data);
+                return true;
             },
 
             onStateChange: (state, reason) => {
@@ -130,7 +137,16 @@ module.exports = function (RED) {
             t0: node.t0,
 
             onFrame: frame => {
-                node.session.handleFrame(frame).catch(err => node.error(err));
+                node.session
+                    .handleFrame(frame)
+                    .then(ok => {
+                        if (!ok) {
+                            node.warn(
+                                "Ungültiges oder nicht unterstütztes IEC-104-Telegramm verworfen"
+                            );
+                        }
+                    })
+                    .catch(err => node.error(err));
             },
 
             onConnect: () => {
@@ -147,6 +163,8 @@ module.exports = function (RED) {
             },
 
             onError: err => {
+                node.error(err);
+
                 node.statusPub.publishState(
                     "IDLE",
                     err?.message || "TCP-Fehler"
@@ -176,11 +194,21 @@ module.exports = function (RED) {
             }
 
             if (!isValidPoint(payload)) {
-                node.error("Invalid IEC104 point");
+                node.error("Invalid IEC104 point", msg);
                 return;
             }
 
-            node.session.sendPoint(payload, IEC104.COT.ACT);
+            const ok = node.session.sendPoint(
+                payload,
+                IEC104.COT.ACT
+            );
+
+            if (!ok) {
+                node.error(
+                    "IEC104 point could not be encoded",
+                    msg
+                );
+            }
         });
 
         node.on("close", function (done) {
