@@ -5,16 +5,22 @@ function sleep(ms) {
 }
 
 function hex(buffer) {
-    return buffer.toString('hex').match(/.{1,2}/g).join(' ');
+    return Buffer.from(buffer).toString('hex').match(/.{1,2}/g)?.join(' ') || '';
 }
 
-function bufferEquals(a, b) {
-    return Buffer.compare(a, b) === 0;
+async function waitFor(predicate, {
+    timeout = 1000,
+    interval = 10,
+    message = 'Condition not reached'
+} = {}) {
+    const start = Date.now();
+
+    while (Date.now() - start < timeout) {
+        if (await predicate()) return;
+        await sleep(interval);
+    }
+
+    throw new Error(`${message} within ${timeout} ms`);
 }
 
-module.exports = {
-    sleep,
-    hex,
-    bufferEquals
-};
-
+module.exports = { sleep, hex, waitFor };

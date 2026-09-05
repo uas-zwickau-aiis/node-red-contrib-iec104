@@ -2,141 +2,139 @@
 
 const net = require('net');
 const assert = require('assert');
-
-const { sleep, hex, bufferEquals } = require('./helpers');
-
-const {
-    STARTDT_ACT,
-    STARTDT_CON,
-    STOPDT_ACT,
-    STOPDT_CON,
-    TESTFR_ACT,
-    TESTFR_CON
-} = require('./frames');
+const IEC104StreamParser = require('./IEC104StreamParser');
+const { sleep, hex, waitFor } = require('./helpers');
+const F = require('./frames');
 
 class IEC104Client {
-
-    constructor(options = {}) {
-
-        this.host = options.host || '127.0.0.1';
-        this.port = options.port || 2404;
-
+    constructor({ host = '127.0.0.1', port = 2404 } = {}) {
+        this.host = host;
+        this.port = port;
         this.socket = null;
-
+        this.parser = new IEC104StreamParser();
         this.rxQueue = [];
-
-        this.stats = {
-            connects: 0,
-            disconnects: 0,
-            sentFrames: 0,
-            receivedFrames: 0
-        };
+        this.errors = [];
+        this.closed = true;
     }
 
-    async connect() {
+    async connect(timeout = 2000) {
+        this.parser.reset();
+        this.rxQueue.length = 0;
+        this.errors.length = 0;
+        this.closed = false;
 
-        this.socket = new net.Socket();
+        const socket = new net.Socket();
+        this.socket = socket;
 
-        this.socket.on('data', data => {
-
-            this.rxQueue.push(Buffer.from(data));
-
-            this.stats.receivedFrames++;
+        socket.on('data', data => {
+            this.rxQueue.push(...this.parser.push(data));
         });
-
-        this.socket.on('error', err => {
-            console.error('[CLIENT SOCKET ERROR]', err.message);
-        });
+        socket.on('error', err => this.errors.push(err));
+        socket.on('close', () => { this.closed = true; });
 
         await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                socket.destroy();
+                reject(new Error(`Connect timeout ${this.host}:${this.port}`));
+            }, timeout);
 
-            this.socket.connect(this.port, this.host, () => {
-                this.stats.connects++;
+            socket.once('connect', () => {
+                clearTimeout(timer);
                 resolve();
             });
 
-            this.socket.once('error', reject);
+            socket.once('error', err => {
+                clearTimeout(timer);
+                reject(err);
+            });
 
+            socket.connect(this.port, this.host);
         });
     }
 
     async disconnect() {
+        if (!this.socket || this.socket.destroyed) return;
 
-        if (!this.socket)
-            return;
-
+        const socket = this.socket;
         await new Promise(resolve => {
-
-            this.socket.end(() => {
-                this.stats.disconnects++;
-                resolve();
-            });
-
+            socket.once('close', resolve);
+            socket.end();
+            setTimeout(() => socket.destroy(), 250).unref();
         });
-
-        this.socket.destroy();
-
-        this.socket = null;
     }
 
-    async send(buffer) {
-
-        assert(Buffer.isBuffer(buffer), 'send() requires a Buffer');
-
-        this.socket.write(buffer);
-
-        this.stats.sentFrames++;
+    destroy() {
+        this.socket?.destroy();
     }
 
-    async expect(expectedBuffer, timeout = 1000) {
-
-        const start = Date.now();
-
-        while (Date.now() - start < timeout) {
-
-            const frame = this.rxQueue.shift();
-
-            if (frame) {
-
-                if (bufferEquals(frame, expectedBuffer)) {
-                    return frame;
-                }
-            }
-
-            await sleep(10);
-        }
-
-        throw new Error(
-            `Timeout waiting for frame: ${hex(expectedBuffer)}`
+    async waitForClose(timeout = 2000) {
+        await waitFor(
+            () => this.closed || !this.socket || this.socket.destroyed,
+            { timeout, message: 'Connection remained open' }
         );
     }
 
-    // -----------------------------
-    // IEC104 U-Frame helpers
-    // -----------------------------
+    async send(buffer) {
+        assert(Buffer.isBuffer(buffer), 'send() requires a Buffer');
+        if (!this.socket || this.socket.destroyed) {
+            throw new Error('Socket is not connected');
+        }
 
-    async sendStartDTAct() {
-        await this.send(STARTDT_ACT);
+        await new Promise((resolve, reject) => {
+            this.socket.write(buffer, err => err ? reject(err) : resolve());
+        });
     }
 
-    async expectStartDTCon() {
-        return this.expect(STARTDT_CON);
+    async sendFragmented(buffer, splitAt, delayMs = 10) {
+        const cuts = [...splitAt]
+            .filter(n => Number.isInteger(n) && n > 0 && n < buffer.length)
+            .sort((a, b) => a - b);
+
+        let from = 0;
+        for (const to of [...cuts, buffer.length]) {
+            await this.send(buffer.subarray(from, to));
+            from = to;
+            if (from < buffer.length) await sleep(delayMs);
+        }
     }
 
-    async sendStopDTAct() {
-        await this.send(STOPDT_ACT);
+    async sendCombined(...buffers) {
+        await this.send(Buffer.concat(buffers));
     }
 
-    async expectStopDTCon() {
-        return this.expect(STOPDT_CON);
+    async expect(expected, timeout = 1000) {
+        await waitFor(
+            () => this.rxQueue.length > 0,
+            { timeout, message: `Expected ${hex(expected)}` }
+        );
+
+        const actual = this.rxQueue.shift();
+        assert.deepStrictEqual(
+            actual,
+            expected,
+            `Expected ${hex(expected)}, received ${hex(actual)}`
+        );
+        return actual;
     }
 
-    async sendTestFRAct() {
-        await this.send(TESTFR_ACT);
+    async expectNoFrame(timeout = 200) {
+        await sleep(timeout);
+        assert.strictEqual(
+            this.rxQueue.length,
+            0,
+            `Unexpected response: ${this.rxQueue.map(hex).join(' | ')}`
+        );
     }
 
-    async expectTestFRCon() {
-        return this.expect(TESTFR_CON);
+    async establishSession() {
+        await this.connect();
+        await this.send(F.STARTDT_ACT);
+        await this.expect(F.STARTDT_CON);
+    }
+
+    async assertSessionUsable() {
+        await this.send(F.TESTFR_ACT);
+        await this.expect(F.TESTFR_CON);
     }
 }
 
