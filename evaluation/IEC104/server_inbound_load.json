@@ -1,0 +1,34 @@
+{
+  "debug": false,
+  "server": {
+    "ip": "0.0.0.0",
+    "port": 2406,
+    "tick_rate_ms": 100,
+    "select_timeout_ms": 10000,
+    "max_connections": 10
+  },
+  "load_generator": {
+    "enabled": true,
+    "ca": 1,
+    "ioa": 100,
+    "value": true,
+    "messages_per_second": 500,
+    "total_messages": 0,
+    "start_delay_ms": 1000,
+    "status_interval_ms": 1000,
+    "wait_for_active_connection": true
+  },
+  "stations": [
+    {
+      "ca": 1,
+      "points": [
+        {
+          "ioa": 100,
+          "type": "M_SP_NA_1",
+          "value": true,
+          "report_ms": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "debug": false,
+  "load_generator": {
+    "enabled": true,
+    "connection": "NodeRED",
+    "ca": 1,
+    "ioa": 200,
+    "value": true,
+    "messages_per_second": 500,
+    "total_messages": 0,
+    "start_delay_ms": 1000,
+    "status_interval_ms": 1000
+  },
+  "connections": [
+    {
+      "name": "NodeRED",
+      "ip": "127.0.0.1",
+      "port": 2406,
+      "stations": [
+        {
+          "ca": 1,
+          "points": [
+            {
+              "ioa": 200,
+              "type": "C_SC_NA_1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
