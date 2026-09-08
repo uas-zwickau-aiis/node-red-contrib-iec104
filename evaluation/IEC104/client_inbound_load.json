@@ -6,7 +6,7 @@
     "ca": 1,
     "ioa": 200,
     "value": true,
-    "messages_per_second": 500,
+    "messages_per_second": 10,
     "total_messages": 0,
     "start_delay_ms": 1000,
     "status_interval_ms": 1000

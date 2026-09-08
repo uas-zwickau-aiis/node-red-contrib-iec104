@@ -267,6 +267,27 @@ module.exports = function (RED) {
                 }
             );
 
+            const sample =
+                result.samples?.[
+                    BENCHMARK.INBOUND_REPORT.id
+                ];
+
+            if (sample) {
+                const backlog =
+                    sample.inputCount -
+                    sample.outputCount;
+
+                console.log(
+                    "[BENCH SAMPLE] " +
+                    `duration=${sample.durationMs}ms ` +
+                    `in=${sample.inputCount} ` +
+                    `out=${sample.outputCount} ` +
+                    `inputRate=${sample.inputRate.toFixed(2)}/s ` +
+                    `outputRate=${sample.outputRate.toFixed(2)}/s ` +
+                    `delta=${backlog}`
+                );
+            }
+
             if (result.transition) {
                 node.emit("iec104:status", {
                     topic: "benchmark/state",

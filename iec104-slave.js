@@ -165,7 +165,7 @@ module.exports = function (RED) {
             },
 
             onCommand: async asdu => {
-                console.log(asdu);
+              // 
             },
 
             t1: node.t1,
