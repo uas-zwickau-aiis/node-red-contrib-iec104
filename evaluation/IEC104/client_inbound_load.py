@@ -1,6 +1,7 @@
 import c104
 import json
 import time
+import csv
 from pathlib import Path
 
 
@@ -39,6 +40,9 @@ connection = client.add_connection(
     init=c104.Init.NONE
 )
 
+connection.protocol_parameters.send_window_size = int(connection_cfg.get("k", 12))
+connection.protocol_parameters.receive_window_size = int(connection_cfg.get("w", 8))
+
 station = connection.add_station(
     common_address=CA
 )
@@ -66,19 +70,26 @@ while (
     time.sleep(0.01)
 
 
-print(
-    f"Verbunden mit {IP}:{PORT}"
-)
+LOG_DIR = Path(__file__).parent / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+run_stamp = time.strftime("%Y%m%d_%H%M%S")
+log_path = LOG_DIR / f"client_load_{run_stamp}.csv"
 
-print(
-    f"Sollrate: {RATE:.0f} msg/s"
-)
-
+log_file = open(log_path, "w", newline="", encoding="utf-8", buffering=256 * 1024)
+writer = csv.writer(log_file)
+writer.writerow([
+    "timestamp_ms", "target_rate", "actual_rate",
+    "interval_success", "interval_failed",
+    "total_success", "total_failed"
+])
 
 period = 1.0 / RATE
+status_interval = max(float(load.get("status_interval_ms", 1000)) / 1000.0, 0.001)
 
 ok_count = 0
 failed_count = 0
+total_ok = 0
+total_failed = 0
 
 second_start = time.perf_counter()
 next_send = second_start
@@ -99,8 +110,10 @@ try:
 
         if ok:
             ok_count += 1
+            total_ok += 1
         else:
             failed_count += 1
+            total_failed += 1
 
         # Kein Nachholen verlorener Sendezeit
         next_send = max(
@@ -110,16 +123,19 @@ try:
 
         now = time.perf_counter()
 
-        if now - second_start >= 1.0:
+        if now - second_start >= status_interval:
 
-            duration = (
-                now - second_start
-            )
+            duration = now - second_start
 
-            print(
-                f"TX={ok_count / duration:.1f}/s "
-                f"failed={failed_count}"
-            )
+            writer.writerow([
+                int(time.time() * 1000),
+                f"{RATE:.6f}",
+                f"{ok_count / duration:.6f}",
+                ok_count,
+                failed_count,
+                total_ok,
+                total_failed
+            ])
 
             ok_count = 0
             failed_count = 0
@@ -131,4 +147,8 @@ except KeyboardInterrupt:
 
 
 finally:
-    client.stop()
+    try:
+        log_file.flush()
+        log_file.close()
+    finally:
+        client.stop()

@@ -5,7 +5,9 @@
     "port": 2406,
     "tick_rate_ms": 100,
     "select_timeout_ms": 10000,
-    "max_connections": 10
+    "max_connections": 10,
+    "k": 12,
+    "w": 8
   },
   "load_generator": {
     "enabled": true,
@@ -30,5 +32,9 @@
         }
       ]
     }
-  ]
+  ],
+  "logging": {
+    "directory": "logs",
+    "buffer_size": 262144
+  }
 }

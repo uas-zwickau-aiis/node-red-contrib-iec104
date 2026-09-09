@@ -8,11 +8,79 @@ import signal
 from typing import Any
 from pathlib import Path
 
+class BufferedRunLogger:
+    """Sehr schlanker, gepufferter Dateilogger.
+
+    - Dateien werden genau einmal pro Lauf geöffnet.
+    - Kein flush() pro Zeile; Python puffert die Schreibzugriffe.
+    - Der Lastgenerator schreibt nur einmal pro Statusintervall eine CSV-Zeile.
+    """
+
+    def __init__(self, config: dict, script_dir: Path):
+        log_cfg = config.get("logging", {})
+        log_dir = script_dir / log_cfg.get("directory", "logs")
+        log_dir.mkdir(parents=True, exist_ok=True)
+
+        run_tag = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        buffer_size = int(log_cfg.get("buffer_size", 262144))
+
+        self.event_path = log_dir / f"server_{run_tag}.log"
+        self.load_path = log_dir / f"load_generator_{run_tag}.csv"
+        self.lock = threading.Lock()
+
+        self.event_file = open(
+            self.event_path, "w", encoding="utf-8", buffering=buffer_size
+        )
+        self.load_file = open(
+            self.load_path, "w", encoding="utf-8", buffering=buffer_size
+        )
+        self.load_file.write(
+            "timestamp_ms,target_rate,actual_rate,interval_success,"
+            "interval_failed,total_success,total_failed,active_connections\n"
+        )
+
+    def event(self, message: str) -> None:
+        timestamp = datetime.datetime.now().isoformat(timespec="milliseconds")
+        with self.lock:
+            self.event_file.write(f"{timestamp} {message}\n")
+
+    def load_sample(
+        self,
+        target_rate: float,
+        actual_rate: float,
+        interval_success: int,
+        interval_failed: int,
+        total_success: int,
+        total_failed: int,
+        active_connections: int
+    ) -> None:
+        timestamp_ms = int(time.time() * 1000)
+        with self.lock:
+            self.load_file.write(
+                f"{timestamp_ms},{target_rate:.6f},{actual_rate:.6f},"
+                f"{interval_success},{interval_failed},"
+                f"{total_success},{total_failed},{active_connections}\n"
+            )
+
+    def close(self) -> None:
+        with self.lock:
+            if not self.event_file.closed:
+                self.event_file.flush()
+                self.event_file.close()
+            if not self.load_file.closed:
+                self.load_file.flush()
+                self.load_file.close()
+
+
 
 class IEC104ServerManager:
     def __init__(self, config: dict):
         self.config = config
         self.server_config = config.get("server", {})
+        self.logger = BufferedRunLogger(
+            config,
+            Path(__file__).resolve().parent
+        )
 
         self.server = c104.Server(
             ip=self.server_config.get("ip", "0.0.0.0"),
@@ -24,6 +92,16 @@ class IEC104ServerManager:
             max_connections=int(
                 self.server_config.get("max_connections", 0)
             )
+        )
+
+        # IEC-104 APCI-Fenster. Bei c104 >= 2.1 werden k/w über
+        # server.protocol_parameters gesetzt. Direkter Zugriff ist wichtig,
+        # da ProtocolParameters die zugrunde liegende lib60870-Struktur abbildet.
+        self.server.protocol_parameters.send_window_size = int(
+            self.server_config.get("k", 12)
+        )
+        self.server.protocol_parameters.receive_window_size = int(
+            self.server_config.get("w", 8)
         )
 
         self.stations = {}
@@ -50,7 +128,9 @@ class IEC104ServerManager:
             ip: str,
             date_time: datetime.datetime
         ) -> c104.ResponseState:
-            print(f"[CLOCK SYNC] Client {ip} setzt Zeit auf {date_time}")
+            self.logger.event(
+                f"[CLOCK SYNC] Client {ip} setzt Zeit auf {date_time}"
+            )
             return c104.ResponseState.SUCCESS
 
         def on_unexpected_message(
@@ -58,7 +138,7 @@ class IEC104ServerManager:
             message: c104.IncomingMessage,
             cause: c104.Umc
         ) -> None:
-            print(
+            self.logger.event(
                 "[UNEXPECTED] "
                 f"OA={message.originator_address}, "
                 f"COT={message.cot}, "
@@ -262,9 +342,8 @@ class IEC104ServerManager:
                     "timestamp": time.time()
                 }
 
-                print(
-                    "RX:",
-                    json.dumps(
+                self.logger.event(
+                    "RX: " + json.dumps(
                         payload,
                         default=str,
                         ensure_ascii=False
@@ -285,9 +364,8 @@ class IEC104ServerManager:
                     "timestamp": time.time()
                 }
 
-                print(
-                    "READ:",
-                    json.dumps(
+                self.logger.event(
+                    "READ: " + json.dumps(
                         payload,
                         default=str,
                         ensure_ascii=False
@@ -310,9 +388,8 @@ class IEC104ServerManager:
                         "timestamp": time.time()
                     }
 
-                    print(
-                        "TIMER:",
-                        json.dumps(
+                    self.logger.event(
+                        "TIMER: " + json.dumps(
                             payload,
                             default=str,
                             ensure_ascii=False
@@ -359,9 +436,8 @@ class IEC104ServerManager:
                 value
             )
 
-            print(
-                f"SET CA={ca}, IOA={ioa}, "
-                f"VALUE={point.value}"
+            self.logger.event(
+                f"SET CA={ca}, IOA={ioa}, VALUE={point.value}"
             )
 
             if transmit:
@@ -369,9 +445,8 @@ class IEC104ServerManager:
                     cause=c104.Cot.SPONTANEOUS
                 )
 
-                print(
-                    f"TX CA={ca}, IOA={ioa}, "
-                    f"SUCCESS={success}"
+                self.logger.event(
+                    f"TX CA={ca}, IOA={ioa}, SUCCESS={success}"
                 )
 
                 return success
@@ -391,15 +466,15 @@ class IEC104ServerManager:
         for station_cfg in self.config.get("stations", []):
             ca = int(station_cfg["ca"])
 
-            print(f"Konfiguriere Station CA {ca}")
+            self.logger.event(f"Konfiguriere Station CA {ca}")
             self.add_station(ca)
 
             for point_cfg in station_cfg.get("points", []):
                 ioa = int(point_cfg["ioa"])
                 type_name = point_cfg["type"]
 
-                print(
-                    f"  Point IOA {ioa}, Typ {type_name}"
+                self.logger.event(
+                    f"Point IOA {ioa}, Typ {type_name}"
                 )
 
                 self.add_point(
@@ -461,7 +536,7 @@ class IEC104ServerManager:
         )
 
         if messages_per_second <= 0:
-            print(
+            self.logger.event(
                 "[LOAD] messages_per_second muss > 0 sein; "
                 "Lastgenerator wird nicht gestartet."
             )
@@ -470,7 +545,7 @@ class IEC104ServerManager:
         try:
             point_data = self.stations[ca]["points"][ioa]
         except KeyError:
-            print(
+            self.logger.event(
                 f"[LOAD] Point CA={ca}, IOA={ioa} existiert nicht."
             )
             return
@@ -483,7 +558,7 @@ class IEC104ServerManager:
             "M_SP_TA_1",
             "M_SP_TB_1"
         }:
-            print(
+            self.logger.event(
                 "[LOAD] Fuer den Inbound-Test wird ein "
                 "Single-Point-Messwert erwartet "
                 f"(aktuell: {type_name})."
@@ -496,7 +571,7 @@ class IEC104ServerManager:
             cfg.get("value", True)
         )
 
-        print(
+        self.logger.event(
             "[LOAD] Konfiguriert: "
             f"CA={ca}, IOA={ioa}, Typ={type_name}, "
             f"Wert={point.value}, "
@@ -529,7 +604,7 @@ class IEC104ServerManager:
             status_interval_ms * 1_000_000
         )
 
-        print("[LOAD] Lastgenerator gestartet.")
+        self.logger.event("[LOAD] Lastgenerator gestartet.")
 
         while self.running and not self.load_generator_stop.is_set():
             if (
@@ -565,7 +640,7 @@ class IEC104ServerManager:
                 )
             except Exception as exc:
                 success = False
-                print(f"[LOAD] transmit() Fehler: {exc}")
+                self.logger.event(f"[LOAD] transmit() Fehler: {exc}")
 
             if success:
                 sent_total += 1
@@ -593,19 +668,21 @@ class IEC104ServerManager:
                     else 0.0
                 )
 
-                print(
-                    "[LOAD] "
-                    f"TX={actual_rate:.1f} Meldungen/s, "
-                    f"erfolgreich={interval_sent}, "
-                    f"fehlgeschlagen={interval_failed}, "
-                    f"gesamt={sent_total}"
+                self.logger.load_sample(
+                    target_rate=messages_per_second,
+                    actual_rate=actual_rate,
+                    interval_success=interval_sent,
+                    interval_failed=interval_failed,
+                    total_success=sent_total,
+                    total_failed=failed_total,
+                    active_connections=self.server.active_connection_count
                 )
 
                 interval_started_ns = now_after_ns
                 interval_sent = 0
                 interval_failed = 0
 
-        print(
+        self.logger.event(
             "[LOAD] Lastgenerator beendet: "
             f"erfolgreich={sent_total}, "
             f"fehlgeschlagen={failed_total}"
@@ -637,7 +714,7 @@ class IEC104ServerManager:
             if self.running:
                 return
 
-            print(
+            self.logger.event(
                 "Starte IEC-104 Server auf "
                 f"{self.server.ip}:{self.server.port}"
             )
@@ -645,7 +722,7 @@ class IEC104ServerManager:
             self.server.start()
             self.running = True
 
-            print("IEC-104 Server wurde gestartet")
+            self.logger.event("IEC-104 Server wurde gestartet")
             self.start_load_generator()
 
     def stop(self):
@@ -653,7 +730,7 @@ class IEC104ServerManager:
             if not self.running:
                 return
 
-            print("Stoppe IEC-104 Server")
+            self.logger.event("Stoppe IEC-104 Server")
 
             self.running = False
             self.load_generator_stop.set()
@@ -666,11 +743,11 @@ class IEC104ServerManager:
 
             self.server.stop()
 
-            print("IEC-104 Server wurde gestoppt")
+            self.logger.event("IEC-104 Server wurde gestoppt")
 
     def print_status(self):
         while self.running:
-            print(
+            self.logger.event(
                 "[STATUS] "
                 f"offene Verbindungen="
                 f"{self.server.open_connection_count}, "
@@ -691,18 +768,19 @@ def main():
     config_path = script_path.with_suffix(".json")
 
     if not config_path.exists():
-        print(f"Config nicht gefunden: {config_path}")
+        error_path = script_path.with_suffix(".error.log")
+        with open(error_path, "a", encoding="utf-8") as file:
+            file.write(f"Config nicht gefunden: {config_path}\n")
         sys.exit(1)
-
-    print(f"Lade Config: {config_path}")
 
     config = load_config(config_path)
     manager = IEC104ServerManager(config)
+    manager.logger.event(f"Lade Config: {config_path}")
 
     shutdown_event = threading.Event()
 
     def handle_shutdown(signum, frame):
-        print(f"Shutdown-Signal empfangen: {signum}")
+        manager.logger.event(f"Shutdown-Signal empfangen: {signum}")
         shutdown_event.set()
 
     signal.signal(signal.SIGINT, handle_shutdown)
@@ -718,16 +796,18 @@ def main():
         )
         status_thread.start()
 
-        print(
-            "IEC-104 Server läuft. "
-            "Beenden mit STRG+C."
+        manager.logger.event(
+            "IEC-104 Server läuft. Beenden mit STRG+C."
         )
 
         while not shutdown_event.wait(timeout=1):
             pass
 
     finally:
-        manager.stop()
+        try:
+            manager.stop()
+        finally:
+            manager.logger.close()
 
 
 if __name__ == "__main__":
