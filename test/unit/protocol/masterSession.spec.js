@@ -691,6 +691,42 @@ describe('MasterSession', function () {
       );
     });
 
+    it('ignores control ASDU with objects', async function () {
+      const objects = [
+        {
+          ioa: 1,
+          value: true
+        }
+      ];
+
+      await session.handleASDU(
+        {
+          typeId:
+            TYPES.C_SC_NA_1.id,
+          cot: COT.ACT,
+          ca: 1,
+          objects
+        },
+        Buffer.from([1]),
+        123
+      );
+
+      assert.strictEqual(
+        onPoint.called,
+        false
+      );
+
+      assert.strictEqual(
+        session.stats.pointsReceived,
+        0
+      );
+
+      assert.strictEqual(
+        session.publishStats.called,
+        false
+      );
+    });
+
     it('publishes each received point', async function () {
       const objects = [
         {

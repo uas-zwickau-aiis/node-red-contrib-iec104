@@ -280,15 +280,18 @@ describe('SlaveSession', function () {
         cot: COT.ACT
       };
 
+      const buf = Buffer.from([1]);
+
       await session.handleASDU(
         asdu,
-        Buffer.from([1]),
+        buf,
         777
       );
 
       assert.strictEqual(
         handle.calledOnceWith(
           asdu,
+          buf,
           777
         ),
         true
@@ -664,6 +667,211 @@ describe('SlaveSession', function () {
   });
 
   describe('single command handling', function () {
+    it('returns false when first send window wait fails', async function () {
+      const waitForSendWindow = sinon.stub(
+        session,
+        'waitForSendWindow'
+      ).resolves(false);
+
+      const sendResponse = sinon.stub(
+        session,
+        'sendSingleCommandResponse'
+      );
+
+      const result =
+        await session.handleSingleCommand(
+          {
+            typeId: TYPES.C_SC_NA_1.id,
+            cot: COT.ACT,
+            ca: 1
+          },
+          Buffer.alloc(13),
+          123
+        );
+
+      assert.strictEqual(
+        result,
+        false
+      );
+
+      assert.strictEqual(
+        waitForSendWindow.calledOnce,
+        true
+      );
+
+      assert.strictEqual(
+        sendResponse.called,
+        false
+      );
+    });
+
+
+it('returns false when second send window wait fails', async function () {
+  const waitForSendWindow = sinon.stub(
+    session,
+    'waitForSendWindow'
+  );
+
+  waitForSendWindow
+    .onFirstCall()
+    .resolves(true);
+
+  waitForSendWindow
+    .onSecondCall()
+    .resolves(false);
+
+  const sendResponse = sinon.stub(
+    session,
+    'sendSingleCommandResponse'
+  ).returns(true);
+
+  const buf =
+    Buffer.alloc(13);
+
+  const result =
+    await session.handleSingleCommand(
+      {
+        typeId: TYPES.C_SC_NA_1.id,
+        cot: COT.ACT,
+        ca: 1
+      },
+      buf,
+      456
+    );
+
+  assert.strictEqual(
+    result,
+    false
+  );
+
+  assert.strictEqual(
+    waitForSendWindow.callCount,
+    2
+  );
+
+  assert.strictEqual(
+    sendResponse.calledOnceWith(
+      buf,
+      COT.ACTCON
+    ),
+    true
+  );
+});
+
+
+it('returns false when ACTCON response could not be sent', async function () {
+  sinon.stub(
+    session,
+    'waitForSendWindow'
+  ).resolves(true);
+
+  const sendResponse = sinon.stub(
+    session,
+    'sendSingleCommandResponse'
+  );
+
+  sendResponse
+    .onFirstCall()
+    .returns(false);
+
+  sendResponse
+    .onSecondCall()
+    .returns(true);
+
+  const result =
+    await session.handleSingleCommand(
+      {
+        typeId: TYPES.C_SC_NA_1.id,
+        cot: COT.ACT,
+        ca: 1
+      },
+      Buffer.alloc(13)
+    );
+
+  assert.strictEqual(
+    result,
+    false
+  );
+
+  assert.strictEqual(
+    sendResponse.callCount,
+    2
+  );
+});
+
+
+it('returns false when ACTTERM response could not be sent', async function () {
+  sinon.stub(
+    session,
+    'waitForSendWindow'
+  ).resolves(true);
+
+  const sendResponse = sinon.stub(
+    session,
+    'sendSingleCommandResponse'
+  );
+
+  sendResponse
+    .onFirstCall()
+    .returns(true);
+
+  sendResponse
+    .onSecondCall()
+    .returns(false);
+
+  const result =
+    await session.handleSingleCommand(
+      {
+        typeId: TYPES.C_SC_NA_1.id,
+        cot: COT.ACT,
+        ca: 1
+      },
+      Buffer.alloc(13)
+    );
+
+  assert.strictEqual(
+    result,
+    false
+  );
+
+  assert.strictEqual(
+    sendResponse.callCount,
+    2
+  );
+});
+
+
+it('returns true when ACTCON and ACTTERM are sent', async function () {
+  sinon.stub(
+    session,
+    'waitForSendWindow'
+  ).resolves(true);
+
+  const sendResponse = sinon.stub(
+    session,
+    'sendSingleCommandResponse'
+  ).returns(true);
+
+  const result =
+    await session.handleSingleCommand(
+      {
+        typeId: TYPES.C_SC_NA_1.id,
+        cot: COT.ACT,
+        ca: 1
+      },
+      Buffer.alloc(13)
+    );
+
+  assert.strictEqual(
+    result,
+    true
+  );
+
+  assert.strictEqual(
+    sendResponse.callCount,
+    2
+  );
+});
     it('invokes command callback', async function () {
       const asdu = {
         typeId:
@@ -684,6 +892,7 @@ describe('SlaveSession', function () {
     it('completes inbound benchmark with start value', async function () {
       await session.handleSingleCommand(
         {},
+        Buffer.from([1]),
         999
       );
 
@@ -696,7 +905,10 @@ describe('SlaveSession', function () {
     });
 
     it('uses null benchmark start by default', async function () {
-      await session.handleSingleCommand({});
+      await session.handleSingleCommand(
+        {},
+        Buffer.from([1])
+      );
 
       assert.strictEqual(
         onInboundComplete.calledOnceWith(
@@ -895,4 +1107,234 @@ describe('SlaveSession', function () {
       );
     });
   });
+  describe('waitForSendWindow', function () {
+  it('returns true immediately when send window is available', async function () {
+    sinon.stub(
+      session.apci,
+      'hasSendWindow'
+    ).returns(true);
+
+    const result =
+      await session.waitForSendWindow();
+
+    assert.strictEqual(
+      result,
+      true
+    );
+  });
+
+
+  it('returns false when data transfer becomes inactive while waiting', async function () {
+    sinon.stub(
+      session.apci,
+      'hasSendWindow'
+    ).returns(false);
+
+    sinon.stub(
+      session,
+      'isDataTransferActive'
+    ).returns(false);
+
+    const result =
+      await session.waitForSendWindow();
+
+    assert.strictEqual(
+      result,
+      false
+    );
+  });
+
+
+  it('waits asynchronously until send window becomes available', async function () {
+    const clock =
+      sinon.useFakeTimers();
+
+    try {
+      const hasSendWindow = sinon.stub(
+        session.apci,
+        'hasSendWindow'
+      );
+
+      hasSendWindow
+        .onFirstCall()
+        .returns(false);
+
+      hasSendWindow
+        .onSecondCall()
+        .returns(true);
+
+      sinon.stub(
+        session,
+        'isDataTransferActive'
+      ).returns(true);
+
+      const promise =
+        session.waitForSendWindow();
+
+      await clock.tickAsync(1);
+
+      const result =
+        await promise;
+
+      assert.strictEqual(
+        result,
+        true
+      );
+
+      assert.strictEqual(
+        hasSendWindow.callCount,
+        2
+      );
+
+      assert.strictEqual(
+        session
+          .isDataTransferActive
+          .calledOnce,
+        true
+      );
+    } finally {
+      clock.restore();
+    }
+  });
+});
+describe('sendSingleCommandResponse', function () {
+  it('creates response ASDU and sends it as I frame', function () {
+    const sendIFrame = sinon.stub(
+      session,
+      'sendIFrame'
+    ).returns(true);
+
+    const requestFrame =
+      Buffer.alloc(13);
+
+    /*
+     * APDU Header = Bytes 0..5
+     * ASDU beginnt bei Byte 6.
+     *
+     * responseAsdu[2] entspricht daher requestFrame[8].
+     */
+    requestFrame[8] = 0x00;
+
+    const result =
+      session.sendSingleCommandResponse(
+        requestFrame,
+        COT.ACTCON
+      );
+
+    assert.strictEqual(
+      result,
+      true
+    );
+
+    assert.strictEqual(
+      sendIFrame.calledOnce,
+      true
+    );
+
+    const responseAsdu =
+      sendIFrame.firstCall.args[0];
+
+    assert.ok(
+      Buffer.isBuffer(
+        responseAsdu
+      )
+    );
+
+    assert.strictEqual(
+      responseAsdu.length,
+      requestFrame.length - 6
+    );
+
+    assert.strictEqual(
+      responseAsdu[2],
+      COT.ACTCON & 0x3f
+    );
+  });
+
+
+  it('preserves test bit when changing cause', function () {
+    const sendIFrame = sinon.stub(
+      session,
+      'sendIFrame'
+    ).returns(true);
+
+    const requestFrame =
+      Buffer.alloc(13);
+
+    /*
+     * Test-Bit gesetzt.
+     */
+    requestFrame[8] = 0x80;
+
+    session.sendSingleCommandResponse(
+      requestFrame,
+      COT.ACTTERM
+    );
+
+    const responseAsdu =
+      sendIFrame.firstCall.args[0];
+
+    assert.strictEqual(
+      responseAsdu[2],
+      0x80 |
+        (COT.ACTTERM & 0x3f)
+    );
+  });
+
+
+  it('clears negative bit in response cause', function () {
+    const sendIFrame = sinon.stub(
+      session,
+      'sendIFrame'
+    ).returns(true);
+
+    const requestFrame =
+      Buffer.alloc(13);
+
+    /*
+     * Bit 6 = Negative-Bit.
+     */
+    requestFrame[8] = 0x40;
+
+    session.sendSingleCommandResponse(
+      requestFrame,
+      COT.ACTCON
+    );
+
+    const responseAsdu =
+      sendIFrame.firstCall.args[0];
+
+    assert.strictEqual(
+      responseAsdu[2] & 0x40,
+      0
+    );
+
+    assert.strictEqual(
+      responseAsdu[2] & 0x3f,
+      COT.ACTCON & 0x3f
+    );
+  });
+
+
+  it('returns result from sendIFrame', function () {
+    sinon.stub(
+      session,
+      'sendIFrame'
+    ).returns(false);
+
+    const requestFrame =
+      Buffer.alloc(13);
+
+    const result =
+      session.sendSingleCommandResponse(
+        requestFrame,
+        COT.ACTCON
+      );
+
+    assert.strictEqual(
+      result,
+      false
+    );
+  });
+});
 });

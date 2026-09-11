@@ -667,7 +667,7 @@ describe('BaseSession', function () {
       const handle = sinon.stub(
         session,
         'handleIFrame'
-      ).resolves();
+      ).resolves(true);
 
       const buf = Buffer.from([1]);
 
@@ -863,6 +863,37 @@ describe('BaseSession', function () {
           buf,
           777
         ),
+        true
+      );
+    });
+    it('returns false when ASDU parsing fails', async function () {
+      const session = createSession();
+
+      sinon.stub(
+        session,
+        'processRemoteAck'
+      );
+
+      sinon.stub(
+        session,
+        'publishStats'
+      );
+
+      parseASDUStub.returns(null);
+
+      const result =
+        await session.handleIFrame(
+          Buffer.from([1]),
+          123
+        );
+
+      assert.strictEqual(
+        result,
+        false
+      );
+
+      assert.strictEqual(
+        parseASDUStub.calledOnce,
         true
       );
     });
@@ -1541,6 +1572,38 @@ describe('BaseSession', function () {
       assert.strictEqual(
         session.isGIActive(1),
         false
+      );
+    });
+  });
+  describe('getOutboundBacklogStatus', function () {
+    it('returns queue length and unconfirmed count', function () {
+      const session = createSession();
+
+      session.sendQueue.push(
+        {
+          asdu: Buffer.from([1])
+        },
+        {
+          asdu: Buffer.from([2])
+        }
+      );
+
+      apci.unconfirmedCount.returns(3);
+
+      const result =
+        session.getOutboundBacklogStatus();
+
+      assert.deepStrictEqual(
+        result,
+        {
+          queueLength: 2,
+          unconfirmedCount: 3
+        }
+      );
+
+      assert.strictEqual(
+        apci.unconfirmedCount.calledOnce,
+        true
       );
     });
   });
