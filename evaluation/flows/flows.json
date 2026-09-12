@@ -2,7 +2,7 @@
     {
         "id": "b01623ad1a54cc8f",
         "type": "tab",
-        "label": "Benchmark Slave",
+        "label": "Benchmark IEC104",
         "disabled": false,
         "info": "",
         "env": []
@@ -58,38 +58,71 @@
         "h": 402
     },
     {
-        "id": "70c120414a25a285",
-        "type": "iec104-slave",
-        "name": "IEC104-Slave",
-        "port": "2404",
-        "t1": 15,
-        "t2": "10",
-        "t3": 20,
-        "k_win": "12",
-        "w_win": 8,
-        "benchmark_outbound": true,
-        "benchmark_inbound_command": false,
-        "benchmark_measurement_duration": "60"
+        "id": "fa3dfe5c3bd6c839",
+        "type": "group",
+        "z": "b01623ad1a54cc8f",
+        "name": "Interoperabilität Master",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "195eb0b73d6e818b",
+            "f92cd94625095548",
+            "c90190917e0547b3",
+            "d29f66bc3e18f889",
+            "bd2eab3f370472bc"
+        ],
+        "x": 134,
+        "y": 1079,
+        "w": 872,
+        "h": 322
     },
     {
-        "id": "eb932690cff896d2",
-        "type": "iec104-master",
-        "name": "IEC104-Master",
-        "host": "127.0.0.1",
-        "port": "2406",
-        "autoGI": false,
-        "gi_ca": 65535,
-        "t0": 30,
-        "t1": 15,
-        "t2": 10,
-        "t3": 20,
-        "k_win": 12,
-        "w_win": 8,
-        "reconnectDelay": 5,
-        "maxRetries": 10,
-        "benchmark_outbound": true,
-        "benchmark_inbound_report": false,
-        "benchmark_measurement_duration": 60
+        "id": "c4f421042d0c58d9",
+        "type": "group",
+        "z": "b01623ad1a54cc8f",
+        "name": "Interoperabilität Slave",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "e976e14c17ffd2ca",
+            "26e9606840fddd48",
+            "36f41cb0c9919ee6",
+            "63377cc72cb7934b",
+            "7217df512408838d",
+            "f29b4871ef3b8231",
+            "d301f7d32eae53f4"
+        ],
+        "x": 114,
+        "y": 1499,
+        "w": 892,
+        "h": 282
+    },
+    {
+        "id": "caa4d71b2d82cfea",
+        "type": "group",
+        "z": "b01623ad1a54cc8f",
+        "name": "Generischer Input",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "d7a1be16c073852f",
+            "4117c852adf5315a",
+            "fb1f21297bb5c397",
+            "422cf6897dcccb32",
+            "3125f4c533a151fd",
+            "c8d884dd1b089064",
+            "278214e19a937840"
+        ],
+        "x": 54,
+        "y": 1819,
+        "w": 1092,
+        "h": 262
     },
     {
         "id": "8603c9cb8abd75aa",
@@ -464,7 +497,460 @@
         ]
     },
     {
-        "id": "7747a232d74125b7",
+        "id": "195eb0b73d6e818b",
+        "type": "debug",
+        "z": "b01623ad1a54cc8f",
+        "g": "fa3dfe5c3bd6c839",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "f92cd94625095548",
+        "type": "iec104-masteraddress",
+        "z": "b01623ad1a54cc8f",
+        "g": "fa3dfe5c3bd6c839",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": "1",
+        "ca": 1,
+        "connection": "eb932690cff896d2",
+        "x": 880,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "c90190917e0547b3",
+        "type": "iec104-masterobserver",
+        "z": "b01623ad1a54cc8f",
+        "g": "fa3dfe5c3bd6c839",
+        "name": "",
+        "connection": "eb932690cff896d2",
+        "x": 380,
+        "y": 1240,
+        "wires": [
+            [],
+            [
+                "195eb0b73d6e818b"
+            ]
+        ]
+    },
+    {
+        "id": "d29f66bc3e18f889",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "g": "fa3dfe5c3bd6c839",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 230,
+        "y": 1120,
+        "wires": [
+            [
+                "bd2eab3f370472bc"
+            ]
+        ]
+    },
+    {
+        "id": "bd2eab3f370472bc",
+        "type": "iec104-singlecommand",
+        "z": "b01623ad1a54cc8f",
+        "g": "fa3dfe5c3bd6c839",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "C_SC_NA_1",
+        "tsSource": "now",
+        "x": 500,
+        "y": 1140,
+        "wires": [
+            [
+                "f92cd94625095548"
+            ]
+        ]
+    },
+    {
+        "id": "e976e14c17ffd2ca",
+        "type": "debug",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 1740,
+        "wires": []
+    },
+    {
+        "id": "26e9606840fddd48",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "13.85",
+        "payloadType": "num",
+        "x": 230,
+        "y": 1540,
+        "wires": [
+            [
+                "36f41cb0c9919ee6"
+            ]
+        ]
+    },
+    {
+        "id": "36f41cb0c9919ee6",
+        "type": "iec104-measuredvalue",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "M_ME_NC_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 450,
+        "y": 1600,
+        "wires": [
+            [
+                "63377cc72cb7934b"
+            ]
+        ]
+    },
+    {
+        "id": "63377cc72cb7934b",
+        "type": "iec104-slaveaddress",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 730,
+        "y": 1560,
+        "wires": []
+    },
+    {
+        "id": "7217df512408838d",
+        "type": "iec104-slaveobserver",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 530,
+        "y": 1720,
+        "wires": [
+            [],
+            [
+                "e976e14c17ffd2ca"
+            ]
+        ]
+    },
+    {
+        "id": "f29b4871ef3b8231",
+        "type": "iec104-measuredvalue",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "2",
+        "objType": "M_ME_NC_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 430,
+        "y": 1660,
+        "wires": [
+            [
+                "63377cc72cb7934b"
+            ]
+        ]
+    },
+    {
+        "id": "d301f7d32eae53f4",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "g": "c4f421042d0c58d9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "7",
+        "payloadType": "num",
+        "x": 210,
+        "y": 1600,
+        "wires": [
+            [
+                "f29b4871ef3b8231"
+            ]
+        ]
+    },
+    {
+        "id": "d7a1be16c073852f",
+        "type": "debug",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 2040,
+        "wires": []
+    },
+    {
+        "id": "4117c852adf5315a",
+        "type": "iec104-measuredvalue",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "M_ME_NC_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 670,
+        "y": 1940,
+        "wires": [
+            [
+                "fb1f21297bb5c397"
+            ]
+        ]
+    },
+    {
+        "id": "fb1f21297bb5c397",
+        "type": "iec104-slaveaddress",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 870,
+        "y": 1860,
+        "wires": []
+    },
+    {
+        "id": "422cf6897dcccb32",
+        "type": "iec104-slaveobserver",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 670,
+        "y": 2020,
+        "wires": [
+            [],
+            [
+                "d7a1be16c073852f"
+            ]
+        ]
+    },
+    {
+        "id": "3125f4c533a151fd",
+        "type": "http in",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "",
+        "url": "/iec104-test",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 1880,
+        "wires": [
+            [
+                "4117c852adf5315a"
+            ]
+        ]
+    },
+    {
+        "id": "c8d884dd1b089064",
+        "type": "http request",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://localhost:1880/iec104-test",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 310,
+        "y": 1940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "278214e19a937840",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "g": "caa4d71b2d82cfea",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "34",
+        "payloadType": "num",
+        "x": 150,
+        "y": 1960,
+        "wires": [
+            [
+                "c8d884dd1b089064"
+            ]
+        ]
+    },
+    {
+        "id": "8c569981a723f830",
+        "type": "inject",
+        "z": "b01623ad1a54cc8f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "123",
+        "payloadType": "num",
+        "x": 210,
+        "y": 2040,
+        "wires": [
+            [
+                "4117c852adf5315a"
+            ]
+        ]
+    },
+    {
+        "id": "70c120414a25a285",
+        "type": "iec104-slave",
+        "name": "IEC104-Slave",
+        "port": "2404",
+        "t1": 15,
+        "t2": "10",
+        "t3": 20,
+        "k_win": "12",
+        "w_win": 8,
+        "benchmark_outbound": true,
+        "benchmark_inbound_command": false,
+        "benchmark_measurement_duration": "60"
+    },
+    {
+        "id": "eb932690cff896d2",
+        "type": "iec104-master",
+        "d": true,
+        "name": "IEC104-Master",
+        "host": "127.0.0.1",
+        "port": "2406",
+        "autoGI": true,
+        "gi_ca": 65535,
+        "t0": 30,
+        "t1": 15,
+        "t2": 10,
+        "t3": 20,
+        "k_win": 12,
+        "w_win": 8,
+        "reconnectDelay": 5,
+        "maxRetries": 10,
+        "benchmark_outbound": true,
+        "benchmark_inbound_report": false,
+        "benchmark_measurement_duration": 60
+    },
+    {
+        "id": "2f2fa0b238b46c6f",
         "type": "global-config",
         "env": [],
         "modules": {

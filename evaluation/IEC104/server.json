@@ -1,5 +1,5 @@
 {
-  "debug": false,
+  "debug": true,
 
   "server": {
     "ip": "0.0.0.0",
@@ -23,16 +23,16 @@
           "ioa": 101,
           "type": "M_ME_NC_1",
           "value": 21.5,
-          "report_ms": 5000
+          "report_ms": 0
         },
         {
           "ioa": 102,
           "type": "M_ME_NB_1",
           "value": 100,
-          "report_ms": 10000
+          "report_ms": 0
         },
         {
-          "ioa": 200,
+          "ioa": 1,
           "type": "C_SC_NA_1",
           "value": false,
           "command_mode": "DIRECT",
@@ -60,7 +60,7 @@
           "report_ms": 0
         },
         {
-          "ioa": 1001,
+          "ioa": 1,
           "type": "C_DC_NA_1",
           "value": "OFF",
           "command_mode": "DIRECT",

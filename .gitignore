@@ -23,7 +23,11 @@ TODO.md
 coverage/
 .nyc_output/
 
-# Resource Monitor
+# Logging
 
 *.csv
+*.log
 *_metadata.json
+
+# wireshark
+*.pcapng
