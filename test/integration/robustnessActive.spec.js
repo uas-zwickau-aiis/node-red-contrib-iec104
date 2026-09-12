@@ -64,41 +64,62 @@ describeActive('IEC104 robustness - active SUT', function () {
         }
     });
 
-    it('keeps TCP open after STARTDT t1 timeout (current implementation)', async function () {
+    it('reconnects after STARTDT t1 timeout', async function () {
         const server = new IEC104Server(options);
         await server.listen();
 
         try {
-            const peer = await server.nextConnection();
+            const first = await server.nextConnection();
 
             // MasterSession.start(): STARTDT_ACT + t1.
-            await peer.expect(F.STARTDT_ACT);
+            await first.expect(F.STARTDT_ACT);
 
-            // Intentionally omit STARTDT_CON.
-            const t1 = Number(process.env.IEC104_T1_MS || 15000);
-            const margin = Number(process.env.IEC104_T1_MARGIN_MS || 500);
+            // STARTDT_CON absichtlich nicht senden.
+            const t1 =
+                Number(process.env.IEC104_T1_MS || 15000);
+
+            const margin =
+                Number(process.env.IEC104_T1_MARGIN_MS || 500);
+
             await sleep(t1 + margin);
 
             /*
-             * Current implementation:
-             * MasterSession.handleT1Timeout() calls session.stop(), but
-             * BaseSession.stop() does not close TcpClient. TcpClient only
-             * reconnects after its socket cleanup path. Consequently the
-             * TCP connection is expected to remain open here.
-             *
-             * This test documents the observed technical limitation rather
-             * than pretending that an automatic reconnect occurs.
-             */
-            assert.strictEqual(
-                peer.closed,
-                false,
-                'TCP connection was closed although current code does not request it'
+            * Nach Ablauf von t1 muss die fehlerhafte
+            * Verbindung beendet werden.
+            */
+            const reconnectTimeout =
+                Number(
+                    process.env.IEC104_RECONNECT_TIMEOUT_MS ||
+                    10000
+                );
+
+            await first.waitForClose(reconnectTimeout);
+
+            /*
+            * Anschließend muss der TcpClient über seinen
+            * normalen Reconnect-Pfad eine neue Verbindung
+            * herstellen.
+            */
+            const second =
+                await server.nextConnection(reconnectTimeout);
+
+            assert(
+                second,
+                'SUT did not reconnect after STARTDT timeout'
             );
 
-            // The transport is still alive; record this as an observation.
-            // Do not use this as proof that DATA_TRANSFER is active.
-            await peer.send(F.TESTFR_ACT);
-            await peer.expect(F.TESTFR_CON);
+            /*
+            * Auf der neuen TCP-Verbindung muss auch die
+            * IEC-104-Sitzung vollständig neu aufgebaut werden.
+            */
+            await second.acceptStartDT();
+
+            /*
+            * Abschließend reguläre Kommunikation prüfen.
+            */
+            await second.send(F.TESTFR_ACT);
+            await second.expect(F.TESTFR_CON);
+
         } finally {
             await server.close();
         }

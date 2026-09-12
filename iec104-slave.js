@@ -148,6 +148,9 @@ module.exports = function (RED) {
                     ts: Date.now()
                 });
             },
+            onTransportReset: reason => {
+                node.tcp?.disconnect(reason);
+            },
 
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array

@@ -142,6 +142,9 @@ module.exports = function (RED) {
                     ts: Date.now()
                 });
             },
+            onTransportReset: reason => {
+                node.tcp?.reset(reason);
+            },
 
             onASDU: asdu => {
                 node.emit("iec104:asdu", {
