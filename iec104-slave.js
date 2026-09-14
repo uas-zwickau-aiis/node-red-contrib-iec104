@@ -284,6 +284,16 @@ module.exports = function (RED) {
         // ==========================================
 
         node.on("iec104:input", function (msg) {
+              // Benchmark über Nachricht starten
+            if (msg.benchmark === true) {
+                try {
+                    node.benchmark.startRun(Date.now());
+                } catch (err) {
+                    node.error(err.message, msg);
+                }
+                return;
+            }
+
             const p = msg.payload;
 
             if (!isValidPoint(p)) {
