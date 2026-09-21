@@ -20,6 +20,14 @@ docs/
 TODO.md
 
 # nyc Coverage
-
 coverage/
 .nyc_output/
+
+# Logging
+
+*.csv
+*.log
+*_metadata.json
+
+# wireshark
+*.pcapng

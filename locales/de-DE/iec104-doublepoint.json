@@ -1,7 +1,7 @@
 {
   "iec104": {
     "label": "Doppelmeldung",
-    "paletteLabel": "Doppelmeldung",
+    "paletteLabel": "Doppelmeld.",
     "settings": {
       "general": {
         "label": "Allgemeine Objekteinstellungen",

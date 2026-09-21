@@ -1,6 +1,8 @@
 const Session = require("./lib/protocol/masterSession");
 const StatusPublisher = require("./lib/core/statusPublisher");
 const TcpClient = require("./lib/tcp/client");
+const Benchmark = require("./lib/core/benchmark");
+const BENCHMARK = require("./lib/core/benchmarkDefinitions");
 const IEC104 = require("./lib/core/constants");
 const registerRoutes = require("./lib/admin/routes");
 const { isValidPoint } = require("./lib/core/validators");
@@ -32,12 +34,93 @@ module.exports = function (RED) {
         node.currentReason = "Nicht verbunden";
         node.currentTs = Date.now();
 
+        // ==========================================
+        // Benchmark
+        // ==========================================
+
+        node.benchmark = new Benchmark({
+            measurementDurationMs:
+                Number(config.benchmark_measurement_duration) * 1000
+        });
+
+        node.benchmark.setEnabled(
+            BENCHMARK.OUTBOUND.id,
+            config.benchmark_outbound === true
+        );
+
+        node.benchmark.setEnabled(
+            BENCHMARK.INBOUND_REPORT.id,
+            config.benchmark_inbound_report === true
+        );
+
         node.statusPub = new StatusPublisher(node);
 
         node.session = new Session({
-            send: data => {
-                node.tcp.send(data);
+            /*
+             * OUTBOUND COMMAND
+             *
+             * Start: Node-RED Input
+             * Ende: Übergabe des vollständigen Frames an TCP.
+             */
+            send: (data, benchStart = null, msg = null) => {
+                const sent = node.tcp.send(data);
+
+                if (!sent) {
+                    node.error(
+                        "TCP-Telegramm konnte nicht gesendet werden",
+                        msg || undefined
+                    );
+                    return false;
+                }
+
+                if (benchStart !== null) {
+                    node.benchmark.recordOutput(
+                        BENCHMARK.OUTBOUND.id,
+                        1,
+                        benchStart
+                    );
+                }
+
+                node.benchmark.result(
+                    BENCHMARK.OUTBOUND.id,
+                    benchStart
+                );
+
                 emitData(data);
+                return true;
+            },
+
+            /*
+             * INBOUND REPORT
+             *
+             * Der Latenzstartpunkt wird bereits beim vollständigen
+             * APDU-Eingang gesetzt. Der Throughput-Eingang wird erst
+             * gezählt, wenn eine ASDU mit zu verarbeitenden Objekten
+             * vorliegt.
+             */
+            onInboundStart: benchStart => {
+                if (benchStart !== null) {
+                    node.benchmark.recordInput(
+                        BENCHMARK.INBOUND_REPORT.id,
+                        1,
+                        benchStart
+                    );
+                }
+            },
+
+            onInboundComplete: benchStart => {
+                if (benchStart !== null) {
+                    node.benchmark.recordOutput(
+                        BENCHMARK.INBOUND_REPORT.id,
+                        1,
+                        benchStart
+                    );
+                }
+
+                node.benchmark.result(
+                    BENCHMARK.INBOUND_REPORT.id,
+                    benchStart
+                );
             },
 
             onStateChange: (state, reason) => {
@@ -58,6 +141,9 @@ module.exports = function (RED) {
                     payload: summary,
                     ts: Date.now()
                 });
+            },
+            onTransportReset: reason => {
+                node.tcp?.reset(reason);
             },
 
             onASDU: asdu => {
@@ -130,7 +216,20 @@ module.exports = function (RED) {
             t0: node.t0,
 
             onFrame: frame => {
-                node.session.handleFrame(frame).catch(err => node.error(err));
+                const benchStart = node.benchmark.start(
+                    BENCHMARK.INBOUND_REPORT.id
+                );
+
+                node.session
+                    .handleFrame(frame, benchStart)
+                    .then(ok => {
+                        if (!ok) {
+                            node.warn(
+                                "Ungültiges oder nicht unterstütztes IEC-104-Telegramm verworfen"
+                            );
+                        }
+                    })
+                    .catch(err => node.error(err));
             },
 
             onConnect: () => {
@@ -147,6 +246,8 @@ module.exports = function (RED) {
             },
 
             onError: err => {
+                node.error(err);
+
                 node.statusPub.publishState(
                     "IDLE",
                     err?.message || "TCP-Fehler"
@@ -156,11 +257,74 @@ module.exports = function (RED) {
 
         node.tcp.start();
 
+        // ==========================================
+        // Benchmark timer
+        // ==========================================
+
+        node.benchmarkTimer = setInterval(() => {
+            const result = node.benchmark.tick(
+                Date.now(),
+                {
+                    outboundBacklog:
+                        node.session.getOutboundBacklogStatus()
+                }
+            );
+
+            const sample =
+                result.samples?.[
+                    BENCHMARK.INBOUND_REPORT.id
+                ];
+
+            if (sample) {
+                const backlog =
+                    sample.inputCount -
+                    sample.outputCount;
+
+                console.log(
+                    "[BENCH SAMPLE] " +
+                    `duration=${sample.durationMs}ms ` +
+                    `in=${sample.inputCount} ` +
+                    `out=${sample.outputCount} ` +
+                    `inputRate=${sample.inputRate.toFixed(2)}/s ` +
+                    `outputRate=${sample.outputRate.toFixed(2)}/s ` +
+                    `delta=${backlog}`
+                );
+            }
+
+            if (result.transition) {
+                node.emit("iec104:status", {
+                    topic: "benchmark/state",
+                    payload: node.benchmark.status(),
+                    ts: Date.now()
+                });
+            }
+
+            if (!result.finished) {
+                return;
+            }
+
+            node.emit("iec104:status", {
+                topic: "benchmark",
+                payload: result.snapshot,
+                ts: Date.now()
+            });
+        }, 1000);
+
         node.on("iec104:input", function (msg) {
+               // Benchmark über Nachricht starten
+            if (msg.benchmark === true) {
+                try {
+                    node.benchmark.startRun(Date.now());
+                } catch (err) {
+                    node.error(err.message, msg);
+                }
+                return;
+            }
+
             const payload = msg.payload || {};
 
             if (payload.command === "gi" || payload.type === "gi") {
-                const ca = Number(payload.ca || node.giCA || IEC104.CA.BROADCAST);
+                const ca = Number(payload.ca || node.giCA);
                 const ok = node.session.sendInterrogation(ca);
 
                 if (!ok) {
@@ -176,14 +340,43 @@ module.exports = function (RED) {
             }
 
             if (!isValidPoint(payload)) {
-                node.error("Invalid IEC104 point");
+                node.error("Invalid IEC104 point", msg);
                 return;
             }
 
-            node.session.sendPoint(payload, IEC104.COT.ACT);
+            const benchStart = node.benchmark.start(
+                BENCHMARK.OUTBOUND.id
+            );
+
+            if (benchStart !== null) {
+                node.benchmark.recordInput(
+                    BENCHMARK.OUTBOUND.id,
+                    1,
+                    benchStart
+                );
+            }
+
+            const ok = node.session.sendPoint(
+                payload,
+                IEC104.COT.ACT,
+                benchStart,
+                msg
+            );
+
+            if (!ok) {
+                node.error(
+                    "IEC104 point could not be encoded",
+                    msg
+                );
+            }
         });
 
         node.on("close", function (done) {
+            if (node.benchmarkTimer) {
+                clearInterval(node.benchmarkTimer);
+                node.benchmarkTimer = null;
+            }
+
             node.statusPub.closeAll();
 
             if (node.tcp) {

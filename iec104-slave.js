@@ -34,11 +34,8 @@ module.exports = function (RED) {
         // ==========================================
 
         node.benchmark = new Benchmark({
-            maxFrames: Number(config.benchmark_max_frames),
-
-            lowestDiscernibleValue: 1,
-            highestTrackableValue: 10_000_000_000,
-            numberOfSignificantValueDigits: 3
+            measurementDurationMs:
+                Number(config.benchmark_measurement_duration) * 1000
         });
 
         node.benchmark.setEnabled(
@@ -69,47 +66,75 @@ module.exports = function (RED) {
              * Node-RED Input
              *
              * Ende:
-             * Übergabe des vollständigen Frames an TCP
+             * Übergabe des vollständigen Frames an TCP.
              */
             send: (data, benchStart = null, msg = null) => {
-                node.tcp.send(data);
+                try {
+                    node.tcp.send(data);
+                } catch (err) {
+                    node.error(err, msg || undefined);
+                    return false;
+                }
 
-                const result = node.benchmark.result(
+                if (benchStart !== null) {
+                    node.benchmark.recordOutput(
+                        BENCHMARK.OUTBOUND.id,
+                        1,
+                        benchStart
+                    );
+                }
+
+                node.benchmark.result(
                     BENCHMARK.OUTBOUND.id,
                     benchStart
                 );
 
-                handleBenchmarkResult(
-                    BENCHMARK.OUTBOUND.id,
-                    result
-                );
-
                 emitData(data, msg);
+
+                return true;
             },
 
             /*
              * INBOUND COMMAND
              *
+             * Der Latenzstartpunkt wird bereits beim
+             * vollständigen APDU-Eingang gesetzt.
+             *
+             * Der Throughput-Eingang wird erst gezählt,
+             * nachdem die ASDU tatsächlich als Command
+             * erkannt wurde.
+             */
+            onInboundStart: benchStart => {
+                if (benchStart !== null) {
+                    node.benchmark.recordInput(
+                        BENCHMARK.INBOUND_COMMAND.id,
+                        1,
+                        benchStart
+                    );
+                }
+            },
+
+            /*
              * Ende nach abgeschlossener
              * Command-Verarbeitung.
              */
             onInboundComplete: benchStart => {
-                const result = node.benchmark.result(
+                if (benchStart !== null) {
+                    node.benchmark.recordOutput(
+                        BENCHMARK.INBOUND_COMMAND.id,
+                        1,
+                        benchStart
+                    );
+                }
+
+                node.benchmark.result(
                     BENCHMARK.INBOUND_COMMAND.id,
                     benchStart
-                );
-
-                handleBenchmarkResult(
-                    BENCHMARK.INBOUND_COMMAND.id,
-                    result
                 );
             },
 
             onStateChange: (state, message) => {
-                node.statusPub.publishState(
-                    state,
-                    message
-                );
+                node.statusPub.publishState(state, message);
             },
 
             onStats: () => {
@@ -123,13 +148,17 @@ module.exports = function (RED) {
                     ts: Date.now()
                 });
             },
+            onTransportReset: reason => {
+                node.tcp?.disconnect(reason);
+            },
 
             onGI: async (ca, sendPoint) => {
                 const snapshot = Array
                     .from(node.processImage.values())
-                    .filter(p =>
-                        ca === IEC104.CA.BROADCAST ||
-                        p.ca === ca
+                    .filter(
+                        p =>
+                            ca === IEC104.CA.BROADCAST ||
+                            p.ca === ca
                     )
                     .sort((a, b) => a.ioa - b.ioa);
 
@@ -139,7 +168,7 @@ module.exports = function (RED) {
             },
 
             onCommand: async asdu => {
-                console.log(asdu);
+              // 
             },
 
             t1: node.t1,
@@ -157,12 +186,12 @@ module.exports = function (RED) {
             port: node.port,
 
             /*
-             * INBOUND COMMAND START
+             * Der Latenzstartpunkt wird bei Eingang
+             * des vollständigen Frames erzeugt.
              *
-             * Der Startwert wird für jedes vollständige
-             * Frame erzeugt. Nur bei tatsächlich
-             * verarbeitetem Command wird er später
-             * aufgezeichnet.
+             * Erst SlaveSession entscheidet, ob es sich
+             * tatsächlich um einen zu messenden Command
+             * handelt.
              */
             onFrame: frame => {
                 const benchStart = node.benchmark.start(
@@ -171,6 +200,13 @@ module.exports = function (RED) {
 
                 node.session
                     .handleFrame(frame, benchStart)
+                    .then(ok => {
+                        if (!ok) {
+                            node.warn(
+                                "Ungültiges oder nicht unterstütztes IEC-104-Telegramm verworfen"
+                            );
+                        }
+                    })
                     .catch(err => node.error(err));
             },
 
@@ -180,24 +216,118 @@ module.exports = function (RED) {
 
             onDisconnect: reason => {
                 node.session.stop(`tcp.${reason}`);
+            },
+
+            onError: err => {
+                node.error(err);
+
+                node.statusPub.publishState(
+                    "IDLE",
+                    err?.message || "TCP-Fehler"
+                );
             }
         });
 
         node.tcp.start();
 
         // ==========================================
+        // Benchmark timer
+        // ==========================================
+
+        /*
+         * Der Timer läuft dauerhaft im Sekundenintervall.
+         *
+         * IDLE / FINISHED:
+         * keine Messung.
+         *
+         * WARMUP:
+         * Durchsatz erfassen und Stabilität prüfen.
+         *
+         * MEASUREMENT:
+         * Messwerte erfassen und Messdauer überwachen.
+         */
+        node.benchmarkTimer = setInterval(() => {
+            const result = node.benchmark.tick(
+                Date.now(),
+                {
+                    outboundBacklog:
+                        node.session.getOutboundBacklogStatus()
+                }
+            );
+
+            if (result.transition) {
+                node.emit("iec104:status", {
+                    topic: "benchmark/state",
+                    payload: node.benchmark.status(),
+                    ts: Date.now()
+                });
+            }
+
+            if (!result.finished) {
+                return;
+            }
+
+            /*
+             * Finales Ergebnis eines Benchmark-Laufs.
+             *
+             * Enthält Warm-up- und Messdaten.
+             */
+            node.emit("iec104:status", {
+                topic: "benchmark",
+                payload: result.snapshot,
+                ts: Date.now()
+            });
+        }, 1000);
+
+        // ==========================================
         // Node-RED Input
         // ==========================================
 
         node.on("iec104:input", function (msg) {
-            const benchStart = node.benchmark.start(
-                BENCHMARK.OUTBOUND.id
-            );
+              // Benchmark über Nachricht starten
+            if (msg.benchmark === true) {
+                try {
+                    node.benchmark.startRun(Date.now());
+                } catch (err) {
+                    node.error(err.message, msg);
+                }
+                return;
+            }
 
             const p = msg.payload;
 
             if (!isValidPoint(p)) {
-                node.error("Invalid IEC104 point");
+                node.error(
+                    "Invalid IEC104 point",
+                    msg
+                );
+                return;
+            }
+
+            const benchStart = node.benchmark.start(
+                BENCHMARK.OUTBOUND.id
+            );
+
+            if (benchStart !== null) {
+                node.benchmark.recordInput(
+                    BENCHMARK.OUTBOUND.id,
+                    1,
+                    benchStart
+                );
+            }
+
+            const ok = node.session.sendPoint(
+                p,
+                IEC104.COT.SPONT,
+                benchStart,
+                msg
+            );
+
+            if (!ok) {
+                node.error(
+                    "IEC104 point could not be encoded",
+                    msg
+                );
                 return;
             }
 
@@ -205,42 +335,22 @@ module.exports = function (RED) {
                 `${p.ca}:${p.ioa}`,
                 p
             );
-
-            node.session.sendPoint(
-                p,
-                IEC104.COT.SPONT,
-                benchStart,
-                msg
-            );
         });
-
-        // ==========================================
-        // Benchmark Result Event
-        // ==========================================
-
-        function handleBenchmarkResult(metric, result) {
-            if (!result?.completed) {
-                return;
-            }
-
-            node.emit("iec104:status", {
-                topic: "benchmark",
-                payload: node.benchmark.metricSnapshot(metric),
-                ts: Date.now()
-            });
-        }
 
         // ==========================================
         // Data Event
         // ==========================================
 
-        function emitData(asdu, msg = null) {
+        function emitData(asdu, msg) {
             msg ??= {};
 
             msg.asdu = asdu;
             msg.ts = Date.now();
 
-            node.emit("iec104:data", msg);
+            node.emit(
+                "iec104:data",
+                msg
+            );
         }
 
         // ==========================================
@@ -248,6 +358,11 @@ module.exports = function (RED) {
         // ==========================================
 
         node.on("close", function (done) {
+            if (node.benchmarkTimer) {
+                clearInterval(node.benchmarkTimer);
+                node.benchmarkTimer = null;
+            }
+
             node.statusPub.closeAll();
 
             if (node.tcp) {

@@ -1,0 +1,1352 @@
+[
+    {
+        "id": "9d5706e660095b00",
+        "type": "tab",
+        "label": "Benchmark IEC104",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "37b567e3eb33a611",
+        "type": "group",
+        "z": "9d5706e660095b00",
+        "name": "Leistungsbewertung Slave",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "4277ea5b6e0abf5b",
+            "dfb9ba6c145fb5f8",
+            "5547eeddc73786e4",
+            "950218982b81869f",
+            "9eaf843cee90dbdf",
+            "5d456828333b3bda",
+            "32b88ed6e2f0a956",
+            "6b65a94c6d86f6f9",
+            "08e362c1bb5a1ade"
+        ],
+        "x": 114,
+        "y": 119,
+        "w": 892,
+        "h": 402
+    },
+    {
+        "id": "318adc7b9c326e49",
+        "type": "group",
+        "z": "9d5706e660095b00",
+        "name": "Leistungsbewertung Master",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "9ad3593179a7e021",
+            "0fb9c1766804f0b2",
+            "855f96dfa63e4dd4",
+            "c6117d266be41b45",
+            "b123a6ce64101d72",
+            "5327b63d07e9eaaf",
+            "cfb0a60362a25962",
+            "7a20a0b4d2f72bfc",
+            "fa471f4cadfe0aaa"
+        ],
+        "x": 114,
+        "y": 559,
+        "w": 892,
+        "h": 402
+    },
+    {
+        "id": "f4029e1f7411537c",
+        "type": "group",
+        "z": "9d5706e660095b00",
+        "name": "Interoperabilität Master",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "6ad7e71d718dcdf5",
+            "d9ce5a923a10bffa",
+            "30d1d2cd1e20c042",
+            "237363982cc2c111",
+            "ba022fe44a4aaece"
+        ],
+        "x": 134,
+        "y": 1079,
+        "w": 872,
+        "h": 322
+    },
+    {
+        "id": "b130470c9d643f9e",
+        "type": "group",
+        "z": "9d5706e660095b00",
+        "name": "Interoperabilität Slave",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "c164bc2477ac97a0",
+            "f2dbb25668175c9a",
+            "f406ce471ef6ceec",
+            "7675cc10d9953f78",
+            "d1a4c303fb3a57f8",
+            "5c37d9b632a30678",
+            "109ebeb753d91abf"
+        ],
+        "x": 114,
+        "y": 1499,
+        "w": 892,
+        "h": 282
+    },
+    {
+        "id": "3d97733d3c77cc11",
+        "type": "group",
+        "z": "9d5706e660095b00",
+        "name": "Generischer Input",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "d0c86876983178dd",
+            "eb04355236fbd035",
+            "0902bd6184b19a37",
+            "f6eba5ef29911771",
+            "62641ae0eb0f76a7",
+            "b90f2bced0031da3",
+            "2751b6da376e0df4"
+        ],
+        "x": 54,
+        "y": 1819,
+        "w": 1092,
+        "h": 262
+    },
+    {
+        "id": "98441846772339c9",
+        "type": "group",
+        "z": "9d5706e660095b00",
+        "name": "Mehrere Slaves",
+        "style": {
+            "label": true,
+            "label-position": "n"
+        },
+        "nodes": [
+            "d328c41671cffa72",
+            "7a0fedd69fe917d8",
+            "53758553f808b78e",
+            "7d760214c70fd78d",
+            "1c14c7e941efe931",
+            "10ccaef99606514e",
+            "3ceb636aa447c4fd",
+            "6f598ed285df53e8",
+            "f1801abafbe3564f",
+            "1e4b5507ea32e352",
+            "0715b7ab8fa94a4b",
+            "6f160fb2e69414b7",
+            "c7886763902a3d3f",
+            "2fb5e0c9c894abf5",
+            "5b2a4891d163f6d6",
+            "f473a00f3a781a5b",
+            "e07c897d2e3704cd"
+        ],
+        "x": 1054,
+        "y": 119,
+        "w": 972,
+        "h": 502
+    },
+    {
+        "id": "4277ea5b6e0abf5b",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "Lastgenerator",
+        "func": "// ==========================================\n// Konfiguration\n// ==========================================\n\nconst rate = 2000;    // Nachrichten pro Sekunde\nconst value = 42;       // Payload der erzeugten Nachrichten\n\n// Generator-Takt\nconst tickMs = 10;\n\n\n// ==========================================\n// Eingang auswerten\n// ==========================================\n\n// START\nif (msg.payload === true) {\n\n    // Läuft bereits?\n    if (context.get(\"running\")) {\n        node.warn(\"Load Generator läuft bereits\");\n        return null;\n    }\n\n    context.set(\"running\", true);\n\n    // ==========================================\n    // Benchmark starten\n    // Ausgang 2\n    // ==========================================\n\n    node.send([\n        null,\n        {\n            benchmark: true\n        }\n    ]);\n\n\n    // ==========================================\n    // Lastgenerator initialisieren\n    // ==========================================\n\n    const startTime = Date.now();\n    let sent = 0;\n\n\n    // ==========================================\n    // Generator\n    // ==========================================\n\n    function tick() {\n\n        // Wurde inzwischen gestoppt?\n        if (!context.get(\"running\")) {\n            node.status({\n                fill: \"red\",\n                shape: \"ring\",\n                text: `gestoppt (${sent} gesendet)`\n            });\n\n            return;\n        }\n\n        const now = Date.now();\n        const elapsedMs = now - startTime;\n\n        // Anzahl Nachrichten, die laut Sollfrequenz\n        // bis jetzt gesendet worden sein müssten\n        const targetSent = Math.floor(\n            elapsedMs * rate / 1000\n        );\n\n        // Fehlende Nachrichten nachholen\n        const batchSize = targetSent - sent;\n\n        if (batchSize > 0) {\n\n            const messages = new Array(batchSize);\n\n            for (let i = 0; i < batchSize; i++) {\n                messages[i] = {\n                    payload: value\n                };\n            }\n\n            // ==================================\n            // Last nur über Ausgang 1 senden\n            // ==================================\n\n            node.send([\n                messages,\n                null\n            ]);\n\n            sent += batchSize;\n        }\n\n\n        // ==========================================\n        // Nächsten Tick absolut ausrichten\n        // ==========================================\n\n        const nextTickNumber =\n            Math.floor(elapsedMs / tickMs) + 1;\n\n        const nextTarget =\n            startTime + nextTickNumber * tickMs;\n\n        const delay =\n            Math.max(0, nextTarget - Date.now());\n\n        setTimeout(tick, delay);\n    }\n\n\n    // ==========================================\n    // Start\n    // ==========================================\n\n    node.status({\n        fill: \"green\",\n        shape: \"dot\",\n        text: `${rate} msg/s`\n    });\n\n    tick();\n\n    return null;\n}\n\n\n// ==========================================\n// STOP\n// ==========================================\n\nif (msg.payload === false) {\n\n    context.set(\"running\", false);\n\n    node.status({\n        fill: \"red\",\n        shape: \"ring\",\n        text: \"gestoppt\"\n    });\n\n    return null;\n}\n\n\n// ==========================================\n// Andere Eingaben ignorieren\n// ==========================================\n\nreturn null;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 200,
+        "wires": [
+            [
+                "5547eeddc73786e4"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "dfb9ba6c145fb5f8",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 250,
+        "y": 160,
+        "wires": [
+            [
+                "4277ea5b6e0abf5b"
+            ]
+        ]
+    },
+    {
+        "id": "5547eeddc73786e4",
+        "type": "iec104-measuredvalue",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "4",
+        "objType": "M_ME_TF_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 610,
+        "y": 240,
+        "wires": [
+            [
+                "950218982b81869f"
+            ]
+        ]
+    },
+    {
+        "id": "950218982b81869f",
+        "type": "iec104-slaveaddress",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 830,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "9eaf843cee90dbdf",
+        "type": "iec104-slaveobserver",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 290,
+        "y": 300,
+        "wires": [
+            [],
+            [
+                "5d456828333b3bda",
+                "6b65a94c6d86f6f9"
+            ]
+        ]
+    },
+    {
+        "id": "5d456828333b3bda",
+        "type": "debug",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "32b88ed6e2f0a956",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 210,
+        "y": 220,
+        "wires": [
+            [
+                "4277ea5b6e0abf5b"
+            ]
+        ]
+    },
+    {
+        "id": "6b65a94c6d86f6f9",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "function 1",
+        "func": "if (msg.topic !== \"benchmark\") {\n    return null;\n}\n\nconst result = msg.payload;\nmsg.payload = JSON.stringify(result, null, 2);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 340,
+        "wires": [
+            [
+                "08e362c1bb5a1ade"
+            ]
+        ]
+    },
+    {
+        "id": "08e362c1bb5a1ade",
+        "type": "file",
+        "z": "9d5706e660095b00",
+        "g": "37b567e3eb33a611",
+        "name": "",
+        "filename": "messdaten.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 840,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9ad3593179a7e021",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "Lastgenerator",
+        "func": "// ==========================================\n// Konfiguration\n// ==========================================\n\nconst rate = 6500;    // Nachrichten pro Sekunde\nconst value = 42;       // Payload der erzeugten Nachrichten\n\n// Generator-Takt\nconst tickMs = 10;\n\n\n// ==========================================\n// Eingang auswerten\n// ==========================================\n\n// START\nif (msg.payload === true) {\n\n    // Läuft bereits?\n    if (context.get(\"running\")) {\n        node.warn(\"Load Generator läuft bereits\");\n        return null;\n    }\n\n    context.set(\"running\", true);\n\n    // ==========================================\n    // Benchmark starten\n    // Ausgang 2\n    // ==========================================\n\n    node.send([\n        null,\n        {\n            benchmark: true\n        }\n    ]);\n\n\n    // ==========================================\n    // Lastgenerator initialisieren\n    // ==========================================\n\n    const startTime = Date.now();\n    let sent = 0;\n\n\n    // ==========================================\n    // Generator\n    // ==========================================\n\n    function tick() {\n\n        // Wurde inzwischen gestoppt?\n        if (!context.get(\"running\")) {\n            node.status({\n                fill: \"red\",\n                shape: \"ring\",\n                text: `gestoppt (${sent} gesendet)`\n            });\n\n            return;\n        }\n\n        const now = Date.now();\n        const elapsedMs = now - startTime;\n\n        // Anzahl Nachrichten, die laut Sollfrequenz\n        // bis jetzt gesendet worden sein müssten\n        const targetSent = Math.floor(\n            elapsedMs * rate / 1000\n        );\n\n        // Fehlende Nachrichten nachholen\n        const batchSize = targetSent - sent;\n\n        if (batchSize > 0) {\n\n            const messages = new Array(batchSize);\n\n            for (let i = 0; i < batchSize; i++) {\n                messages[i] = {\n                    payload: value\n                };\n            }\n\n            // ==================================\n            // Last nur über Ausgang 1 senden\n            // ==================================\n\n            node.send([\n                messages,\n                null\n            ]);\n\n            sent += batchSize;\n        }\n\n\n        // ==========================================\n        // Nächsten Tick absolut ausrichten\n        // ==========================================\n\n        const nextTickNumber =\n            Math.floor(elapsedMs / tickMs) + 1;\n\n        const nextTarget =\n            startTime + nextTickNumber * tickMs;\n\n        const delay =\n            Math.max(0, nextTarget - Date.now());\n\n        setTimeout(tick, delay);\n    }\n\n\n    // ==========================================\n    // Start\n    // ==========================================\n\n    node.status({\n        fill: \"green\",\n        shape: \"dot\",\n        text: `${rate} msg/s`\n    });\n\n    tick();\n\n    return null;\n}\n\n\n// ==========================================\n// STOP\n// ==========================================\n\nif (msg.payload === false) {\n\n    context.set(\"running\", false);\n\n    node.status({\n        fill: \"red\",\n        shape: \"ring\",\n        text: \"gestoppt\"\n    });\n\n    return null;\n}\n\n\n// ==========================================\n// Andere Eingaben ignorieren\n// ==========================================\n\nreturn null;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 640,
+        "wires": [
+            [
+                "fa471f4cadfe0aaa"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "0fb9c1766804f0b2",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 250,
+        "y": 600,
+        "wires": [
+            [
+                "9ad3593179a7e021"
+            ]
+        ]
+    },
+    {
+        "id": "855f96dfa63e4dd4",
+        "type": "debug",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "c6117d266be41b45",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 210,
+        "y": 660,
+        "wires": [
+            [
+                "9ad3593179a7e021"
+            ]
+        ]
+    },
+    {
+        "id": "b123a6ce64101d72",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "function 3",
+        "func": "if (msg.topic !== \"benchmark\") {\n    return null;\n}\n\nconst result = msg.payload;\nmsg.payload = JSON.stringify(result, null, 2);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 780,
+        "wires": [
+            [
+                "5327b63d07e9eaaf"
+            ]
+        ]
+    },
+    {
+        "id": "5327b63d07e9eaaf",
+        "type": "file",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "",
+        "filename": "messdaten.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 840,
+        "y": 780,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cfb0a60362a25962",
+        "type": "iec104-masteraddress",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 0,
+        "ca": 0,
+        "connection": "eb932690cff896d2",
+        "x": 880,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "7a20a0b4d2f72bfc",
+        "type": "iec104-masterobserver",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "",
+        "connection": "eb932690cff896d2",
+        "x": 380,
+        "y": 800,
+        "wires": [
+            [],
+            [
+                "855f96dfa63e4dd4",
+                "b123a6ce64101d72"
+            ]
+        ]
+    },
+    {
+        "id": "6ad7e71d718dcdf5",
+        "type": "debug",
+        "z": "9d5706e660095b00",
+        "g": "f4029e1f7411537c",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "d9ce5a923a10bffa",
+        "type": "iec104-masteraddress",
+        "z": "9d5706e660095b00",
+        "g": "f4029e1f7411537c",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": "1",
+        "ca": 1,
+        "connection": "eb932690cff896d2",
+        "x": 880,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "30d1d2cd1e20c042",
+        "type": "iec104-masterobserver",
+        "z": "9d5706e660095b00",
+        "g": "f4029e1f7411537c",
+        "name": "",
+        "connection": "eb932690cff896d2",
+        "x": 380,
+        "y": 1240,
+        "wires": [
+            [],
+            [
+                "6ad7e71d718dcdf5"
+            ]
+        ]
+    },
+    {
+        "id": "237363982cc2c111",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "f4029e1f7411537c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 230,
+        "y": 1120,
+        "wires": [
+            [
+                "ba022fe44a4aaece"
+            ]
+        ]
+    },
+    {
+        "id": "ba022fe44a4aaece",
+        "type": "iec104-singlecommand",
+        "z": "9d5706e660095b00",
+        "g": "f4029e1f7411537c",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "C_SC_NA_1",
+        "tsSource": "now",
+        "x": 500,
+        "y": 1140,
+        "wires": [
+            [
+                "d9ce5a923a10bffa"
+            ]
+        ]
+    },
+    {
+        "id": "c164bc2477ac97a0",
+        "type": "debug",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 1740,
+        "wires": []
+    },
+    {
+        "id": "f2dbb25668175c9a",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "13.85",
+        "payloadType": "num",
+        "x": 230,
+        "y": 1540,
+        "wires": [
+            [
+                "f406ce471ef6ceec"
+            ]
+        ]
+    },
+    {
+        "id": "f406ce471ef6ceec",
+        "type": "iec104-measuredvalue",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "M_ME_NC_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 450,
+        "y": 1600,
+        "wires": [
+            [
+                "7675cc10d9953f78"
+            ]
+        ]
+    },
+    {
+        "id": "7675cc10d9953f78",
+        "type": "iec104-slaveaddress",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 730,
+        "y": 1560,
+        "wires": []
+    },
+    {
+        "id": "d1a4c303fb3a57f8",
+        "type": "iec104-slaveobserver",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 530,
+        "y": 1720,
+        "wires": [
+            [],
+            [
+                "c164bc2477ac97a0"
+            ]
+        ]
+    },
+    {
+        "id": "5c37d9b632a30678",
+        "type": "iec104-measuredvalue",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "2",
+        "objType": "M_ME_NC_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 430,
+        "y": 1660,
+        "wires": [
+            [
+                "7675cc10d9953f78"
+            ]
+        ]
+    },
+    {
+        "id": "109ebeb753d91abf",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "b130470c9d643f9e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "7",
+        "payloadType": "num",
+        "x": 210,
+        "y": 1600,
+        "wires": [
+            [
+                "5c37d9b632a30678"
+            ]
+        ]
+    },
+    {
+        "id": "d0c86876983178dd",
+        "type": "debug",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 2040,
+        "wires": []
+    },
+    {
+        "id": "eb04355236fbd035",
+        "type": "iec104-measuredvalue",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "M_ME_NC_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 670,
+        "y": 1940,
+        "wires": [
+            [
+                "0902bd6184b19a37"
+            ]
+        ]
+    },
+    {
+        "id": "0902bd6184b19a37",
+        "type": "iec104-slaveaddress",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 870,
+        "y": 1860,
+        "wires": []
+    },
+    {
+        "id": "f6eba5ef29911771",
+        "type": "iec104-slaveobserver",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 670,
+        "y": 2020,
+        "wires": [
+            [],
+            [
+                "d0c86876983178dd"
+            ]
+        ]
+    },
+    {
+        "id": "62641ae0eb0f76a7",
+        "type": "http in",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "",
+        "url": "/iec104-test",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 210,
+        "y": 1880,
+        "wires": [
+            [
+                "eb04355236fbd035"
+            ]
+        ]
+    },
+    {
+        "id": "b90f2bced0031da3",
+        "type": "http request",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "http://localhost:1880/iec104-test",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 310,
+        "y": 1940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2751b6da376e0df4",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "3d97733d3c77cc11",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "34",
+        "payloadType": "num",
+        "x": 150,
+        "y": 1960,
+        "wires": [
+            [
+                "b90f2bced0031da3"
+            ]
+        ]
+    },
+    {
+        "id": "59eb100d7e70c73e",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "123",
+        "payloadType": "num",
+        "x": 210,
+        "y": 2040,
+        "wires": [
+            [
+                "eb04355236fbd035"
+            ]
+        ]
+    },
+    {
+        "id": "d328c41671cffa72",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "Lastgenerator",
+        "func": "// ==========================================\n// Konfiguration\n// ==========================================\n\nconst rate = 1000;    // Nachrichten pro Sekunde\nconst value = 42;       // Payload der erzeugten Nachrichten\n\n// Generator-Takt\nconst tickMs = 10;\n\n\n// ==========================================\n// Eingang auswerten\n// ==========================================\n\n// START\nif (msg.payload === true) {\n\n    // Läuft bereits?\n    if (context.get(\"running\")) {\n        node.warn(\"Load Generator läuft bereits\");\n        return null;\n    }\n\n    context.set(\"running\", true);\n\n    // ==========================================\n    // Benchmark starten\n    // Ausgang 2\n    // ==========================================\n\n    node.send([\n        null,\n        {\n            benchmark: true\n        }\n    ]);\n\n\n    // ==========================================\n    // Lastgenerator initialisieren\n    // ==========================================\n\n    const startTime = Date.now();\n    let sent = 0;\n\n\n    // ==========================================\n    // Generator\n    // ==========================================\n\n    function tick() {\n\n        // Wurde inzwischen gestoppt?\n        if (!context.get(\"running\")) {\n            node.status({\n                fill: \"red\",\n                shape: \"ring\",\n                text: `gestoppt (${sent} gesendet)`\n            });\n\n            return;\n        }\n\n        const now = Date.now();\n        const elapsedMs = now - startTime;\n\n        // Anzahl Nachrichten, die laut Sollfrequenz\n        // bis jetzt gesendet worden sein müssten\n        const targetSent = Math.floor(\n            elapsedMs * rate / 1000\n        );\n\n        // Fehlende Nachrichten nachholen\n        const batchSize = targetSent - sent;\n\n        if (batchSize > 0) {\n\n            const messages = new Array(batchSize);\n\n            for (let i = 0; i < batchSize; i++) {\n                messages[i] = {\n                    payload: value\n                };\n            }\n\n            // ==================================\n            // Last nur über Ausgang 1 senden\n            // ==================================\n\n            node.send([\n                messages,\n                null\n            ]);\n\n            sent += batchSize;\n        }\n\n\n        // ==========================================\n        // Nächsten Tick absolut ausrichten\n        // ==========================================\n\n        const nextTickNumber =\n            Math.floor(elapsedMs / tickMs) + 1;\n\n        const nextTarget =\n            startTime + nextTickNumber * tickMs;\n\n        const delay =\n            Math.max(0, nextTarget - Date.now());\n\n        setTimeout(tick, delay);\n    }\n\n\n    // ==========================================\n    // Start\n    // ==========================================\n\n    node.status({\n        fill: \"green\",\n        shape: \"dot\",\n        text: `${rate} msg/s`\n    });\n\n    tick();\n\n    return null;\n}\n\n\n// ==========================================\n// STOP\n// ==========================================\n\nif (msg.payload === false) {\n\n    context.set(\"running\", false);\n\n    node.status({\n        fill: \"red\",\n        shape: \"ring\",\n        text: \"gestoppt\"\n    });\n\n    return null;\n}\n\n\n// ==========================================\n// Andere Eingaben ignorieren\n// ==========================================\n\nreturn null;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1340,
+        "y": 220,
+        "wires": [
+            [
+                "53758553f808b78e"
+            ],
+            [
+                "7d760214c70fd78d",
+                "1e4b5507ea32e352",
+                "e07c897d2e3704cd"
+            ]
+        ]
+    },
+    {
+        "id": "7a0fedd69fe917d8",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 1190,
+        "y": 160,
+        "wires": [
+            [
+                "d328c41671cffa72"
+            ]
+        ]
+    },
+    {
+        "id": "53758553f808b78e",
+        "type": "iec104-measuredvalue",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "4",
+        "objType": "M_ME_TF_1",
+        "tsSource": "now",
+        "qInvalidMode": "msg",
+        "qSubstitutedMode": "msg",
+        "qBlockedMode": "msg",
+        "qNotTopicalMode": "msg",
+        "qOverflowMode": "msg",
+        "x": 1550,
+        "y": 280,
+        "wires": [
+            [
+                "7d760214c70fd78d",
+                "1e4b5507ea32e352",
+                "e07c897d2e3704cd"
+            ]
+        ]
+    },
+    {
+        "id": "7d760214c70fd78d",
+        "type": "iec104-slaveaddress",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "70c120414a25a285",
+        "x": 1890,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "1c14c7e941efe931",
+        "type": "iec104-slaveobserver",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "connection": "70c120414a25a285",
+        "x": 1230,
+        "y": 420,
+        "wires": [
+            [],
+            [
+                "10ccaef99606514e",
+                "6f598ed285df53e8"
+            ]
+        ]
+    },
+    {
+        "id": "10ccaef99606514e",
+        "type": "debug",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "Benchmark",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1750,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "3ceb636aa447c4fd",
+        "type": "inject",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 1150,
+        "y": 220,
+        "wires": [
+            [
+                "d328c41671cffa72"
+            ]
+        ]
+    },
+    {
+        "id": "6f598ed285df53e8",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "Extrahiere Benchmark",
+        "func": "if (msg.topic !== \"benchmark\") {\n    return null;\n}\n\nconst result = msg.payload;\nmsg.payload = JSON.stringify(result, null, 2);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1500,
+        "y": 360,
+        "wires": [
+            [
+                "f1801abafbe3564f"
+            ]
+        ]
+    },
+    {
+        "id": "f1801abafbe3564f",
+        "type": "file",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "filename": "messdaten.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1780,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1e4b5507ea32e352",
+        "type": "iec104-slaveaddress",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "1966cb22c8066849",
+        "x": 1900,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "0715b7ab8fa94a4b",
+        "type": "iec104-slaveobserver",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "connection": "1966cb22c8066849",
+        "x": 1240,
+        "y": 500,
+        "wires": [
+            [],
+            [
+                "c7886763902a3d3f"
+            ]
+        ]
+    },
+    {
+        "id": "6f160fb2e69414b7",
+        "type": "iec104-slaveobserver",
+        "z": "9d5706e660095b00",
+        "d": true,
+        "g": "98441846772339c9",
+        "name": "",
+        "connection": "98f2e3deedfaaa40",
+        "x": 1240,
+        "y": 580,
+        "wires": [
+            [],
+            [
+                "2fb5e0c9c894abf5"
+            ]
+        ]
+    },
+    {
+        "id": "c7886763902a3d3f",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "Extrahiere Benchmark",
+        "func": "if (msg.topic !== \"benchmark\") {\n    return null;\n}\n\nconst result = msg.payload;\nmsg.payload = JSON.stringify(result, null, 2);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1500,
+        "y": 500,
+        "wires": [
+            [
+                "5b2a4891d163f6d6"
+            ]
+        ]
+    },
+    {
+        "id": "2fb5e0c9c894abf5",
+        "type": "function",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "Extrahiere Benchmark",
+        "func": "if (msg.topic !== \"benchmark\") {\n    return null;\n}\n\nconst result = msg.payload;\nmsg.payload = JSON.stringify(result, null, 2);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1500,
+        "y": 580,
+        "wires": [
+            [
+                "f473a00f3a781a5b"
+            ]
+        ]
+    },
+    {
+        "id": "5b2a4891d163f6d6",
+        "type": "file",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "filename": "messdaten2.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1790,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f473a00f3a781a5b",
+        "type": "file",
+        "z": "9d5706e660095b00",
+        "g": "98441846772339c9",
+        "name": "",
+        "filename": "messdaten3.json",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1770,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e07c897d2e3704cd",
+        "type": "iec104-slaveaddress",
+        "z": "9d5706e660095b00",
+        "d": true,
+        "g": "98441846772339c9",
+        "name": "",
+        "ca_hi": 0,
+        "ca_lo": 1,
+        "ca": 1,
+        "connection": "98f2e3deedfaaa40",
+        "x": 1900,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "fa471f4cadfe0aaa",
+        "type": "iec104-singlecommand",
+        "z": "9d5706e660095b00",
+        "g": "318adc7b9c326e49",
+        "name": "",
+        "ioaFromMsg": false,
+        "ioa0": 0,
+        "ioa1": 0,
+        "ioa2": "1",
+        "objType": "C_SC_NA_1",
+        "tsSource": "now",
+        "x": 620,
+        "y": 660,
+        "wires": [
+            [
+                "cfb0a60362a25962"
+            ]
+        ]
+    },
+    {
+        "id": "70c120414a25a285",
+        "type": "iec104-slave",
+        "name": "IEC104-Slave",
+        "port": "2404",
+        "t1": 15,
+        "t2": "10",
+        "t3": 20,
+        "k_win": "12",
+        "w_win": 8,
+        "benchmark_outbound": true,
+        "benchmark_inbound_command": false,
+        "benchmark_measurement_duration": "60"
+    },
+    {
+        "id": "eb932690cff896d2",
+        "type": "iec104-master",
+        "d": true,
+        "name": "IEC104-Master",
+        "host": "192.168.4.143",
+        "port": "2406",
+        "autoGI": false,
+        "gi_ca": 65535,
+        "t0": 30,
+        "t1": 15,
+        "t2": 10,
+        "t3": 20,
+        "k_win": 12,
+        "w_win": 8,
+        "reconnectDelay": 5,
+        "maxRetries": 10,
+        "benchmark_outbound": false,
+        "benchmark_inbound_report": true,
+        "benchmark_measurement_duration": 60
+    },
+    {
+        "id": "1966cb22c8066849",
+        "type": "iec104-slave",
+        "name": "IEC104-Slave2",
+        "port": "2405",
+        "t1": 15,
+        "t2": 10,
+        "t3": 20,
+        "k_win": 12,
+        "w_win": 8,
+        "benchmark_outbound": true,
+        "benchmark_inbound_command": false,
+        "benchmark_measurement_duration": "60"
+    },
+    {
+        "id": "98f2e3deedfaaa40",
+        "type": "iec104-slave",
+        "d": true,
+        "name": "IEC104-Slave3",
+        "port": "2406",
+        "t1": 15,
+        "t2": 10,
+        "t3": 20,
+        "k_win": 12,
+        "w_win": 8,
+        "benchmark_outbound": true,
+        "benchmark_inbound_command": false,
+        "benchmark_measurement_duration": "60"
+    },
+    {
+        "id": "8ef0c604bb66304a",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-iec104": "0.3.1"
+        }
+    }
+]
