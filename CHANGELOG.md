@@ -1,4 +1,34 @@
 # Changelog
+## [0.3.2] - 21.09.2026
+
+### Added
+
+* Added a Master Observer node for subscribing to IEC 60870-5-104 Master events
+* Added additional benchmark metrics for throughput and sustained throughput
+* Added a resource monitor for tracking system utilization during benchmarks
+
+### Changed
+
+* Streamlined node labels to fit on a single line
+* Updated the Benchmark to start via a button
+* Updated the IEC client and server scripts to use their corresponding JSON configuration files
+* Adjusted colors for Master and Slave nodes
+* Updated TESTFR confirmation timeout handling to use the T1 timer
+
+### Fixed
+
+* Fixed missing `normalizeDpi` import in the Double Command node
+* Removed redundant `BROADCAST` fallback check in the Master node
+* Removed redundant `msg = null` default parameter from the Slave node's `emitData` function
+* Fixed Single Point and Double Point encoders/decoders to pass only QDS bits to quality handling
+* Fixed `isValidPoint()` returning non-boolean values for invalid points
+* Fixed inconsistent use of `quality` and `qds` across ASDU encoders, decoders, parser, and tests
+
+### Migration Notes
+
+No migration steps are required.
+
+
 ## [0.3.1] - 24.08.2026
 
 ### Added

@@ -14,8 +14,8 @@ RED.nodes.registerType('iec104-slave', {
     benchmark_outbound: {value: false},
     benchmark_inbound_command: {value: false},
 
-    benchmark_max_frames: {
-      value: 100000,
+    benchmark_measurement_duration: {
+      value: 120,
       required: true,
       validate: RED.validators.number()
     }
@@ -214,6 +214,132 @@ RED.nodes.registerType('iec104-slave', {
     };
 
     // ==========================================
+    // Benchmark control
+    // ==========================================
+
+    let benchmarkStatusTimer = null;
+
+    function formatDuration(ms) {
+      if (ms === null || ms === undefined) {
+        return "-";
+      }
+
+      return (ms / 1000).toFixed(1) + " s";
+    }
+
+    function renderBenchmarkStatus(data) {
+      const phase = data?.phase || "idle";
+
+      const labels = {
+        idle: "Bereit",
+        warmup: "Aufwärmphase",
+        measurement: "Messung",
+        finished: "Abgeschlossen"
+      };
+
+      $("#node-config-benchmark-phase")
+        .text(labels[phase] || phase);
+
+      if (phase === "warmup") {
+        $("#node-config-benchmark-progress")
+          .text(
+            "Warm-up: " +
+            formatDuration(data?.warmup?.elapsedMs)
+          );
+      } else if (phase === "measurement") {
+        const elapsed =
+          data?.measurement?.elapsedMs ?? 0;
+
+        const duration =
+          data?.measurement?.configuredDurationMs ?? 0;
+
+        $("#node-config-benchmark-progress")
+          .text(
+            "Messung: " +
+            formatDuration(elapsed) +
+            " / " +
+            formatDuration(duration)
+          );
+      } else if (phase === "finished") {
+        $("#node-config-benchmark-progress")
+          .text(
+            "Messdauer: " +
+            formatDuration(
+              data?.measurement?.elapsedMs
+            )
+          );
+      } else {
+        $("#node-config-benchmark-progress")
+          .text("-");
+      }
+
+      const running =
+        phase === "warmup" ||
+        phase === "measurement";
+
+      $("#node-config-benchmark-start")
+        .prop("disabled", running)
+        .text(
+          phase === "finished"
+            ? "Neuen Benchmark starten"
+            : "Benchmark starten"
+        );
+    }
+
+    function refreshBenchmarkStatus() {
+      $.getJSON(
+        "iec104/" +
+        nodeId +
+        "/benchmark/status"
+      )
+        .done(renderBenchmarkStatus)
+        .fail(function() {
+          renderBenchmarkStatus({
+            phase: "idle"
+          });
+        });
+    }
+
+    $("#node-config-benchmark-start")
+      .on("click", function(evt) {
+        evt.preventDefault();
+
+        const $button = $(this);
+        $button.prop("disabled", true);
+
+        $.ajax({
+          url:
+            "iec104/" +
+            nodeId +
+            "/benchmark/start",
+          method: "POST",
+          dataType: "json"
+        })
+          .done(function(data) {
+            renderBenchmarkStatus(data);
+          })
+          .fail(function(xhr) {
+            const message =
+              xhr.responseJSON?.error ||
+              "Benchmark konnte nicht gestartet werden.";
+
+            RED.notify(
+              message,
+              "error"
+            );
+
+            refreshBenchmarkStatus();
+          });
+      });
+
+    refreshBenchmarkStatus();
+
+    benchmarkStatusTimer = setInterval(
+      refreshBenchmarkStatus,
+      1000
+    );
+
+    // ==========================================
     // Layout / Help
     // ==========================================
 
@@ -296,6 +422,8 @@ RED.nodes.registerType('iec104-slave', {
 
     this._iec104ResizeNamespace = resizeNamespace;
     this._iec104EventSource = es;
+    this._iec104BenchmarkStatusTimer =
+      benchmarkStatusTimer;
   },
 
   oneditcancel: function() {
@@ -306,6 +434,13 @@ RED.nodes.registerType('iec104-slave', {
       );
 
       this._iec104ResizeNamespace = null;
+    }
+
+    if (this._iec104BenchmarkStatusTimer) {
+      clearInterval(
+        this._iec104BenchmarkStatusTimer
+      );
+      this._iec104BenchmarkStatusTimer = null;
     }
 
     if (this._iec104EventSource) {
@@ -322,6 +457,13 @@ RED.nodes.registerType('iec104-slave', {
       );
 
       this._iec104ResizeNamespace = null;
+    }
+
+    if (this._iec104BenchmarkStatusTimer) {
+      clearInterval(
+        this._iec104BenchmarkStatusTimer
+      );
+      this._iec104BenchmarkStatusTimer = null;
     }
 
     if (this._iec104EventSource) {
@@ -495,8 +637,22 @@ RED.nodes.registerType('iec104-slave', {
     font-size: 12px;
   }
 
-  .iec104-benchmark-max {
+  .iec104-benchmark-settings {
     margin-top: 20px;
+  }
+
+  .iec104-benchmark-status {
+    margin-top: 20px;
+    padding: 10px 0;
+  }
+
+  .iec104-benchmark-status strong {
+    display: inline-block;
+    min-width: 110px;
+  }
+
+  #node-config-benchmark-start {
+    margin-top: 8px;
   }
 </style>
 
@@ -846,9 +1002,13 @@ RED.nodes.registerType('iec104-slave', {
       <u><h4>Benchmark-Messungen</h4></u>
 
       <p style="color:#666; margin-bottom:16px;">
-        Aktivierte Messungen starten nach dem Deploy automatisch.
-        Das Ergebnis wird nach Erreichen der maximalen Sample-Anzahl
-        auf dem IEC-104-Statusausgang ausgegeben.
+        Die Auswahl der Benchmark-Metriken und die Messdauer werden
+        beim Deploy übernommen. Ein Messlauf startet anschließend
+        ausschließlich über die Schaltfläche "Benchmark starten".
+        Nach einer automatisch erkannten Aufwärmphase wird für die
+        konfigurierte Dauer gemessen. Das finale Ergebnis enthält
+        sowohl die Warm-up-Daten als auch die Messdaten und wird über
+        den IEC-104-Statuskanal ausgegeben.
       </p>
 
       <div class="iec104-benchmark-option">
@@ -887,25 +1047,50 @@ RED.nodes.registerType('iec104-slave', {
 
       <hr>
 
-      <div class="form-row iec104-benchmark-max">
+      <div class="form-row iec104-benchmark-settings">
 
-        <label for="node-config-input-benchmark_max_frames">
-          Maximale Samples
+        <label for="node-config-input-benchmark_measurement_duration">
+          Messdauer
         </label>
 
         <input
           type="number"
-          id="node-config-input-benchmark_max_frames"
+          id="node-config-input-benchmark_measurement_duration"
           min="1"
           step="1"
           style="width:140px;">
 
+        <span style="margin-left:6px;">
+          Sekunden
+        </span>
+
       </div>
 
       <div style="color:#666; font-size:12px; margin-top:6px;">
-        Jede aktivierte Benchmark-Metrik besitzt ein eigenes Histogramm
-        und stoppt unabhängig nach dieser Anzahl aufgezeichneter Samples.
         Die Nachrichtenfrequenz wird nicht durch den Benchmark gesteuert.
+        Die Warm-up-Erkennung verwendet ein gleitendes Fenster von
+        10 Durchsatzwerten und eine maximale relative Spannweite von 5 %.
+      </div>
+
+      <hr>
+
+      <div class="iec104-benchmark-status">
+        <div>
+          <strong>Status</strong>
+          <span id="node-config-benchmark-phase">Bereit</span>
+        </div>
+
+        <div style="margin-top:4px;">
+          <strong>Fortschritt</strong>
+          <span id="node-config-benchmark-progress">-</span>
+        </div>
+
+        <button
+          type="button"
+          class="red-ui-button"
+          id="node-config-benchmark-start">
+          Benchmark starten
+        </button>
       </div>
 
     </div>

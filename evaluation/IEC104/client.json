@@ -1,0 +1,22 @@
+{
+  "debug": true,
+  "debug_log": "client.debug.log",
+  "connections": [
+    {
+      "name": "NodeRED",
+      "ip": "127.0.0.1",
+      "port": 2404,
+      "init": "INTERROGATION",
+      "stations": [
+        {
+          "ca": 1,
+          "points": [
+            { "ioa": 1, "type": "M_ME_NC_1" },
+            { "ioa": 2, "type": "M_ME_NC_1" },
+            { "ioa": 3, "type": "M_ME_NC_1" }
+          ]
+        }
+      ]
+    }
+  ]
+}
