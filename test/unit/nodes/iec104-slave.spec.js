@@ -160,36 +160,39 @@ describe('iec104-slave node', function () {
     // Benchmark
     // ==========================================================
 
-    benchmarkInstance = {
-      setEnabled:
-        sinon.spy(),
+benchmarkInstance = {
+  setEnabled:
+    sinon.spy(),
 
-      start:
-        sinon.stub().returns(null),
+  startRun:
+    sinon.stub(),
 
-      result:
-        sinon.stub(),
+  start:
+    sinon.stub().returns(null),
 
-      recordInput:
-        sinon.spy(),
+  result:
+    sinon.stub(),
 
-      recordOutput:
-        sinon.spy(),
+  recordInput:
+    sinon.spy(),
 
-      metricSnapshot:
-        sinon.stub(),
+  recordOutput:
+    sinon.spy(),
 
-      tick:
-        sinon.stub().returns({
-          transition: false,
-          finished: false
-        }),
+  metricSnapshot:
+    sinon.stub(),
 
-      status:
-        sinon.stub().returns({
-          state: 'IDLE'
-        })
-    };
+  tick:
+    sinon.stub().returns({
+      transition: false,
+      finished: false
+    }),
+
+  status:
+    sinon.stub().returns({
+      state: 'IDLE'
+    })
+};
 
     BenchmarkStub =
       sinon.stub().callsFake(
@@ -349,7 +352,24 @@ describe('iec104-slave node', function () {
     });
   });
 
+  describe('transport reset callback', function () {
+  it('forwards transport reset reason to TCP', function () {
+    createNode();
 
+    tcpInstance.disconnect = sinon.spy();
+
+    sessionInstance.options.onTransportReset(
+      't1 timeout'
+    );
+
+    assert.strictEqual(
+      tcpInstance.disconnect.calledOnceWith(
+        't1 timeout'
+      ),
+      true
+    );
+  });
+});
   // ============================================================
   // Initialization
   // ============================================================
@@ -1844,6 +1864,49 @@ describe('iec104-slave node', function () {
   // ============================================================
 
   describe('iec104:input handling', function () {
+    it('starts benchmark run from benchmark input message', function () {
+  const node = createNode();
+
+  const handler = getHandler(
+    node,
+    'iec104:input'
+  );
+
+  handler({
+    benchmark: true
+  });
+
+  assert.strictEqual(
+    benchmarkInstance.startRun.calledOnce,
+    true
+  );
+});
+it('reports benchmark start errors on the input message', function () {
+  const node = createNode();
+
+  const handler = getHandler(
+    node,
+    'iec104:input'
+  );
+
+  const msg = {
+    benchmark: true
+  };
+
+  benchmarkInstance.startRun.throws(
+    new Error('benchmark failed')
+  );
+
+  handler(msg);
+
+  assert.strictEqual(
+    node.error.calledOnceWith(
+      'benchmark failed',
+      msg
+    ),
+    true
+  );
+});
     it('rejects invalid point', function () {
       const node =
         createNode();
@@ -2374,8 +2437,6 @@ describe('iec104-slave node', function () {
         false
       );
     });
-
-
     it('calls done directly when TCP server is missing', function () {
       const node =
         createNode();

@@ -341,6 +341,31 @@ describe('TcpClient', function () {
   });
 
   describe('cleanup', function () {
+    it('does not clear a different current cleanup', function () {
+  const client = createClient();
+
+  client.stopped = false;
+  client.connect();
+
+  const otherCleanup = sinon.spy();
+
+  // Nach connect() enthält currentCleanup die echte cleanup-Funktion.
+  // Wir ersetzen sie absichtlich, um den false-Branch von
+  // this.currentCleanup === cleanup zu testen.
+  client.currentCleanup = otherCleanup;
+
+  getSocketHandler('end')();
+
+  assert.strictEqual(
+    client.currentCleanup,
+    otherCleanup
+  );
+
+  assert.strictEqual(
+    onDisconnect.calledOnceWith('socket end'),
+    true
+  );
+});
     it('cleans up on socket end', function () {
       const client = createClient();
 
@@ -693,7 +718,83 @@ describe('TcpClient', function () {
       }
     });
   });
+  describe('reset', function () {
+  it('returns false while stopped', function () {
+    const client = createClient();
 
+    client.stopped = true;
+
+    assert.strictEqual(
+      client.reset(),
+      false
+    );
+  });
+
+  it('uses current cleanup and forwards reason', function () {
+    const client = createClient();
+
+    client.stopped = false;
+
+    const cleanup = sinon.spy();
+    client.currentCleanup = cleanup;
+
+    assert.strictEqual(
+      client.reset('manual reset'),
+      true
+    );
+
+    assert.strictEqual(
+      cleanup.calledOnceWith('manual reset'),
+      true
+    );
+  });
+
+  it('destroys an active socket when no cleanup exists', function () {
+    const client = createClient();
+
+    client.stopped = false;
+    client.currentCleanup = null;
+    client.socket = socket;
+    socket.destroyed = false;
+
+    assert.strictEqual(
+      client.reset(),
+      true
+    );
+
+    assert.strictEqual(
+      socket.destroy.calledOnce,
+      true
+    );
+  });
+
+  it('returns false when there is nothing to reset', function () {
+    const client = createClient();
+
+    client.stopped = false;
+    client.currentCleanup = null;
+    client.socket = null;
+
+    assert.strictEqual(
+      client.reset(),
+      false
+    );
+  });
+
+  it('returns false for an already destroyed socket', function () {
+    const client = createClient();
+
+    client.stopped = false;
+    client.currentCleanup = null;
+    client.socket = socket;
+    socket.destroyed = true;
+
+    assert.strictEqual(
+      client.reset(),
+      false
+    );
+  });
+});
   describe('send', function () {
     it('writes data when socket is writable', function () {
       const client = createClient();
@@ -762,6 +863,51 @@ describe('TcpClient', function () {
   });
 
   describe('stop', function () {
+    it('cleans up active connection when stopping', function () {
+  const client = createClient();
+
+  client.stopped = false;
+  client.connect();
+
+  assert.strictEqual(
+    typeof client.currentCleanup,
+    'function'
+  );
+
+  client.stop();
+
+  assert.strictEqual(
+    client.stopped,
+    true
+  );
+
+  assert.strictEqual(
+    client.currentCleanup,
+    null
+  );
+
+  assert.strictEqual(
+    client.socket,
+    null
+  );
+
+  assert.strictEqual(
+    parser.reset.calledOnce,
+    true
+  );
+
+  assert.strictEqual(
+    socket.destroy.calledOnce,
+    true
+  );
+
+  assert.strictEqual(
+    onDisconnect.calledOnceWith(
+      'client stopped'
+    ),
+    true
+  );
+});
     it('marks client as stopped', function () {
       const client = createClient();
 

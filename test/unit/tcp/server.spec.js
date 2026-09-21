@@ -378,6 +378,47 @@ describe('TcpServer', function () {
         1
       );
     });
+    it('does not clear a different current cleanup', function () {
+  const server = createTcpServer();
+
+  connectClient(server);
+
+  // Sicherstellen, dass der normale Zustand zunächst vorhanden ist.
+  assert.strictEqual(
+    typeof server.currentCleanup,
+    'function'
+  );
+
+  const originalCleanup = server.currentCleanup;
+  const otherCleanup = sinon.spy();
+
+  // currentCleanup absichtlich austauschen.
+  server.currentCleanup = otherCleanup;
+
+  // WICHTIG:
+  // Wir rufen die ursprüngliche Cleanup-Funktion direkt auf.
+  originalCleanup('test cleanup');
+
+  // Weil:
+  // this.currentCleanup !== cleanup
+  // darf currentCleanup NICHT auf null gesetzt werden.
+  assert.strictEqual(
+    server.currentCleanup,
+    otherCleanup
+  );
+
+  assert.strictEqual(
+    parser.reset.calledOnce,
+    true
+  );
+
+  assert.strictEqual(
+    onDisconnect.calledOnceWith(
+      'test cleanup'
+    ),
+    true
+  );
+});
 
     it('does not clear a different current socket', function () {
       const server = createTcpServer();
@@ -396,7 +437,73 @@ describe('TcpServer', function () {
       );
     });
   });
+  describe('disconnect', function () {
+  it('returns false when no client is connected', function () {
+    const server = createTcpServer();
 
+    assert.strictEqual(
+      server.disconnect(),
+      false
+    );
+  });
+
+  it('runs cleanup, destroys socket and returns true', function () {
+    const server = createTcpServer();
+
+    connectClient(server);
+
+    assert.strictEqual(
+      server.disconnect('manual reset'),
+      true
+    );
+
+    assert.strictEqual(
+      onDisconnect.calledOnceWith('manual reset'),
+      true
+    );
+
+    assert.strictEqual(
+      socket.destroy.calledOnce,
+      true
+    );
+  });
+
+  it('does not destroy an already destroyed socket', function () {
+    const server = createTcpServer();
+
+    connectClient(server);
+
+    socket.destroyed = true;
+
+    assert.strictEqual(
+      server.disconnect(),
+      true
+    );
+
+    assert.strictEqual(
+      socket.destroy.called,
+      false
+    );
+  });
+
+  it('destroys socket even when cleanup callback is unavailable', function () {
+    const server = createTcpServer();
+
+    server.socket = socket;
+    server.currentCleanup = null;
+    socket.destroyed = false;
+
+    assert.strictEqual(
+      server.disconnect(),
+      true
+    );
+
+    assert.strictEqual(
+      socket.destroy.calledOnce,
+      true
+    );
+  });
+});
   describe('send', function () {
     it('writes data when socket exists', function () {
       const server = createTcpServer();
